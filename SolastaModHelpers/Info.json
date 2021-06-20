@@ -8,6 +8,6 @@
   "LoadAfter": [ "SolastaModApi" ],
   "AssemblyName": "SolastaModHelpers.dll",
   "EntryMethod": "SolastaModHelpers.Main.Load",
-  "Repository": "https://github.com/Holic75/SolastaBard",
+  "Repository": "https://github.com/Holic75/SolastaModHelpers",
   "HomePage": ""
 }
