@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SolastaModHelpers.NewFeatureDefinitions
 {
@@ -11,7 +8,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         int processDiceRoll(RuleDefinitions.RollContext context, int rolled_value, RulesetActor roller);
     }
 
-    public class ModifyDiceRollValue: FeatureDefinition, IModifyDiceRollValue
+    public class ModifyDiceRollValue : FeatureDefinition, IModifyDiceRollValue
     {
         public int numDice;
         public RuleDefinitions.DieType diceType;

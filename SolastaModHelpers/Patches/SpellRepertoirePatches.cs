@@ -1,9 +1,6 @@
 ﻿using HarmonyLib;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SolastaModHelpers.Patches
 {
@@ -113,7 +110,7 @@ namespace SolastaModHelpers.Patches
                             {
                                 continue;
                             }
-                            
+
                             foreach (var s in sg.SpellsList)
                             {
                                 spells.Add(s);

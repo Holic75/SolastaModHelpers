@@ -1,18 +1,14 @@
+using HarmonyLib;
+using I2.Loc;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using UnityModManagerNet;
-using HarmonyLib;
-using I2.Loc;
-using SolastaModApi;
-using SolastaModApi.Extensions;
-using SolastaModHelpers;
-using System.Collections.Generic;
 
 namespace SolastaModHelpers
 {
-    public class Main
+    public static class Main
     {
         [Conditional("DEBUG")]
         internal static void Log(string msg) => Logger.Log(msg);
@@ -33,7 +29,7 @@ namespace SolastaModHelpers
                 var languageIndex = languageSourceData.GetLanguageIndexFromCode(code);
 
                 if (languageIndex < 0)
-                    Main.Error($"language {code} not currently loaded.");
+                    Error($"language {code} not currently loaded.");
                 else
                     using (var sr = new StreamReader(filename))
                     {

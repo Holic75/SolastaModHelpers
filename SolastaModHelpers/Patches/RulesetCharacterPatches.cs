@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SolastaModHelpers.Patches
 {
@@ -54,7 +52,7 @@ namespace SolastaModHelpers.Patches
                 if (base_power == null)
                 {
                     return;
-                    
+
                 }
                 base_power.Consume();
             }
@@ -69,9 +67,9 @@ namespace SolastaModHelpers.Patches
                 var codes = instructions.ToList();
                 var check_remaining_uses = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("RemainingUses"));
 
-                codes[check_remaining_uses] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0);
+                codes[check_remaining_uses] = new CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0);
                 codes.Insert(check_remaining_uses + 1,
-                              new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                              new CodeInstruction(System.Reflection.Emit.OpCodes.Call,
                                                              new Func<RulesetUsablePower, RulesetCharacter, int>(getNumberOfRemainingUses).Method
                                                              )
                             );
@@ -93,9 +91,9 @@ namespace SolastaModHelpers.Patches
                 var codes = instructions.ToList();
                 var check_remaining_uses = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("RemainingUses"));
 
-                codes[check_remaining_uses] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0);
+                codes[check_remaining_uses] = new CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0);
                 codes.Insert(check_remaining_uses + 1,
-                              new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                              new CodeInstruction(System.Reflection.Emit.OpCodes.Call,
                                                              new Func<RulesetUsablePower, RulesetCharacter, int>(getNumberOfRemainingUses).Method
                                                              )
                             );

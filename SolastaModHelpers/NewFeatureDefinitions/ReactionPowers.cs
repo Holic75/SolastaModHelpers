@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SolastaModHelpers.NewFeatureDefinitions
+﻿namespace SolastaModHelpers.NewFeatureDefinitions
 {
     public interface IReactionPowerOnAttackAttempt
     {
@@ -18,7 +12,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class FeatureDefinitionReactionPowerOnDamage: NewFeatureDefinitions.LinkedPower, IReactionPowerOnDamage
+    public class FeatureDefinitionReactionPowerOnDamage : LinkedPower, IReactionPowerOnDamage
     {
         public bool worksOnMelee;
         public bool worksOnRanged;
@@ -33,7 +27,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             int max_distance = this.EffectDescription.RangeParameter;
-            
+
             if ((caster.LocationPosition - attacker.LocationPosition).magnitude > max_distance)
             {
                 return false;
@@ -63,7 +57,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return false;
             }
-            
+
             if (!works_on_caster && attacker == caster)
             {
                 return false;
@@ -74,7 +68,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class FeatureDefinitionReactionPowerOnAttackAttempt : NewFeatureDefinitions.LinkedPower, IReactionPowerOnAttackAttempt
+    public class FeatureDefinitionReactionPowerOnAttackAttempt : LinkedPower, IReactionPowerOnAttackAttempt
     {
         public bool worksOnMelee;
         public bool worksOnRanged;

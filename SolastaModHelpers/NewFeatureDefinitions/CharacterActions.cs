@@ -1,11 +1,7 @@
-﻿using SolastaModHelpers.NewFeatureDefinitions;
-using SolastaModApi;
-using System;
+﻿using SolastaModApi;
+using SolastaModHelpers.NewFeatureDefinitions;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SolastaModHelpers.NewFeatureDefinitions
 {
@@ -43,7 +39,6 @@ public class CharacterActionModifyAttackRollViaPower : CharacterActionUsePower
         CharacterActionModifyAttackRollViaPower actionModifyAttackRoll = this;
         GameLocationCharacter attacker = actionModifyAttackRoll.ActionParams.TargetCharacters[0];
         GameLocationCharacter defender = actionModifyAttackRoll.ActionParams.TargetCharacters[1];
-        var action_modifier = actionModifyAttackRoll.ActionParams.ActionModifiers[0];
         var power = actionParams.UsablePower.PowerDefinition;
         foreach (var e in power.EffectDescription.effectForms)
         {

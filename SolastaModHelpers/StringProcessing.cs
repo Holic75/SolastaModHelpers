@@ -1,9 +1,6 @@
 ﻿using I2.Loc;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SolastaModHelpers.Helpers
 {
@@ -111,7 +108,7 @@ namespace SolastaModHelpers.Helpers
         }
 
 
-        public static void addPowerReactStrings(FeatureDefinitionPower power, string use_power_title, string use_power_description, 
+        public static void addPowerReactStrings(FeatureDefinitionPower power, string use_power_title, string use_power_description,
                                                string react_title, string react_description)
         {
             var power_name = power.name;

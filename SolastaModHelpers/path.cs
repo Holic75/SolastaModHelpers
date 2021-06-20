@@ -1,1 +1,1 @@
-namespace ProjectPath { static public class ProjectPath { public static readonly string Path = @"C:\Repositories\Solasta\SolastaModHelpers\SolastaModHelpers\";} } 
+namespace ProjectPath { static public class ProjectPath { public static readonly string Path = @"C:\Users\passp\Source\Repos\SolastaModHelpers\SolastaModHelpers\";} } 

@@ -1,5 +1,4 @@
 using HarmonyLib;
-using UnityModManagerNet;
 
 namespace SolastaModHelpers.Patches
 {

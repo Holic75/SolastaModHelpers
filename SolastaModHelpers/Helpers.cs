@@ -8,18 +8,13 @@ using UnityEngine.AddressableAssets;
 using static FeatureDefinitionAbilityCheckAffinity;
 using static FeatureDefinitionSavingThrowAffinity;
 using static SpellListDefinition;
+using static AttributeDefinitions;
+using static SkillDefinitions;
 
 namespace SolastaModHelpers.Helpers
 {
     public static class Stats
     {
-        public static string Strength = "Strength";
-        public static string Dexterity = "Dexterity";
-        public static string Constitution = "Constitution";
-        public static string Wisdom = "Wisdom";
-        public static string Intelligence = "Intelligence";
-        public static string Charisma = "Charisma";
-
         public static string[] getAllStats()
         {
             return typeof(Stats).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f => f.GetValue(null)).Cast<string>().ToArray();
@@ -37,7 +32,7 @@ namespace SolastaModHelpers.Helpers
             {
                 if (!all_stats.Contains(s))
                 {
-                    throw new System.Exception(s + "is not an Ability");
+                    throw new Exception(s + "is not an Ability");
                 }
             }
         }
@@ -68,7 +63,7 @@ namespace SolastaModHelpers.Helpers
             {
                 if (!all_profs.Contains(p))
                 {
-                    throw new System.Exception(p + "is not an Armor Proficiency");
+                    throw new Exception(p + "is not an Armor Proficiency");
                 }
             }
         }
@@ -98,7 +93,7 @@ namespace SolastaModHelpers.Helpers
             {
                 if (!all_conditions.Contains(c))
                 {
-                    throw new System.Exception(c + "is not a Condition");
+                    throw new Exception(c + "is not a Condition");
                 }
             }
         }
@@ -106,45 +101,26 @@ namespace SolastaModHelpers.Helpers
 
     public static class Skills
     {
-        public static string Acrobatics = "Acrobatics";
-        public static string Arcana = "Arcana";
-        public static string AnimalHandling = "AnimalHandling";
-        public static string Athletics = "Athletics";
-        public static string Deception = "Deception";
-        public static string History = "History";
-        public static string Insight = "Insight";
-        public static string Intimidation = "Intimidation";
-        public static string Investigation = "Investigation";
-        public static string Medicine = "Medecine";
-        public static string Nature = "Nature";
-        public static string Perception = "Perception";
-        public static string Perfromance = "Performance";
-        public static string Persuasion = "Persuasion";
-        public static string Religion = "Religion";
-        public static string SleightOfHand = "SleightOfHand";
-        public static string Stealth = "Stealth";
-        public static string Survival = "Survival";
-
         public static Dictionary<string, string> skill_stat_map = new Dictionary<string, string>
         {
-            {Acrobatics, Stats.Dexterity },
-            {Arcana, Stats.Intelligence },
-            {AnimalHandling, Stats.Wisdom },
-            {Athletics, Stats.Strength },
-            {Deception, Stats.Charisma },
-            {History, Stats.Intelligence },
-            {Insight, Stats.Wisdom },
-            {Intimidation, Stats.Charisma },
-            {Investigation, Stats.Intelligence },
-            {Medicine, Stats.Wisdom },
-            {Nature, Stats.Intelligence },
-            {Perception, Stats.Wisdom },
-            {Perfromance, Stats.Charisma },
-            {Persuasion, Stats.Charisma },
-            {Religion, Stats.Wisdom },
-            {SleightOfHand, Stats.Dexterity },
-            {Stealth, Stats.Dexterity },
-            {Survival, Stats.Wisdom }
+            {Acrobatics, Dexterity },
+            {Arcana, Intelligence },
+            {AnimalHandling, Wisdom },
+            {Athletics, Strength },
+            {Deception, Charisma },
+            {History, Intelligence },
+            {Insight, Wisdom },
+            {Intimidation, Charisma },
+            {Investigation, Intelligence },
+            {Medecine, Wisdom },
+            {Nature, Intelligence },
+            {Perception, Wisdom },
+            {Performance, Charisma },
+            {Persuasion, Charisma },
+            {Religion, Wisdom },
+            {SleightOfHand, Dexterity },
+            {Stealth, Dexterity },
+            {Survival, Wisdom }
         };
 
         public static string[] getAllSkills()
@@ -164,7 +140,7 @@ namespace SolastaModHelpers.Helpers
             {
                 if (!all_stats.Contains(s))
                 {
-                    throw new System.Exception(s + "is not a Skill");
+                    throw new Exception(s + "is not a Skill");
                 }
             }
         }
@@ -172,14 +148,6 @@ namespace SolastaModHelpers.Helpers
 
     public static class Tools
     {
-        public static string ScrollKit = "ScrollKitType";
-        public static string EnchantingTool = "EnchantingToolType";
-        public static string SmithTool = "ArtisanToolSmithToolsType";
-        public static string ThievesTool = "ThievesToolsType";
-        public static string HerbalismKit = "HerbalismKitType";
-        public static string PoisonerKit = "PoisonersKitType";
-        public static string Lyre = "MusicalInstrumentLyreType";
-
         public static string[] getAllTools()
         {
             return typeof(Tools).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f => f.GetValue(null)).Cast<string>().ToArray();
@@ -197,7 +165,7 @@ namespace SolastaModHelpers.Helpers
             {
                 if (!all_stats.Contains(s))
                 {
-                    throw new System.Exception(s + "is not a Tool");
+                    throw new Exception(s + "is not a Tool");
                 }
             }
         }
@@ -482,7 +450,7 @@ namespace SolastaModHelpers.Helpers
                                           string condition_type,
                                           RuleDefinitions.ConditionAffinityType affinity,
                                           RuleDefinitions.AdvantageType saving_throw_advantage_type,
-                                          RuleDefinitions.AdvantageType reroll_advantage_type) : 
+                                          RuleDefinitions.AdvantageType reroll_advantage_type) :
             base(DatabaseHelper.FeatureDefinitionConditionAffinitys.ConditionAffinityElfFeyAncestryCharm, name, guid)
         {
             if (title_string != "")
@@ -790,7 +758,7 @@ namespace SolastaModHelpers.Helpers
             return new CopyFeatureBuilder<TDefinition>(name, guid, title_string, description_string, sprite, base_feature).AddToDB();
         }
 
-        public static TDefinition createFeatureCopy(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite, 
+        public static TDefinition createFeatureCopy(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite,
                                                         TDefinition base_feature, Action<TDefinition> action)
         {
             var res = new CopyFeatureBuilder<TDefinition>(name, guid, title_string, description_string, sprite, base_feature).AddToDB();
@@ -827,7 +795,7 @@ namespace SolastaModHelpers.Helpers
 
         public static TDefinition createFeature(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite, Action<TDefinition> action)
         {
-            var res =  new FeatureBuilder<TDefinition>(name, guid, title_string, description_string, sprite).AddToDB();
+            var res = new FeatureBuilder<TDefinition>(name, guid, title_string, description_string, sprite).AddToDB();
             action(res);
             return res;
         }
@@ -914,7 +882,7 @@ namespace SolastaModHelpers.Helpers
     }
 
 
-    public class GenericPowerBuilder<T> : BaseDefinitionBuilderWithGuidStorage<T> where T: FeatureDefinitionPower
+    public class GenericPowerBuilder<T> : BaseDefinitionBuilderWithGuidStorage<T> where T : FeatureDefinitionPower
     {
         protected GenericPowerBuilder(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite,
                                        EffectDescription effect_description,
@@ -1013,7 +981,7 @@ namespace SolastaModHelpers.Helpers
             }
         }
 
-        static public List<T> extractFeaturesHierarchically<T>(IEnumerable<FeatureDefinition> features) where T: class
+        static public List<T> extractFeaturesHierarchically<T>(IEnumerable<FeatureDefinition> features) where T : class
         {
             var list = new List<T>();
             foreach (var f in features)

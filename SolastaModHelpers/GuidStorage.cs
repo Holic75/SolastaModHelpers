@@ -1,9 +1,6 @@
 ﻿using SolastaModApi;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SolastaModHelpers
 {
@@ -38,7 +35,7 @@ namespace SolastaModHelpers
             {
                 foreach (var pair in guids_in_use)
                 {
-                  sw.WriteLine(pair.Key + '\t' + pair.Value);
+                    sw.WriteLine(pair.Key + '\t' + pair.Value);
                 }
             }
         }
@@ -102,19 +99,19 @@ namespace SolastaModHelpers
 
 
     public class BaseDefinitionBuilderWithGuidStorage<TDefinition> : BaseDefinitionBuilder<TDefinition> where TDefinition : BaseDefinition
-    { 
+    {
         protected BaseDefinitionBuilderWithGuidStorage(TDefinition original)
-            :base(original)
+            : base(original)
         {
 
         }
         protected BaseDefinitionBuilderWithGuidStorage(string name, string guid)
-            :base(name, guid == "" ? GuidStorage.getGuid(name) : guid)
+            : base(name, guid == "" ? GuidStorage.getGuid(name) : guid)
         {
             GuidStorage.addEntry(name, Definition.GUID);
         }
         protected BaseDefinitionBuilderWithGuidStorage(TDefinition original, string name, string guid)
-            :base(original, name, guid == "" ? GuidStorage.getGuid(name) : guid)
+            : base(original, name, guid == "" ? GuidStorage.getGuid(name) : guid)
         {
             GuidStorage.addEntry(name, Definition.GUID);
         }

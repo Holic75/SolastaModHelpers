@@ -1,9 +1,5 @@
 ﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SolastaModApi.Infrastructure;
 
 namespace SolastaModHelpers.Patches
 {
@@ -19,18 +15,18 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
 
-                var tr = HarmonyLib.Traverse.Create(__instance);
-                var effect = tr.Field("effectDescription").GetValue<EffectDescription>();
+                var effect = __instance.GetField<EffectDescription>("effectDescription");
+
                 var tag = (ExtendedEnums.ExtraTargetFilteringTag)effect.TargetFilteringTag;
                 if (effect == null || (tag & ExtendedEnums.ExtraTargetFilteringTag.NonCaster) == ExtendedEnums.ExtraTargetFilteringTag.No)
                 {
                     return;
                 }
 
-                __result =  target != __instance.ActionParams.ActingCharacter;
+                __result = target != __instance.ActionParams.ActingCharacter;
                 if (!__result)
                 {
-                    var action_modifier = tr.Field("actionModifier").GetValue<ActionModifier>();
+                    var action_modifier = __instance.GetField<ActionModifier>("actionModifier");
                     action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectCreatureFamily");
                 }
                 return;
