@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using SolastaModHelpers.NewFeatureDefinitions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,13 +34,7 @@ namespace SolastaModHelpers.Patches
 
             static void applyArmorModifiers(RulesetAttribute attribute, RulesetCharacterHero character)
             {
-                var features = character.ActiveFeatures.Values.Aggregate(new List<NewFeatureDefinitions.IScalingArmorClassBonus>(),
-                                                                          (old, next) =>
-                                                                          {
-                                                                              old.AddRange(Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IScalingArmorClassBonus>(next));
-                                                                              return old;
-                                                                          }
-                                                                          );
+                var features = Helpers.Accessors.extractFeaturesHierarchically<IScalingArmorClassBonus>(character);
                 foreach (var f in features)
                 {
                     f.apply(attribute, character);

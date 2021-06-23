@@ -1013,21 +1013,11 @@ namespace SolastaModHelpers.Helpers
             }
         }
 
-        static public List<T> extractFeaturesHierarchically<T>(IEnumerable<FeatureDefinition> features) where T: class
+        static public List<T> extractFeaturesHierarchically<T>(RulesetCharacterHero hero) where T: class
         {
-            var list = new List<T>();
-            foreach (var f in features)
-            {
-                if (f is T)
-                {
-                    list.Add(f as T);
-                }
-                if (f is FeatureDefinitionFeatureSet)
-                {
-                    list.AddRange(extractFeaturesHierarchically<T>((f as FeatureDefinitionFeatureSet).featureSet));
-                }
-            }
-            return list;
+            var list = new List<FeatureDefinition>();
+            hero.EnumerateFeaturesToBrowse<T>(list, null);
+            return list.Select(s => s as T).ToList();
         }
     }
 }

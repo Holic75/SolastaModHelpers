@@ -29,12 +29,8 @@ namespace SolastaModHelpers.Patches
                         return true;
                     }
 
-                    var extra_spell_list = hero.ActiveFeatures.Values.Aggregate(new List<NewFeatureDefinitions.IReplaceSpellList>(),
-                                                                               (old, next) =>
-                                                                               {
-                                                                                   old.AddRange(Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IReplaceSpellList>(next));
-                                                                                   return old;
-                                                                               }).Select(rs => rs.getSpelllist(characterBuildingService)).FirstOrDefault(s => s != null);
+                    var extra_spell_list = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IReplaceSpellList>(hero)
+                                                                    .Select(rs => rs.getSpelllist(characterBuildingService)).FirstOrDefault(s => s != null);
 
                     if (extra_spell_list == null)
                     {
@@ -64,13 +60,8 @@ namespace SolastaModHelpers.Patches
                     {
                         return true;
                     }
-                    int bonus_known_spells = __instance.HeroCharacter.ActiveFeatures.Values.Aggregate(new List<NewFeatureDefinitions.IKnownSpellNumberIncrease>(),
-                                                                          (old, next) =>
-                                                                          {
-                                                                              old.AddRange(Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(next));
-                                                                              return old;
-                                                                          }
-                                                                          ).Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(hero));
+                    int bonus_known_spells = Helpers.Accessors.extractFeaturesHierarchically< NewFeatureDefinitions.IKnownSpellNumberIncrease >(__instance.HeroCharacter)
+                                                                         .Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(hero));
 
                     maxNumber = maxNumber + bonus_known_spells;
                     return true;
@@ -87,13 +78,7 @@ namespace SolastaModHelpers.Patches
                 internal static bool Prefix(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures, string tag)
                 {
                     var features = grantedFeatures.OfType<NewFeatureDefinitions.GrantSpells>().ToList();
-                    features = __instance.HeroCharacter.ActiveFeatures.Values.Aggregate(features,
-                                                                                              (old, next) =>
-                                                                                              {
-                                                                                                  old.AddRange(Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.GrantSpells>(next));
-                                                                                                  return old;
-                                                                                              }
-                                                                                              );
+                    features.AddRange(Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.GrantSpells>(__instance.HeroCharacter));
 
                     CharacterClassDefinition current_class;
                     int current_level;

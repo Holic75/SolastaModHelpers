@@ -33,6 +33,11 @@ namespace SolastaModHelpers.Patches
                                         RulesetUsablePower usablePower,
                                         ref int __result)
             {
+                if (((usablePower.PowerDefinition as NewFeatureDefinitions.IPowerRestriction)?.isForbidden(__instance)).GetValueOrDefault())
+                {
+                    __result = 0;
+                    return false;
+                }
                 var base_power = (usablePower.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {

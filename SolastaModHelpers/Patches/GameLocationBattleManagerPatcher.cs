@@ -10,6 +10,33 @@ namespace SolastaModHelpers.Patches
 {
     class GameLocationBattleManagerPatcher
     {
+        class GameLocationBattleManagerHandleReactionToDamagePatcher
+        {
+            [HarmonyPatch(typeof(GameLocationBattleManager), "HandleReactionToDamage")]
+            internal static class GameLocationBattleManager_HandleReactionToDamage_Patch
+            {
+
+
+                internal static void Postfix(GameLocationBattleManager __instance,
+                                            GameLocationCharacter attacker,
+                                            GameLocationCharacter defender,
+                                            ActionModifier modifier,
+                                            List<EffectForm> effectForms,
+                                            ref System.Collections.IEnumerator __result)
+                {
+                    var hero_character = defender.RulesetCharacter as RulesetCharacterHero;
+                    if (hero_character != null)
+                    {
+                        var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnDamageTaken>(hero_character);
+                        foreach (var f in features)
+                        {
+                            f.processDamage(attacker, defender, modifier, effectForms);
+                        }
+                    }
+                }
+            }
+        }
+
         class GameLocationBattleManagerHandleCharacterAttackPatcher
         {
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterAttack")]
@@ -24,6 +51,16 @@ namespace SolastaModHelpers.Patches
                                                             RulesetAttackMode attackerAttackMode,
                                                             ref System.Collections.IEnumerator __result)
                 {
+                    var hero_character = attacker.RulesetCharacter as RulesetCharacterHero;
+                    if (hero_character != null)
+                    {
+                        var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnAttack>(hero_character);
+
+                        foreach (var f in features)
+                        {
+                            f.processAttack(attacker, defender, attackModifier, attackerAttackMode);
+                        }
+                    }
                     if (__instance.battle == null)
                     {
                         return;
