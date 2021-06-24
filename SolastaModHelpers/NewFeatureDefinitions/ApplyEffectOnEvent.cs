@@ -30,7 +30,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public RuleDefinitions.DurationType durationType;
         public RuleDefinitions.TurnOccurenceType turnOccurence;
 
-
         public void processAttack(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid, 
@@ -68,7 +67,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void processTurnStart(GameLocationCharacter character)
         {
-            Main.Logger.Log("Checking Turn start");
             var ruleset_character = character?.RulesetCharacter;
             if (ruleset_character == null)
             {
@@ -85,6 +83,42 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 foreach (var c in conditions.ToArray())
                 {
                     if (c.ConditionDefinition == conditionToRemove)
+                    {
+                        ruleset_character.RemoveCondition(c, true, true);
+                    }
+                }
+            }
+        }
+    }
+
+
+    public class ApplyConditionOnAttackToAttackerUnitUntilTurnStart : FeatureDefinition, IApplyEffectOnAttack, IApplyEffectOnTurnStart
+    {
+        public ConditionDefinition condition;
+        public List<ConditionDefinition> extraConditionsToRemove = new List<ConditionDefinition>();
+
+        public void processAttack(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
+        {
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid,
+                                                                                       condition, RuleDefinitions.DurationType.Round, 1, RuleDefinitions.TurnOccurenceType.StartOfTurn,
+                                                                                       attacker.RulesetCharacter.Guid,
+                                                                                       attacker.RulesetCharacter.CurrentFaction.Name);
+            attacker.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+
+        public void processTurnStart(GameLocationCharacter character)
+        {
+            var ruleset_character = character?.RulesetCharacter;
+            if (ruleset_character == null)
+            {
+                return;
+            }
+
+            foreach (var conditions in ruleset_character.ConditionsByCategory.Values.ToArray())
+            {
+                foreach (var c in conditions.ToArray())
+                {
+                    if (c.ConditionDefinition == condition || extraConditionsToRemove.Contains(c.conditionDefinition))
                     {
                         ruleset_character.RemoveCondition(c, true, true);
                     }

@@ -41,5 +41,29 @@ namespace SolastaModHelpers.Patches
                 }
             }
         }
+
+
+        [HarmonyPatch(typeof(RulesetCharacterHero), "RefreshAttackMode")]
+        class RulesetCharacterHero_RefreshAttackMode
+        {
+            internal static void Postfix(RulesetCharacterHero __instance,
+                                        ActionDefinitions.ActionType actionType,
+                                        ItemDefinition itemDefinition,
+                                        WeaponDescription weaponDescription,
+                                        bool freeOffHand,
+                                        bool canAddAbilityDamageBonus,
+                                        string slotName,
+                                        List<IAttackModificationProvider> attackModifiers,
+                                        Dictionary<FeatureDefinition, RuleDefinitions.FeatureOrigin> featuresOrigin,
+                                        RulesetItem weapon,
+                                        ref RulesetAttackMode __result)
+            {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<IAttackModeModifier>(__instance);
+                foreach (var f in features)
+                {
+                    f.apply(__instance, __result, weapon);
+                }
+            }
+        }
     }
 }
