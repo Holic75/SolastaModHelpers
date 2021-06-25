@@ -32,5 +32,42 @@ namespace SolastaModHelpers.Patches
                 }
             }
         }
+
+
+        [HarmonyPatch(typeof(RulesetActor), "IsImmuneToCondition")]
+        class RulesetActor_IsImmuneToCondition
+        {
+            internal static void Postfix(RulesetActor __instance,
+                                         string conditionDefinitionName,
+                                         ref bool __result)
+            {
+                if (__result)
+                {
+                    return;
+                }
+                var condition = DatabaseRepository.GetDatabase<ConditionDefinition>().GetElement(conditionDefinitionName, false);
+                if (condition == null)
+                {
+                    return;
+                }
+
+                var hero = __instance as RulesetCharacterHero;
+                if (hero == null)
+                {
+                    return;
+                }
+
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IConditionImmunity>(hero);
+                foreach (var f in features)
+                {
+                    if (f.isImmune(hero, condition))
+                    {
+                        __result = true;
+                        return;
+                    }
+                }
+            }
+        }
+
     }
 }

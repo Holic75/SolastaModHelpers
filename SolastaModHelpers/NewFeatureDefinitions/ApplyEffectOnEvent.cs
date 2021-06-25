@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace SolastaModHelpers.NewFeatureDefinitions
 {
+    public interface IApplyEffectOnConditionApplication
+    {
+        void processCondtionApplication(RulesetActor actor, ConditionDefinition condtion);
+    }
+
+
     public interface IApplyEffectOnAttack
     {
         void processAttack(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode);
@@ -20,6 +26,90 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public interface IApplyEffectOnTurnStart
     {
         void processTurnStart(GameLocationCharacter character);
+    }
+
+
+    public interface IApplyEffectOnTurnEnd
+    {
+        void processTurnEnd(GameLocationCharacter character);
+    }
+
+
+    public abstract class ApplyPowerOnTurnEndBase : FeatureDefinition, IApplyEffectOnTurnEnd
+    {
+        abstract protected FeatureDefinitionPower getPower(GameLocationCharacter character);
+        public void processTurnEnd(GameLocationCharacter character)
+        {
+            var power_to_apply = getPower(character);
+            if (power_to_apply == null)
+            {
+                return;
+            }
+
+            CharacterActionParams actionParams;
+            if (power_to_apply.EffectDescription.RangeType == RuleDefinitions.RangeType.Self)
+            {
+                actionParams = new CharacterActionParams(character, ActionDefinitions.Id.PowerNoCost);
+            }
+            else
+            {
+                actionParams = new CharacterActionParams(character, ActionDefinitions.Id.PowerNoCost, character);
+            }
+            RulesetUsablePower usablePower = new RulesetUsablePower(power_to_apply, (CharacterRaceDefinition)null, (CharacterClassDefinition)null);
+            IRulesetImplementationService service = ServiceRepository.GetService<IRulesetImplementationService>();
+            actionParams.RulesetEffect = (RulesetEffect)service.InstantiateEffectPower(character.RulesetCharacter, usablePower, false);
+            actionParams.StringParameter = power_to_apply.Name;
+            //actionParams.IsReactionEffect = true;
+            ServiceRepository.GetService<IGameLocationActionService>().ExecuteInstantSingleAction(actionParams);
+        }
+    }
+
+    public class ApplyPowerOnTurnEnd : ApplyPowerOnTurnEndBase
+    {
+        public FeatureDefinitionPower power;
+        protected override FeatureDefinitionPower getPower(GameLocationCharacter character)
+        {
+            return power;
+        }
+    }
+
+
+    public class ApplyPowerOnTurnEndBasedOnClassLevel : ApplyPowerOnTurnEndBase
+    {
+        public List<(int, FeatureDefinitionPower)> powerLevelList;
+        public CharacterClassDefinition characterClass;
+        public CharacterSubclassDefinition requiredSubclass = null;
+
+        protected override FeatureDefinitionPower getPower(GameLocationCharacter character)
+        {
+            var hero = (character.RulesetCharacter as RulesetCharacterHero);
+
+            if (hero == null)
+            {
+                return null;
+            }
+
+            if (!hero.ClassesAndLevels.ContainsKey(characterClass))
+            {
+                return null;
+            }
+
+            if (requiredSubclass != null && !hero.ClassesAndSubclasses.ContainsValue(requiredSubclass))
+            {
+                return null;
+            }
+            
+            var level = hero.ClassesAndLevels[characterClass];
+
+            foreach (var l in powerLevelList)
+            {
+                if (l.Item1 >= level)
+                {
+                    return l.Item2;
+                }
+            }
+            return null;
+        }
     }
 
 
@@ -132,7 +222,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public void processAttack(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {
-            Main.Logger.Log("Checking Attack");
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid,
                                                                                        this.requiredCondition, RuleDefinitions.DurationType.Round, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
                                                                                        attacker.RulesetCharacter.Guid,
@@ -142,12 +231,38 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void processDamage(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms)
         {
-            Main.Logger.Log("Checking Damage");
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
                                                                                        this.requiredCondition, RuleDefinitions.DurationType.Round, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
                                                                                        defender.RulesetCharacter.Guid,
                                                                                        defender.RulesetCharacter.CurrentFaction.Name);
             defender.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+    }
+
+
+
+    public class RemoveConditionsOnConditionApplication: FeatureDefinition, IApplyEffectOnConditionApplication
+    {
+        public List<ConditionDefinition> appliedConditions;
+        public List<ConditionDefinition> removeConditions;
+
+        public void processCondtionApplication(RulesetActor actor, ConditionDefinition applied_condition)
+        {
+            if (!appliedConditions.Contains(applied_condition))
+            {
+                return;
+            }
+
+            foreach (var conditions in actor.ConditionsByCategory.Values.ToArray())
+            {
+                foreach (var c in conditions.ToArray())
+                {
+                    if (removeConditions.Contains(c.conditionDefinition))
+                    {
+                        actor.RemoveCondition(c, true, true);
+                    }
+                }
+            }
         }
     }
 

@@ -11,6 +11,13 @@ using static SpellListDefinition;
 
 namespace SolastaModHelpers.Helpers
 {
+    public static class DamageTypes
+    {
+        public static string Cold = "DamageCold";
+        public static string Fire = "DamageFire";
+    }
+
+
     public static class Stats
     {
         public static string Strength = "Strength";
@@ -1013,7 +1020,7 @@ namespace SolastaModHelpers.Helpers
             }
         }
 
-        static public List<T> extractFeaturesHierarchically<T>(RulesetCharacterHero hero) where T: class
+        static public List<T> extractFeaturesHierarchically<T>(RulesetCharacter hero) where T: class
         {
             var list = new List<FeatureDefinition>();
             hero.EnumerateFeaturesToBrowse<T>(list, null);

@@ -49,5 +49,37 @@ namespace SolastaModHelpers.Patches
                 return dice_num;
             }
         }
+
+
+        [HarmonyPatch(typeof(RulesetImplementationManager), "ApplyConditionForm")]
+        class RulesetImplementationManager_ApplyConditionForm
+        {
+            internal static void Postfix(RulesetImplementationManager __instance,
+                                        EffectForm effectForm,
+                                        RulesetImplementationDefinitions.ApplyFormsParams formsParams,
+                                        bool retargeting,
+                                        int sourceAmount)
+            {
+                var condition = effectForm.ConditionForm?.ConditionDefinition;
+                if (condition == null || effectForm.ConditionForm.operation != ConditionForm.ConditionOperation.Add)
+                {
+                    return;
+                }
+
+                var actor = formsParams.targetCharacter as RulesetCharacterHero;
+                if (actor == null)
+                {
+                    return;
+                }
+
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IApplyEffectOnConditionApplication>(actor);
+                foreach (var f in features)
+                {
+                    f.processCondtionApplication(actor, condition);
+                }
+            }
+        }
+
+
     }
 }

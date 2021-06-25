@@ -9,6 +9,28 @@ namespace SolastaModHelpers.Patches
 {
     class RulesetCharacterPatches
     {
+        [HarmonyPatch(typeof(RulesetCharacter), "ComputeAttackModifier")]
+        class RulesetCharacter_ComputeAttackModifier
+        {
+            internal static void Postfix(RulesetCharacter __instance,
+                                            RulesetCharacter defender,
+                                            RulesetAttackMode attackMode,
+                                            ActionModifier attackModifier,
+                                            bool isWithin5Feet,
+                                            bool isAllyWithin5Feet,
+                                            int defenderSustainedAttacks,
+                                            bool defenderAlreadyAttackedByAttackerThisTurn)
+            {
+                var defender_features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IDefenseAffinity>(defender);
+
+                foreach (var feature in defender_features)
+                {
+                    feature.computeDefenseModifier(defender, __instance, defenderSustainedAttacks, defenderAlreadyAttackedByAttackerThisTurn, attackModifier, attackMode, defender.FeaturesOrigin[feature as FeatureDefinition]);
+                }
+            }
+        }
+
+
         [HarmonyPatch(typeof(RulesetCharacter), "GetMaxUsesOfPower")]
         class RulesetCharacter_GetMaxUsesOfPower
         {
@@ -25,6 +47,7 @@ namespace SolastaModHelpers.Patches
                 return false;
             }
         }
+
 
         [HarmonyPatch(typeof(RulesetCharacter), "GetRemainingUsesOfPower")]
         class RulesetCharacter_GetRemainingUsesOfPower
