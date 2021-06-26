@@ -34,17 +34,16 @@ namespace SolastaModHelpers.Patches
         [HarmonyPatch(typeof(RulesetCharacter), "GetMaxUsesOfPower")]
         class RulesetCharacter_GetMaxUsesOfPower
         {
-            internal static bool Prefix(RulesetCharacter __instance,
+            internal static void Postfix(RulesetCharacter __instance,
                                         RulesetUsablePower usablePower,
                                         ref int __result)
             {
                 var base_power = (usablePower.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {
-                    return true;
+                    return;
                 }
-                __result = __instance.GetMaxUsesOfPower(base_power);
-                return false;
+                __result = Math.Min(__instance.GetMaxUsesOfPower(base_power), __result);
             }
         }
 
@@ -61,13 +60,20 @@ namespace SolastaModHelpers.Patches
                     __result = 0;
                     return false;
                 }
+                return true;
+            }
+
+
+            internal static void Postfix(RulesetCharacter __instance,
+                            RulesetUsablePower usablePower,
+                            ref int __result)
+            {
                 var base_power = (usablePower.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {
-                    return true;
+                    return;
                 }
-                __result = __instance.GetRemainingUsesOfPower(base_power);
-                return false;
+                __result = Math.Min(__instance.GetRemainingUsesOfPower(base_power), __result);
             }
         }
 
@@ -133,6 +139,37 @@ namespace SolastaModHelpers.Patches
             static int getNumberOfRemainingUses(RulesetUsablePower power, RulesetCharacter character)
             {
                 return character.GetRemainingUsesOfPower(power);
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "AreSpellComponentsValid")]
+        class RulesetCharacter_AreSpellComponentsValid
+        {
+            internal static void Postfix(RulesetCharacter __instance,
+                                        SpellDefinition spellDefinition,
+                                        ref bool __result)
+            {
+                if (!__result)
+                {
+                    return;
+                }
+
+                var hero = __instance as RulesetCharacterHero;
+                if (hero == null)
+                {
+                    return;
+                }
+
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IForbidSpellcasting>(hero);
+                foreach (var f in features)
+                {
+                    if (f.isSpellcastingForbidden(hero))
+                    {
+                        __result = false;
+                        return;
+                    }
+                }
             }
         }
     }

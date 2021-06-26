@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using SolastaModApi;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,18 +20,35 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
 
-                var tr = HarmonyLib.Traverse.Create(__instance);
-                var effect = tr.Field("effectDescription").GetValue<EffectDescription>();
+                var effect = __instance.effectDescription;
                 var tag = (ExtendedEnums.ExtraTargetFilteringTag)effect.TargetFilteringTag;
-                if (effect == null || (tag & ExtendedEnums.ExtraTargetFilteringTag.NonCaster) == ExtendedEnums.ExtraTargetFilteringTag.No)
+                if (effect == null)
                 {
                     return;
                 }
 
-                __result =  target != __instance.ActionParams.ActingCharacter;
+                if ((tag & ExtendedEnums.ExtraTargetFilteringTag.NonCaster) != ExtendedEnums.ExtraTargetFilteringTag.No)
+                {
+                    __result = target != __instance.ActionParams.ActingCharacter;
+                }
+                if (__result && (tag & ExtendedEnums.ExtraTargetFilteringTag.NoHeavyArmor) != ExtendedEnums.ExtraTargetFilteringTag.No)
+                {
+                    var hero = target.RulesetCharacter as RulesetCharacterHero;
+                    if (hero != null)
+                    {
+                        RulesetItem equipedItem = hero.characterInventory.InventorySlotsByName[EquipmentDefinitions.SlotTypeTorso].EquipedItem;
+                        bool is_heavy =  equipedItem != null 
+                                         && equipedItem.ItemDefinition.IsArmor 
+                                         && (DatabaseRepository.GetDatabase<ArmorCategoryDefinition>().GetElement(DatabaseRepository.GetDatabase<ArmorTypeDefinition>().GetElement(equipedItem.ItemDefinition.ArmorDescription.ArmorType, false).ArmorCategory, false) 
+                                           == DatabaseHelper.ArmorCategoryDefinitions.HeavyArmorCategory);
+                        __result = !is_heavy;
+                    }
+                }
+                 
+
                 if (!__result)
                 {
-                    var action_modifier = tr.Field("actionModifier").GetValue<ActionModifier>();
+                    var action_modifier = __instance.actionModifier;
                     action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectCreatureFamily");
                 }
                 return;

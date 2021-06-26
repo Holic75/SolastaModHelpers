@@ -65,5 +65,38 @@ namespace SolastaModHelpers.Patches
                 }
             }
         }
+
+
+        [HarmonyPatch(typeof(RulesetCharacterHero), "PostLoad")]
+        class RulesetCharacterHero_RefreshAll
+        {
+            internal static void Postfix(RulesetCharacterHero __instance)
+            {
+                refreshMaxPowerUses(__instance);
+            }
+
+
+            static void refreshMaxPowerUses(RulesetCharacterHero hero)
+            {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IPowerNumberOfUsesIncrease>(hero);
+
+                var usable_powers = hero.usablePowers;
+                foreach (var p in usable_powers)
+                {
+                    if (p?.powerDefinition == null)
+                    {
+                        continue;
+                    }
+
+                    p.maxUses = p.PowerDefinition.fixedUsesPerRecharge;
+                    foreach (var f in features)
+                    {
+                        f.apply(hero, p);
+                    }
+                }
+            }
+        }
+
+
     }
 }

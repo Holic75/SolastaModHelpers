@@ -156,6 +156,38 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class RemoveConditionOnTurnEndIfNoCondition : FeatureDefinition, IApplyEffectOnTurnEnd
+    {
+        public ConditionDefinition requiredCondition;
+        public ConditionDefinition conditionToRemove;
+
+        public void processTurnEnd(GameLocationCharacter character)
+        {
+            var ruleset_character = character?.RulesetCharacter;
+            if (ruleset_character == null)
+            {
+                return;
+            }
+
+            if (ruleset_character.ConditionsByCategory.Values.Any(c => c.Any(cc => cc.ConditionDefinition == requiredCondition)))
+            {
+                return;
+            }
+
+            foreach (var conditions in ruleset_character.ConditionsByCategory.Values.ToArray())
+            {
+                foreach (var c in conditions.ToArray())
+                {
+                    if (c.ConditionDefinition == conditionToRemove)
+                    {
+                        ruleset_character.RemoveCondition(c, true, true);
+                    }
+                }
+            }
+        }
+    }
+
+
     public class RemoveConditionAtTurnStartIfNoCondition : FeatureDefinition, IApplyEffectOnTurnStart
     {
         public ConditionDefinition requiredCondition;
@@ -224,7 +256,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class RageWatcher : RemoveConditionAtTurnStartIfNoCondition, IApplyEffectOnDamageTaken, IApplyEffectOnAttack, IApplyEffectOnBattleEnd
+    public class RageWatcher : RemoveConditionOnTurnEndIfNoCondition, IApplyEffectOnDamageTaken, IApplyEffectOnAttack, IApplyEffectOnBattleEnd
     {
         public void processAttack(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {

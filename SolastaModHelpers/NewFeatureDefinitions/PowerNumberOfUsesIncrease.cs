@@ -8,8 +8,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 {
     interface IPowerNumberOfUsesIncrease
     {
-        void apply(CharacterBuildingManager manager);
-        bool isRetroactive();
+        void apply(RulesetCharacterHero hero, RulesetUsablePower usable_power);
     }
 
 
@@ -17,31 +16,32 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public List<FeatureDefinitionPower> powers = new List<FeatureDefinitionPower>();
         public CharacterClassDefinition characterClass;
-        public Dictionary<int, int> levelIncreaseMap = new Dictionary<int, int>();
+        public List<(int, int)> levelIncreaseList = new List<(int, int)>();
 
-        public void apply(CharacterBuildingManager manager)
+        public void apply(RulesetCharacterHero hero, RulesetUsablePower usable_power)
         {
-            CharacterClassDefinition current_class;
-            int current_level;
-            manager.GetLastAssignedClassAndLevel(out current_class, out current_level);
-
-            if (current_class != characterClass || !levelIncreaseMap.ContainsKey(current_level))
+            if (!powers.Contains(usable_power.PowerDefinition))
             {
                 return;
             }
 
-            int bonus_uses = levelIncreaseMap[current_level];
-            var powers_to_process = manager.heroCharacter.UsablePowers.Where(up => powers.Contains(up.PowerDefinition));
-
-            foreach (var p in powers_to_process)
+            if (!hero.ClassesAndLevels.ContainsKey(characterClass))
             {
-                p.maxUses += bonus_uses;
+                return;
             }
-        }
 
-        public bool isRetroactive()
-        {
-            return true;
+            var lvl = hero.ClassesAndLevels[characterClass];
+
+            var bonus_uses = levelIncreaseList.Aggregate(0, (old, next) =>
+                                                        {
+                                                            if (next.Item1 <= lvl)
+                                                            {
+                                                                return old + next.Item2;
+                                                            }
+                                                            return old;
+                                                        }
+                                                        );
+            usable_power.maxUses += bonus_uses;
         }
     }
 
@@ -51,20 +51,15 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public List<FeatureDefinitionPower> powers = new List<FeatureDefinitionPower>();
         public int value;
 
-        public void apply(CharacterBuildingManager manager)
+        public void apply(RulesetCharacterHero hero, RulesetUsablePower usable_power)
         {
             int bonus_uses = value;
-            var powers_to_process = manager.heroCharacter.UsablePowers.Where(up => powers.Contains(up.PowerDefinition));
 
-            foreach (var p in powers_to_process)
+            if (powers.Contains(usable_power.PowerDefinition))
             {
-                p.maxUses += bonus_uses;
+                usable_power.maxUses += bonus_uses;
             }
         }
 
-        public bool isRetroactive()
-        {
-            return false;
-        }
     }
 }

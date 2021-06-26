@@ -11,6 +11,7 @@ namespace SolastaModHelpers.ExtendedEnums
     {
         No = 0,
         Unarmored = 1,
+        NoHeavyArmor = 64,
         NonCaster = 128
     }
 

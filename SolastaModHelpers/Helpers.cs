@@ -489,7 +489,7 @@ namespace SolastaModHelpers.Helpers
                                           string condition_type,
                                           RuleDefinitions.ConditionAffinityType affinity,
                                           RuleDefinitions.AdvantageType saving_throw_advantage_type,
-                                          RuleDefinitions.AdvantageType reroll_advantage_type) : 
+                                          RuleDefinitions.AdvantageType reroll_advantage_type) :
             base(DatabaseHelper.FeatureDefinitionConditionAffinitys.ConditionAffinityElfFeyAncestryCharm, name, guid)
         {
             if (title_string != "")
@@ -797,7 +797,7 @@ namespace SolastaModHelpers.Helpers
             return new CopyFeatureBuilder<TDefinition>(name, guid, title_string, description_string, sprite, base_feature).AddToDB();
         }
 
-        public static TDefinition createFeatureCopy(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite, 
+        public static TDefinition createFeatureCopy(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite,
                                                         TDefinition base_feature, Action<TDefinition> action)
         {
             var res = new CopyFeatureBuilder<TDefinition>(name, guid, title_string, description_string, sprite, base_feature).AddToDB();
@@ -834,7 +834,7 @@ namespace SolastaModHelpers.Helpers
 
         public static TDefinition createFeature(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite, Action<TDefinition> action)
         {
-            var res =  new FeatureBuilder<TDefinition>(name, guid, title_string, description_string, sprite).AddToDB();
+            var res = new FeatureBuilder<TDefinition>(name, guid, title_string, description_string, sprite).AddToDB();
             action(res);
             return res;
         }
@@ -921,7 +921,7 @@ namespace SolastaModHelpers.Helpers
     }
 
 
-    public class GenericPowerBuilder<T> : BaseDefinitionBuilderWithGuidStorage<T> where T: FeatureDefinitionPower
+    public class GenericPowerBuilder<T> : BaseDefinitionBuilderWithGuidStorage<T> where T : FeatureDefinitionPower
     {
         protected GenericPowerBuilder(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite,
                                        EffectDescription effect_description,
@@ -994,7 +994,26 @@ namespace SolastaModHelpers.Helpers
         {
             return new ExtraSpellSelectionBuilder(name, guid, title_string, description_string, caster_class, level, num_spells, spell_list).AddToDB();
         }
+    }
 
+
+    public static class Misc
+    {
+        public static List<FeatureDefinitionCastSpell.SlotsByLevelDuplet> createSpellSlotsByLevel(params List<int>[] slots_num_per_level)
+        {
+            var res = new List<FeatureDefinitionCastSpell.SlotsByLevelDuplet>();
+
+            for (int i = 0; i < slots_num_per_level.Length; i++)
+            {
+                res.Add(new FeatureDefinitionCastSpell.SlotsByLevelDuplet()
+                        {
+                            level = i + 1,
+                            slots = slots_num_per_level[i]
+                        });
+            }
+
+            return res;
+        }
     }
 
 

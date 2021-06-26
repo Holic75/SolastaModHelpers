@@ -43,20 +43,7 @@ namespace SolastaModHelpers.Patches
                 internal static bool Prefix(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures, string tag)
                 {
                     grantSpells(__instance, grantedFeatures);
-                    processPowerUsesIncrease(__instance, grantedFeatures);
                     return true;
-                }
-
-
-                static void processPowerUsesIncrease(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)
-                {
-                    var features = grantedFeatures.OfType<NewFeatureDefinitions.IPowerNumberOfUsesIncrease>().ToList();
-                    features.AddRange(Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IPowerNumberOfUsesIncrease>(__instance.HeroCharacter).Where(ff => ff.isRetroactive()));
-
-                    foreach (var f in features)
-                    {
-                        f.apply(__instance);
-                    }
                 }
 
                 static void grantSpells(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)
