@@ -324,4 +324,51 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
     }
 
+
+
+    public class FrenzyWatcher : FeatureDefinition, IApplyEffectOnBattleEnd, IApplyEffectOnTurnStart
+    {
+        public List<ConditionDefinition> requiredConditions;
+        public ConditionDefinition targetCondition;
+        public ConditionDefinition afterCondition;
+
+        public void processBattleEnd(GameLocationCharacter character)
+        {
+            performConditionRemoval(character.RulesetCharacter);
+        }
+
+        public void processTurnStart(GameLocationCharacter character)
+        {
+            if (!requiredConditions.Any(r => character.RulesetCharacter.HasConditionOfType(r)))
+            {
+                performConditionRemoval(character.RulesetCharacter);
+            }
+        }
+
+
+        void performConditionRemoval(RulesetCharacter actor)
+        {
+            foreach (var conditions in actor.ConditionsByCategory.Values.ToArray())
+            {
+                foreach (var c in conditions.ToArray())
+                {
+                    if (c.ConditionDefinition == targetCondition)
+                    {
+                        actor.RemoveCondition(c, true, true);
+                    }
+                }
+            }
+
+            if (afterCondition == null)
+            {
+                return;
+            }
+
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(actor.Guid,
+                                                                           this.afterCondition, RuleDefinitions.DurationType.UntilLongRest, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
+                                                                           actor.Guid,
+                                                                           actor.CurrentFaction.Name);
+            actor.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+    }
 }

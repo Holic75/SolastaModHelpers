@@ -68,7 +68,7 @@ namespace SolastaModHelpers.Patches
 
 
         [HarmonyPatch(typeof(RulesetCharacterHero), "PostLoad")]
-        class RulesetCharacterHero_RefreshAll
+        internal class RulesetCharacterHero_PostLoad
         {
             internal static void Postfix(RulesetCharacterHero __instance)
             {
@@ -76,8 +76,12 @@ namespace SolastaModHelpers.Patches
             }
 
 
-            static void refreshMaxPowerUses(RulesetCharacterHero hero)
+            internal static void refreshMaxPowerUses(RulesetCharacterHero hero)
             {
+                if (hero == null)
+                {
+                    return;
+                }
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IPowerNumberOfUsesIncrease>(hero);
 
                 var usable_powers = hero.usablePowers;

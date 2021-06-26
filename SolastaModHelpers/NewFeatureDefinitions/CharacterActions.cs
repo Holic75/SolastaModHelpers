@@ -21,6 +21,8 @@ public class CharacterActionModifyAttackRollViaPower : CharacterActionUsePower
     static public ActionDefinition modifyAttackRollViaPowerActionDefinition;
     static public ReactionDefinition modifyAttackRollViaPowerReactionDefinition;
 
+    static public ActionDefinition mainAttackAsBonusAction;
+
     static public void initialize()
     {
         modifyAttackRollViaPowerActionDefinition = SolastaModHelpers.Helpers.CopyFeatureBuilder<ActionDefinition>
@@ -30,7 +32,6 @@ public class CharacterActionModifyAttackRollViaPower : CharacterActionUsePower
 
         modifyAttackRollViaPowerReactionDefinition = SolastaModHelpers.Helpers.CopyFeatureBuilder<ReactionDefinition>
                     .createFeatureCopy("ModifyAttackRollViaPower", "0a5380a6-e3a8-4e59-8431-52c70f5073b7", "", "", null, DatabaseHelper.ReactionDefinitions.UsePower);
-
     }
 
     public CharacterActionModifyAttackRollViaPower(CharacterActionParams actionParams)

@@ -37,6 +37,29 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class HasAtLeastOneConditionFromListRestriction : IRestriction
+    {
+        private List<ConditionDefinition> conditions;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            foreach (var c in conditions)
+            {
+                if (character.HasConditionOfType(c.Name))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public HasAtLeastOneConditionFromListRestriction(params ConditionDefinition[] required_conditions)
+        {
+            conditions = required_conditions.ToList();
+        }
+    }
+
+
     public interface IPowerRestriction
     {
         bool isForbidden(RulesetActor character);

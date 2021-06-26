@@ -27,7 +27,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         bool IReactionPowerOnDamage.canBeUsed(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode, bool is_magic)
         {
             var effect = this.EffectDescription;
-            if (effect == null)
+            if (effect == null || caster == null || attacker == null)
             {
                 return false;
             }
@@ -41,7 +41,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
             bool works_on_caster = effect.TargetFilteringTag != (RuleDefinitions.TargetFilteringTag)ExtendedEnums.ExtraTargetFilteringTag.NonCaster;
 
-            if (!is_magic)
+            if (!is_magic && attack_mode == null)
+            {
+                return false;
+            }
+            else if (!is_magic)
             {
                 if (attack_mode.Ranged && !worksOnRanged)
                 {

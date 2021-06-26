@@ -124,7 +124,7 @@ namespace SolastaModHelpers.Patches
         class GameLocationBattleManagerHandleCharacterMagicalDamagePatcher
         {
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterMagicalAttackDamage")]
-            internal static class GameLocationBattleManager_HandleCharacterMagicalDamage_Patch
+            internal static class GameLocationBattleManager_HandleCharacterMagicalAttackDamage_Patch
             {
                 internal static void Postfix(GameLocationBattleManager __instance,
                                             GameLocationCharacter attacker,

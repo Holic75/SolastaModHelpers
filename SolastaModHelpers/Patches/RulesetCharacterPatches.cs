@@ -51,7 +51,7 @@ namespace SolastaModHelpers.Patches
         [HarmonyPatch(typeof(RulesetCharacter), "GetRemainingUsesOfPower")]
         class RulesetCharacter_GetRemainingUsesOfPower
         {
-            internal static bool Prefix(RulesetCharacter __instance,
+            /*internal static bool Prefix(RulesetCharacter __instance,
                                         RulesetUsablePower usablePower,
                                         ref int __result)
             {
@@ -61,7 +61,7 @@ namespace SolastaModHelpers.Patches
                     return false;
                 }
                 return true;
-            }
+            }*/
 
 
             internal static void Postfix(RulesetCharacter __instance,
@@ -91,6 +91,20 @@ namespace SolastaModHelpers.Patches
                     
                 }
                 base_power.Consume();
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "ApplyRest")]
+        class RulesetCharacter_ApplyRest
+        {
+            internal static bool Prefix(RulesetCharacter __instance,
+                                        RuleDefinitions.RestType restType,
+                                        bool simulate,
+                                        TimeInfo restStartTime)
+            {
+                RulesetCharacterHeroPatcher.RulesetCharacterHero_PostLoad.refreshMaxPowerUses(__instance as RulesetCharacterHero);
+                return true;
             }
         }
 
