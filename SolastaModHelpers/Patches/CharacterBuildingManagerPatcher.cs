@@ -43,6 +43,7 @@ namespace SolastaModHelpers.Patches
                 internal static bool Prefix(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures, string tag)
                 {
                     grantSpells(__instance, grantedFeatures);
+                    processPowerUsesIncrease(__instance, grantedFeatures);
                     return true;
                 }
 

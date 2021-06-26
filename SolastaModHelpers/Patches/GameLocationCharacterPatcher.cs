@@ -10,49 +10,66 @@ namespace SolastaModHelpers.Patches
 {
     class GameLocationCharacterPatcher
     {
-        class GameLocationBattleManagerHandleReactionToDamagePatcher
+        [HarmonyPatch(typeof(GameLocationCharacter), "StartBattleTurn")]
+        internal static class GameLocationCharacter_StartBattleTurn_Patch
         {
-            [HarmonyPatch(typeof(GameLocationCharacter), "StartBattleTurn")]
-            internal static class GameLocationCharacter_StartBattleTurn_Patch
+            internal static void Postfix(GameLocationCharacter __instance)
             {
-                internal static void Postfix(GameLocationCharacter __instance)
+                if (!__instance.Valid)
                 {
-                    if (!__instance.Valid)
+                    return;
+                }
+                var hero_character = __instance.RulesetCharacter as RulesetCharacterHero;
+                if (hero_character != null)
+                {
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnTurnStart>(hero_character);
+                    foreach (var f in features)
                     {
-                        return;
-                    }
-                    Main.Logger.Log("Checking turn start: " + __instance.Name);
-                    var hero_character = __instance.RulesetCharacter as RulesetCharacterHero;
-                    if (hero_character != null)
-                    {
-                        var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnTurnStart>(hero_character);
-                        foreach (var f in features)
-                        {
-                            f.processTurnStart(__instance);
-                        }
+                        f.processTurnStart(__instance);
                     }
                 }
             }
+        }
 
 
-            [HarmonyPatch(typeof(GameLocationCharacter), "EndBattleTurn")]
-            internal static class GameLocationCharacter_EndBattleTurn_Patch
+        [HarmonyPatch(typeof(GameLocationCharacter), "EndBattleTurn")]
+        internal static class GameLocationCharacter_EndBattleTurn_Patch
+        {
+            internal static void Postfix(GameLocationCharacter __instance)
             {
-                internal static void Postfix(GameLocationCharacter __instance)
+                if (!__instance.Valid)
                 {
-                    if (!__instance.Valid)
+                    return;
+                }
+                var hero_character = __instance.RulesetCharacter as RulesetCharacterHero;
+                if (hero_character != null)
+                {
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnTurnEnd>(hero_character);
+                    foreach (var f in features)
                     {
-                        return;
+                        f.processTurnEnd(__instance);
                     }
-                    Main.Logger.Log("Checking turn end: " + __instance.Name);
-                    var hero_character = __instance.RulesetCharacter as RulesetCharacterHero;
-                    if (hero_character != null)
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(GameLocationCharacter), "EndBattle")]
+        internal static class GameLocationCharacter_EndBattle_Patch
+        {
+            internal static void Postfix(GameLocationCharacter __instance)
+            {
+                if (!__instance.Valid)
+                {
+                    return;
+                }
+                var hero_character = __instance.RulesetCharacter as RulesetCharacterHero;
+                if (hero_character != null)
+                {
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnBattleEnd>(hero_character);
+                    foreach (var f in features)
                     {
-                        var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnTurnEnd>(hero_character);
-                        foreach (var f in features)
-                        {
-                            f.processTurnEnd(__instance);
-                        }
+                        f.processBattleEnd(__instance);
                     }
                 }
             }

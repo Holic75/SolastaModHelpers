@@ -25,7 +25,7 @@ namespace SolastaModHelpers.Patches
 
                 foreach (var feature in defender_features)
                 {
-                    feature.computeDefenseModifier(defender, __instance, defenderSustainedAttacks, defenderAlreadyAttackedByAttackerThisTurn, attackModifier, attackMode, defender.FeaturesOrigin[feature as FeatureDefinition]);
+                    feature.computeDefenseModifier(defender, __instance, defenderSustainedAttacks, defenderAlreadyAttackedByAttackerThisTurn, attackModifier, attackMode);
                 }
             }
         }

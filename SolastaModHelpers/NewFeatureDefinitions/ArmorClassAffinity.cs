@@ -14,8 +14,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
               int sustained_attacks,
               bool defender_already_attacked_by_attacker_this_turn,
               ActionModifier attack_modifier,
-              RulesetAttackMode attack_mode,
-              RuleDefinitions.FeatureOrigin feature_origin);
+              RulesetAttackMode attack_mode);
     }
 
 
@@ -26,20 +25,19 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public bool applyToRanged;
         public List<ConditionDefinition> requiredConditions = new List<ConditionDefinition>();
 
-        public void computeDefenseModifier(RulesetCharacter myself, RulesetCharacter attacker, int sustained_attacks, bool defender_already_attacked_by_attacker_this_turn, ActionModifier attack_modifier, RulesetAttackMode attack_mode, RuleDefinitions.FeatureOrigin feature_origin)
+        public void computeDefenseModifier(RulesetCharacter myself, RulesetCharacter attacker, int sustained_attacks, bool defender_already_attacked_by_attacker_this_turn, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {
-            var weapon = (attack_mode?.sourceDefinition as ItemDefinition)?.WeaponDescription;
-            if (weapon == null)
+            if (attack_mode.SourceDefinition == null)
             {
                 return;
             }
 
-            if (weapon.WeaponTypeDefinition.weaponProximity == RuleDefinitions.AttackProximity.Range && !applyToRanged)
+            if (attack_mode.Ranged && !applyToRanged)
             {
                 return;
             }
 
-            if (weapon.WeaponTypeDefinition.weaponProximity == RuleDefinitions.AttackProximity.Melee && !applyToMelee)
+            if (!attack_mode.Ranged && !applyToMelee)
             {
                 return;
             }
@@ -60,7 +58,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             attack_modifier.AttackRollModifier -= value;
-            attack_modifier.AttacktoHitTrends.Add(new RuleDefinitions.TrendInfo(-value, feature_origin.sourceType, feature_origin.sourceName, (object)null));
+            attack_modifier.AttacktoHitTrends.Add(new RuleDefinitions.TrendInfo(-value, RuleDefinitions.FeatureSourceType.CharacterFeature, this.Name, (object)null));
         }
     }
 }

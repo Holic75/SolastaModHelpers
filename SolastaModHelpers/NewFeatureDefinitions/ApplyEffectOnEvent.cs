@@ -35,6 +35,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface IApplyEffectOnBattleEnd
+    {
+        void processBattleEnd(GameLocationCharacter character);
+    }
+
+
     public abstract class ApplyPowerOnTurnEndBase : FeatureDefinition, IApplyEffectOnTurnEnd
     {
         abstract protected FeatureDefinitionPower getPower(GameLocationCharacter character);
@@ -218,7 +224,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class RageWatcher : RemoveConditionAtTurnStartIfNoCondition, IApplyEffectOnDamageTaken, IApplyEffectOnAttack
+    public class RageWatcher : RemoveConditionAtTurnStartIfNoCondition, IApplyEffectOnDamageTaken, IApplyEffectOnAttack, IApplyEffectOnBattleEnd
     {
         public void processAttack(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {
@@ -236,6 +242,26 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                                        defender.RulesetCharacter.Guid,
                                                                                        defender.RulesetCharacter.CurrentFaction.Name);
             defender.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+
+        public void processBattleEnd(GameLocationCharacter character)
+        {
+            var ruleset_character = character?.RulesetCharacter;
+            if (ruleset_character == null)
+            {
+                return;
+            }
+
+            foreach (var conditions in ruleset_character.ConditionsByCategory.Values.ToArray())
+            {
+                foreach (var c in conditions.ToArray())
+                {
+                    if (c.ConditionDefinition == conditionToRemove)
+                    {
+                        ruleset_character.RemoveCondition(c, true, true);
+                    }
+                }
+            }
         }
     }
 
