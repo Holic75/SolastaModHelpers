@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TA;
 
 namespace SolastaModHelpers.Patches
 {
@@ -16,7 +17,7 @@ namespace SolastaModHelpers.Patches
             {
                 var codes = instructions.ToList();
                 var dice_number_store_load = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("DiceNumber")) + 10;
-                if  (codes[dice_number_store_load].opcode != System.Reflection.Emit.OpCodes.Stloc_S)
+                if (codes[dice_number_store_load].opcode != System.Reflection.Emit.OpCodes.Stloc_S)
                 {
                     throw new Exception("failed to patch RulesetimplementationManager_ApplyDamageForm");
                 }
@@ -66,7 +67,7 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
 
-                var actor = formsParams.targetCharacter as RulesetCharacterHero;
+                var actor = formsParams.targetCharacter as RulesetActor;
                 if (actor == null)
                 {
                     return;
@@ -75,11 +76,45 @@ namespace SolastaModHelpers.Patches
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IApplyEffectOnConditionApplication>(actor);
                 foreach (var f in features)
                 {
-                    f.processCondtionApplication(actor, condition);
+                    f.processConditionApplication(actor, condition);
                 }
             }
         }
 
 
+
+        [HarmonyPatch(typeof(RulesetImplementationManager), "TryRollSavingThrow")]
+        class RulesetimplementationManager_TryRollSavingThrow
+        {
+            static void Postfix(RulesetImplementationManager __instance,
+                                RulesetCharacter caster,
+                                RuleDefinitions.Side sourceSide,
+                                RulesetActor target,
+                                ActionModifier actionModifier,
+                                bool hasHitVisual,
+                                bool hasSavingThrow,
+                                string savingThrowAbility,
+                                int saveDC,
+                                bool disableSavingThrowOnAllies,
+                                bool advantageForEnemies,
+                                bool ignoreCover,
+                                RuleDefinitions.FeatureSourceType featureSourceType,
+                                List<EffectForm> effectForms,
+                                List<SaveAffinityBySenseDescription> savingThrowAffinitiesBySense,
+                                string sourceName,
+                                BaseDefinition sourceDefinition,
+                                string schoolOfMagic,
+                                ref RuleDefinitions.RollOutcome saveOutcome
+                               )
+            {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IApplyEffectOnTargetSavingthrowRoll>(caster);
+                foreach (var f in features)
+                {
+                    f.processSavingthrow(caster, target, sourceDefinition, saveOutcome);
+                }
+            }
+        }
     }
+
 }
+

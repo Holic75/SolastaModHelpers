@@ -27,7 +27,22 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
 
-                if ((tag & ExtendedEnums.ExtraTargetFilteringTag.NonCaster) != ExtendedEnums.ExtraTargetFilteringTag.No)
+                foreach (var s in effect.ImmuneCreatureFamilies)
+                {
+                    var immune_condition = Helpers.Misc.extractImmuneCondition(s);
+                    if (immune_condition != null)
+                    {
+                        if (target.RulesetCharacter != null && target.RulesetCharacter.HasConditionOfType(immune_condition))
+                        {
+                            __result = false;
+                            break;
+                        }
+
+                    }
+                    
+                }
+
+                if (__result && (tag & ExtendedEnums.ExtraTargetFilteringTag.NonCaster) != ExtendedEnums.ExtraTargetFilteringTag.No)
                 {
                     __result = target != __instance.ActionParams.ActingCharacter;
                 }

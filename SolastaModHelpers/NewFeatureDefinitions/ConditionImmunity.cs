@@ -38,4 +38,15 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return immuneCondtions.Contains(condition);
         }
     }
+
+
+    public class ImmunityToCondtions : FeatureDefinition, IConditionImmunity
+    {
+        public List<ConditionDefinition> immuneCondtions;
+
+        public bool isImmune(RulesetActor actor, ConditionDefinition condition)
+        {
+            return immuneCondtions.Contains(condition);
+        }
+    }
 }

@@ -51,21 +51,35 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
 
-                var hero = __instance as RulesetCharacterHero;
-                if (hero == null)
-                {
-                    return;
-                }
 
-                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IConditionImmunity>(hero);
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IConditionImmunity>(__instance);
                 foreach (var f in features)
                 {
-                    if (f.isImmune(hero, condition))
+                    if (f.isImmune(__instance, condition))
                     {
                         __result = true;
                         return;
                     }
                 }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetActor), "RemoveCondition")]
+        class RulesetCharacter_RemoveCondition
+        {
+            internal static bool Prefix(RulesetActor __instance,
+                                        RulesetCondition rulesetCondition, 
+                                        bool refresh,
+                                        bool showGraphics)
+            {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IApplyEffectOnConditionRemoval>(__instance);
+
+                foreach (var f in features)
+                {
+                    f.processConditionRemoval(__instance, rulesetCondition.ConditionDefinition);
+                }
+                return true;
             }
         }
 

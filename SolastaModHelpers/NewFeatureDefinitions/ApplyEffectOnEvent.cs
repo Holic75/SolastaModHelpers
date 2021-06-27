@@ -3,12 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TA;
 
 namespace SolastaModHelpers.NewFeatureDefinitions
 {
+    public interface IApplyEffectOnTargetSavingthrowRoll
+    {
+        void processSavingthrow(RulesetCharacter caster,
+                                RulesetActor target,
+                                BaseDefinition source,
+                                RuleDefinitions.RollOutcome saveOutcome);
+    }
+
+
     public interface IApplyEffectOnConditionApplication
     {
-        void processCondtionApplication(RulesetActor actor, ConditionDefinition condtion);
+        void processConditionApplication(RulesetActor actor, ConditionDefinition Condition);
+    }
+
+
+    public interface IApplyEffectOnConditionRemoval
+    {
+        void processConditionRemoval(RulesetActor actor, ConditionDefinition condition);
     }
 
 
@@ -115,6 +131,48 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 }
             }
             return null;
+        }
+    }
+
+    public class ApplyConditionOnPowerUseToTarget : FeatureDefinition, IApplyEffectOnTargetSavingthrowRoll
+    {
+        public ConditionDefinition condition;
+        public int durationValue;
+        public RuleDefinitions.DurationType durationType;
+        public RuleDefinitions.TurnOccurenceType turnOccurence;
+        public FeatureDefinitionPower power;
+        public bool onlyOnFailedSave;
+        public bool onlyOnSucessfulSave;
+
+        public void processSavingthrow(RulesetCharacter caster,
+                                        RulesetActor target,
+                                        BaseDefinition source,
+                                        RuleDefinitions.RollOutcome saveOutcome)
+        {
+            if (target == null || caster == null)
+            {
+                return;
+            }
+
+            if (source != power)
+            {
+                return;
+            }
+
+            if (onlyOnFailedSave && (saveOutcome == RuleDefinitions.RollOutcome.Success || saveOutcome == RuleDefinitions.RollOutcome.CriticalSuccess))
+            {
+                return;
+            }
+            if (onlyOnSucessfulSave && (saveOutcome == RuleDefinitions.RollOutcome.Failure || saveOutcome == RuleDefinitions.RollOutcome.CriticalFailure))
+            {
+                return;
+            }
+
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(target.Guid,
+                                                                                       condition, durationType, durationValue, turnOccurence,
+                                                                                       caster.Guid,
+                                                                                       caster.CurrentFaction.Name);
+            target.AddConditionOfCategory("10Combat", active_condition, true);
         }
     }
 
@@ -304,7 +362,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public List<ConditionDefinition> appliedConditions;
         public List<ConditionDefinition> removeConditions;
 
-        public void processCondtionApplication(RulesetActor actor, ConditionDefinition applied_condition)
+        public void processConditionApplication(RulesetActor actor, ConditionDefinition applied_condition)
         {
             if (!appliedConditions.Contains(applied_condition))
             {
@@ -326,22 +384,18 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
 
 
-    public class FrenzyWatcher : FeatureDefinition, IApplyEffectOnBattleEnd, IApplyEffectOnTurnStart
+    public class FrenzyWatcher : FeatureDefinition, IApplyEffectOnConditionRemoval
     {
         public List<ConditionDefinition> requiredConditions;
         public ConditionDefinition targetCondition;
         public ConditionDefinition afterCondition;
 
-        public void processBattleEnd(GameLocationCharacter character)
+        public void processConditionRemoval(RulesetActor actor, ConditionDefinition condition)
         {
-            performConditionRemoval(character.RulesetCharacter);
-        }
-
-        public void processTurnStart(GameLocationCharacter character)
-        {
-            if (!requiredConditions.Any(r => character.RulesetCharacter.HasConditionOfType(r)))
+            var character = actor as RulesetCharacter;
+            if (requiredConditions.Contains(condition) && character != null)
             {
-                performConditionRemoval(character.RulesetCharacter);
+                performConditionRemoval(character);
             }
         }
 

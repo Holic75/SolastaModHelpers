@@ -1014,6 +1014,22 @@ namespace SolastaModHelpers.Helpers
 
             return res;
         }
+
+
+        public static string createImmuneIfHasConditionFamily(ConditionDefinition condition)
+        {
+            return "IMMUNE_IF_HAS_CONDITION_" + condition.name;
+        }
+
+        public static ConditionDefinition extractImmuneCondition(string s)
+        {
+            if (!s.Contains("IMMUNE_IF_HAS_CONDITION_"))
+            {
+                return null;
+            }
+
+            return DatabaseRepository.GetDatabase<ConditionDefinition>().GetElement(s.Replace("IMMUNE_IF_HAS_CONDITION_", ""), true);
+        }
     }
 
 
@@ -1039,10 +1055,10 @@ namespace SolastaModHelpers.Helpers
             }
         }
 
-        static public List<T> extractFeaturesHierarchically<T>(RulesetCharacter hero) where T: class
+        static public List<T> extractFeaturesHierarchically<T>(RulesetActor actor) where T: class
         {
             var list = new List<FeatureDefinition>();
-            hero.EnumerateFeaturesToBrowse<T>(list, null);
+            actor.EnumerateFeaturesToBrowse<T>(list, null);
             return list.Select(s => s as T).ToList();
         }
     }
