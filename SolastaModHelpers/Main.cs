@@ -73,6 +73,28 @@ namespace SolastaModHelpers
         {
             Common.initialize();
             CharacterActionModifyAttackRollViaPower.initialize();
+            /*var spells = DatabaseRepository.GetDatabase<SpellDefinition>().GetAllElements();
+            foreach (var s in spells)
+            {
+                var sprite_reference = s.GuiPresentation.SpriteReference;
+
+                if (sprite_reference != null)
+                {
+                    CustomIcons.Tools.saveSpriteFromAssetReferenceAsPNG(s.GuiPresentation.SpriteReference, $@"{UnityModManager.modsPath}/SolastaModHelpers/Spells/{s.name}.png");
+                }
+            }
+
+
+            var powers = DatabaseRepository.GetDatabase<FeatureDefinitionPower>().GetAllElements();
+            foreach (var p in powers)
+            {
+                var sprite_reference = p.GuiPresentation.SpriteReference;
+
+                if (sprite_reference != null)
+                {
+                    CustomIcons.Tools.saveSpriteFromAssetReferenceAsPNG(p.GuiPresentation.SpriteReference, $@"{UnityModManager.modsPath}/SolastaModHelpers/Powers/{p.name}.png");
+                }
+            }*/
         }
     }
 }

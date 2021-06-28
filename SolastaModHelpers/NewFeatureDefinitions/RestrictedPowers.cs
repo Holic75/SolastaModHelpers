@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SolastaModApi;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,29 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public interface IRestriction
     {
         bool isForbidden(RulesetActor character);
+    }
+
+
+    public class ArmorTypeRestriction : IRestriction
+    {
+        private ArmorCategoryDefinition armorCategory;
+        private bool not; 
+
+        public bool isForbidden(RulesetActor character)
+        {
+            RulesetItem equipedItem = (character as RulesetCharacterHero)?.characterInventory.InventorySlotsByName[EquipmentDefinitions.SlotTypeTorso].EquipedItem;
+            bool has_armor_type = equipedItem != null
+                                  && equipedItem.ItemDefinition.IsArmor
+                                  && (DatabaseRepository.GetDatabase<ArmorCategoryDefinition>().GetElement(DatabaseRepository.GetDatabase<ArmorTypeDefinition>().GetElement(equipedItem.ItemDefinition.ArmorDescription.ArmorType, false).ArmorCategory, false)
+                                   == armorCategory);
+            return has_armor_type == not;
+        }
+
+        public ArmorTypeRestriction(ArmorCategoryDefinition armor_category, bool inverted = false)
+        {
+            armorCategory = armor_category;
+            not = inverted;
+        }
     }
 
 

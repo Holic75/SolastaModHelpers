@@ -28,14 +28,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public interface IApplyEffectOnAttack
+    public interface IInitiatorApplyEffectOnAttack
     {
-        void processAttack(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode);
+        void processAttackInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode);
     }
 
-    public interface IApplyEffectOnDamageTaken
+    public interface ITargetApplyEffectOnDamageTaken
     {
-        void processDamage(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms);
+        void processDamageTarget(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms);
     }
 
 
@@ -177,14 +177,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class ApplyConditionOnAttackToAttacker : FeatureDefinition, IApplyEffectOnAttack
+    public class InitiatorApplyConditionOnAttackToAttacker : FeatureDefinition, IInitiatorApplyEffectOnAttack
     {
         public ConditionDefinition condition;
         public int durationValue;
         public RuleDefinitions.DurationType durationType;
         public RuleDefinitions.TurnOccurenceType turnOccurence;
 
-        public void processAttack(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
+        public void processAttackInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid, 
                                                                                        condition, durationType, durationValue, turnOccurence,
@@ -195,7 +195,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class ApplyConditionOnDamageTakenToTarget : FeatureDefinition, IApplyEffectOnDamageTaken
+    public class TargetApplyConditionOnDamageTaken : FeatureDefinition, ITargetApplyEffectOnDamageTaken
     {
         public ConditionDefinition condition;
         public int durationValue;
@@ -203,7 +203,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public RuleDefinitions.TurnOccurenceType turnOccurence;
 
 
-        public void processDamage(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms)
+        public void processDamageTarget(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms)
         {
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
                                                                                        condition, durationType, durationValue, turnOccurence,
@@ -278,12 +278,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class ApplyConditionOnAttackToAttackerUnitUntilTurnStart : FeatureDefinition, IApplyEffectOnAttack, IApplyEffectOnTurnStart
+    public class InitiatorApplyConditionOnAttackToAttackerUntilTurnStart : FeatureDefinition, IInitiatorApplyEffectOnAttack, IApplyEffectOnTurnStart
     {
         public ConditionDefinition condition;
         public List<ConditionDefinition> extraConditionsToRemove = new List<ConditionDefinition>();
 
-        public void processAttack(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
+        public void processAttackInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid,
                                                                                        condition, RuleDefinitions.DurationType.Round, 1, RuleDefinitions.TurnOccurenceType.StartOfTurn,
@@ -314,9 +314,9 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class RageWatcher : RemoveConditionOnTurnEndIfNoCondition, IApplyEffectOnDamageTaken, IApplyEffectOnAttack, IApplyEffectOnBattleEnd
+    public class RageWatcher : RemoveConditionOnTurnEndIfNoCondition, ITargetApplyEffectOnDamageTaken, IInitiatorApplyEffectOnAttack, IApplyEffectOnBattleEnd
     {
-        public void processAttack(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
+        public void processAttackInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid,
                                                                                        this.requiredCondition, RuleDefinitions.DurationType.Round, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
@@ -325,7 +325,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             attacker.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
         }
 
-        public void processDamage(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms)
+        public void processDamageTarget(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms)
         {
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
                                                                                        this.requiredCondition, RuleDefinitions.DurationType.Round, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,

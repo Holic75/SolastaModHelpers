@@ -24,13 +24,13 @@ namespace SolastaModHelpers.Patches
                                             List<EffectForm> effectForms,
                                             ref System.Collections.IEnumerator __result)
                 {
-                    var hero_character = defender.RulesetCharacter as RulesetCharacterHero;
+                    var hero_character = defender.RulesetCharacter;
                     if (hero_character != null)
                     {
-                        var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnDamageTaken>(hero_character);
+                        var features = Helpers.Accessors.extractFeaturesHierarchically<ITargetApplyEffectOnDamageTaken>(hero_character);
                         foreach (var f in features)
                         {
-                            f.processDamage(attacker, defender, modifier, effectForms);
+                            f.processDamageTarget(attacker, defender, modifier, effectForms);
                         }
                     }
                 }
@@ -42,8 +42,6 @@ namespace SolastaModHelpers.Patches
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterAttack")]
             internal static class GameLocationBattleManager_HandleCharacterAttack_Patch
             {
-
-
                 internal static void Postfix(GameLocationBattleManager __instance,
                                                             GameLocationCharacter attacker,
                                                             GameLocationCharacter defender,
@@ -51,19 +49,20 @@ namespace SolastaModHelpers.Patches
                                                             RulesetAttackMode attackerAttackMode,
                                                             ref System.Collections.IEnumerator __result)
                 {
-                    var hero_character = attacker.RulesetCharacter as RulesetCharacterHero;
-                    if (hero_character != null)
-                    {
-                        var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnAttack>(hero_character);
-
-                        foreach (var f in features)
-                        {
-                            f.processAttack(attacker, defender, attackModifier, attackerAttackMode);
-                        }
-                    }
                     if (__instance.battle == null)
                     {
                         return;
+                    }
+
+                    var hero_character = attacker.RulesetCharacter;
+                    if (hero_character != null)
+                    {
+                        var features = Helpers.Accessors.extractFeaturesHierarchically<IInitiatorApplyEffectOnAttack>(hero_character);
+
+                        foreach (var f in features)
+                        {
+                            f.processAttackInitiator(attacker, defender, attackModifier, attackerAttackMode);
+                        }
                     }
 
                     List<System.Collections.IEnumerator> extra_events = new List<System.Collections.IEnumerator>();
