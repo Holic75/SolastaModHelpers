@@ -102,5 +102,37 @@ namespace SolastaModHelpers.Patches
         }
 
 
+        /*[HarmonyPatch(typeof(RulesetCharacterHero), "RefreshAttackModes")]
+        class RulesetCharacterHero_RefreshAttackMods
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var reference_stloc = codes.FindLastIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Stloc_2);
+                var insert_point = reference_stloc - 1;
+
+                codes.InsertRange(insert_point,
+                              new HarmonyLib.CodeInstruction[]
+                              {
+                                  new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0), //load this == RulesetHeroCharacter
+                                  new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                 new Action<RulesetCharacterHero>(addExtraUnarmedAttacks).Method
+                                                                 )
+                              }
+                            );
+                return codes.AsEnumerable();
+            }
+
+            static void addExtraUnarmedAttacks(RulesetCharacterHero character)
+            {
+                ItemDefinition strikeDefinition = character.UnarmedStrikeDefinition;
+                character.AttackModes.Add(character.RefreshAttackMode(ActionDefinitions.ActionType.Bonus, strikeDefinition, 
+                                                                      strikeDefinition.WeaponDescription, false, true, 
+                                                                      character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,
+                                                                      character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null));
+            }
+        }*/
+
+
     }
 }
