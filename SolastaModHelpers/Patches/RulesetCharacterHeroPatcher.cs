@@ -46,6 +46,34 @@ namespace SolastaModHelpers.Patches
         [HarmonyPatch(typeof(RulesetCharacterHero), "RefreshAttackMode")]
         class RulesetCharacterHero_RefreshAttackMode
         {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var finesse_string_load = codes.FindLastIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Ldstr && x.operand.ToString().Contains("Finesse"));
+
+                codes[finesse_string_load - 1] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0); //load this
+                codes[finesse_string_load] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                 new Func<WeaponDescription, RulesetCharacterHero, bool>(canUseDexterity).Method
+                                                                 );
+
+                codes.RemoveAt(finesse_string_load + 1);
+                return codes.AsEnumerable();
+            }
+
+            static bool canUseDexterity(WeaponDescription weapon_description, RulesetCharacterHero hero)
+            {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<ICanUSeDexterityWithWeapon>(hero);
+                foreach (var f in features)
+                {
+                    if (f.worksOn(hero, weapon_description))
+                    {
+                        return true;
+                    }
+                }
+
+                return weapon_description.WeaponTags.Contains("Finesse");
+            }
+
             internal static void Postfix(RulesetCharacterHero __instance,
                                         ActionDefinitions.ActionType actionType,
                                         ItemDefinition itemDefinition,
@@ -102,8 +130,8 @@ namespace SolastaModHelpers.Patches
         }
 
 
-        /*[HarmonyPatch(typeof(RulesetCharacterHero), "RefreshAttackModes")]
-        class RulesetCharacterHero_RefreshAttackMods
+        [HarmonyPatch(typeof(RulesetCharacterHero), "RefreshAttackModes")]
+        class RulesetCharacterHero_RefreshAttackModes
         {
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
@@ -116,22 +144,22 @@ namespace SolastaModHelpers.Patches
                               {
                                   new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0), //load this == RulesetHeroCharacter
                                   new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
-                                                                 new Action<RulesetCharacterHero>(addExtraUnarmedAttacks).Method
+                                                                 new Action<RulesetCharacterHero>(addExtraAttacks).Method
                                                                  )
                               }
                             );
                 return codes.AsEnumerable();
             }
 
-            static void addExtraUnarmedAttacks(RulesetCharacterHero character)
+            static void addExtraAttacks(RulesetCharacterHero character)
             {
-                ItemDefinition strikeDefinition = character.UnarmedStrikeDefinition;
-                character.AttackModes.Add(character.RefreshAttackMode(ActionDefinitions.ActionType.Bonus, strikeDefinition, 
-                                                                      strikeDefinition.WeaponDescription, false, true, 
-                                                                      character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,
-                                                                      character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null));
+                var features = Helpers.Accessors.extractFeaturesHierarchically<IAddExtraAttacks>(character);
+                foreach (var f in features)
+                {
+                    f.tryAddExtraAttack(character);
+                }
             }
-        }*/
+        }
 
 
     }

@@ -98,5 +98,15 @@ namespace SolastaModHelpers.CustomIcons
 
             return loaded_icons[guid];
         }
+
+
+        static public bool isCustomIcon(UnityEngine.Sprite sprite)
+        {
+            if (sprite == null)
+            {
+                return false;
+            }
+            return loaded_icons.ContainsValue(sprite);
+        }
     }
 }

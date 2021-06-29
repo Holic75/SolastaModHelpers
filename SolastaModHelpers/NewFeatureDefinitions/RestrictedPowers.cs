@@ -13,6 +13,55 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class NoArmorRestriction : IRestriction
+    {
+        public bool isForbidden(RulesetActor character)
+        {
+            return ((character as RulesetCharacter)?.IsWearingArmor()).GetValueOrDefault();
+        }
+    }
+
+
+    public class NoShieldRestriction : IRestriction
+    {
+        public bool isForbidden(RulesetActor character)
+        {
+            return ((character as RulesetCharacter)?.IsWearingShield()).GetValueOrDefault();
+        }
+    }
+
+
+    public class FreeOffHandRestriciton : IRestriction
+    {
+        public bool isForbidden(RulesetActor character)
+        {
+            var ruleset_character = character as RulesetCharacter;
+            if (ruleset_character == null)
+            {
+                return false;
+            }
+
+            RulesetInventorySlot rulesetInventorySlot2 = ruleset_character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeOffHand][0];
+            return rulesetInventorySlot2.EquipedItem != null && rulesetInventorySlot2.EquipedItem.ItemDefinition.IsWeapon;
+        }
+    }
+
+
+    public class UsedAllMainAttacksRestriction : IRestriction
+    {
+        public bool isForbidden(RulesetActor character)
+        {
+            var ruleset_character = character as RulesetCharacter;
+            if (ruleset_character == null)
+            {
+                return false;
+            }
+           
+            return ruleset_character.ExecutedAttacks < ruleset_character.GetAttribute("AttacksNumber", false).CurrentValue;
+        }
+    }
+
+
     public class ArmorTypeRestriction : IRestriction
     {
         private ArmorCategoryDefinition armorCategory;

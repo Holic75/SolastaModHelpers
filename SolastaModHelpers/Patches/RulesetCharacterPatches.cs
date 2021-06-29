@@ -169,20 +169,30 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
 
-                var hero = __instance as RulesetCharacterHero;
-                if (hero == null)
-                {
-                    return;
-                }
 
-                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IForbidSpellcasting>(hero);
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IForbidSpellcasting>(__instance);
                 foreach (var f in features)
                 {
-                    if (f.isSpellcastingForbidden(hero))
+                    if (f.isSpellcastingForbidden(__instance))
                     {
                         __result = false;
                         return;
                     }
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "GetMovementModifiers")]
+        class RulesetCharacter_GetMovementModifiers
+        {
+            internal static void Postfix(RulesetCharacter __instance,
+                                        ref List<FeatureDefinition> __result)
+            {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IConditionalMovementModifier>(__instance);
+                foreach (var f in features)
+                {
+                    f.tryAddConditionalMovementModfiers(__instance, __result);
                 }
             }
         }

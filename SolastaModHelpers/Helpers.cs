@@ -82,6 +82,46 @@ namespace SolastaModHelpers.Helpers
     }
 
 
+    public static class WeaponProficiencies
+    {
+        public static string ShortSword = "ShortswordType";
+        public static string Club = "ClubType";
+        public static string Dagger = "DaggerType";
+        public static string Handaxe = "HandaxeType";
+        public static string Javelin = "JavelinType";
+        public static string QuarterStaff = "QuarterstaffType";
+        public static string Mace = "MaceType";
+        public static string Spear = "SpearType";
+        public static string LongSword = "LongswordType";
+        public static string Unarmed = "UnarmedStrikeType";
+
+        public static string Simple = "SimpleWeaponCategory";
+        public static string Martial = "MartialWeaponCategory";
+
+        public static string[] getAllWeaponProficiencies()
+        {
+            return typeof(WeaponProficiencies).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f => f.GetValue(null)).Cast<string>().ToArray();
+        }
+
+        public static HashSet<string> getAllArmorProficienciesSet()
+        {
+            return getAllWeaponProficiencies().ToHashSet();
+        }
+
+        public static void assertAllWeaponProficiencies(IEnumerable<string> profs)
+        {
+            var all_profs = getAllWeaponProficiencies();
+            foreach (var p in profs)
+            {
+                if (!all_profs.Contains(p))
+                {
+                    throw new System.Exception(p + " is not a Weapon Proficiency");
+                }
+            }
+        }
+    }
+
+
     public static class Conditions
     {
         public static string Charmed = "ConditionCharmed";
@@ -105,7 +145,7 @@ namespace SolastaModHelpers.Helpers
             {
                 if (!all_conditions.Contains(c))
                 {
-                    throw new System.Exception(c + "is not a Condition");
+                    throw new System.Exception(c + " is not a Condition");
                 }
             }
         }
@@ -171,7 +211,7 @@ namespace SolastaModHelpers.Helpers
             {
                 if (!all_stats.Contains(s))
                 {
-                    throw new System.Exception(s + "is not a Skill");
+                    throw new System.Exception(s + " is not a Skill");
                 }
             }
         }
@@ -235,6 +275,14 @@ namespace SolastaModHelpers.Helpers
         {
             ArmorProficiencies.assertAllArmorProficiencies(proficiencies);
             return new ProficiencyBuilder(name, guid, title_string, description_string, DatabaseHelper.FeatureDefinitionProficiencys.ProficiencyFighterArmor, proficiencies).AddToDB();
+        }
+
+
+        public static FeatureDefinitionProficiency CreateWeaponProficiency(string name, string guid, string title_string, string description_string,
+                                                                  params string[] proficiencies)
+        {
+            WeaponProficiencies.assertAllWeaponProficiencies(proficiencies);
+            return new ProficiencyBuilder(name, guid, title_string, description_string, DatabaseHelper.FeatureDefinitionProficiencys.ProficiencyFighterWeapon, proficiencies).AddToDB();
         }
 
 

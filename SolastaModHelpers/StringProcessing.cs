@@ -72,7 +72,43 @@ namespace SolastaModHelpers.Helpers
 
             for (int i = 0; i < new_term.Languages.Count(); i++)
             {
-                new_term.Languages[i] = new_term.Languages[i].Replace(tag, tag_replacement);
+                if (new_term.Languages[i] != null)
+                {
+                    new_term.Languages[i] = new_term.Languages[i].Replace(tag, tag_replacement);
+                }
+            }
+
+            return new_string_id;
+        }
+
+
+        public static string replaceTagsInString(string old_string_id, string new_string_id, params (string, string)[] tag_replacement)
+        {
+            var languageSourceData = LocalizationManager.Sources[0];
+            if (!languageSourceData.mDictionary.ContainsKey(old_string_id))
+            {
+                throw new SystemException($"String: {old_string_id} is not present in LanguageSourceData");
+            }
+            if (languageSourceData.mDictionary.ContainsKey(new_string_id))
+            {
+                throw new SystemException($"String: {new_string_id} is already present in LanguageSourceData");
+            }
+
+            var term = languageSourceData.mDictionary[old_string_id];
+            var new_term = languageSourceData.AddTerm(new_string_id);
+            new_term.Languages = term.Languages.ToArray();
+            for (int i = 0; i < new_term.Languages.Count(); i++)
+            {
+                var s = new_term.Languages[i];
+                if (s == null)
+                {
+                    continue;
+                }
+                foreach (var tr in tag_replacement)
+                {
+                    s = s.Replace(tr.Item1, tr.Item2);
+                }
+                new_term.Languages[i] = s;
             }
 
             return new_string_id;
