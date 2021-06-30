@@ -25,4 +25,7 @@ namespace SolastaModHelpers.Patches
             return true;
         }
     }
+
+
+
 }

@@ -1083,6 +1083,62 @@ namespace SolastaModHelpers.Helpers
 
     public class Accessors
     {
+
+        public class EnumeratorCombiner: System.Collections.IEnumerator
+        {
+            private System.Collections.IEnumerator enumerator1;
+            private System.Collections.IEnumerator enumerator2;
+
+            private bool moved_to_second;
+
+
+            public EnumeratorCombiner(System.Collections.IEnumerator ienum1, System.Collections.IEnumerator ienum2)
+            {
+                enumerator1 = ienum1;
+                enumerator2 = ienum2;
+                moved_to_second = false;
+            }
+
+            public object Current => moved_to_second ? enumerator2.Current : enumerator1.Current;
+
+            public System.Collections.IEnumerator GetEnumerator()
+            {
+                while (enumerator1.MoveNext())
+                {
+                    yield return enumerator1.Current;
+                }
+                while (enumerator2.MoveNext())
+                {
+                    yield return enumerator2.Current;
+                }
+            }
+
+            public bool MoveNext()
+            {
+                if (moved_to_second)
+                {
+                    return enumerator2.MoveNext();
+                }
+
+                bool val = enumerator1.MoveNext();
+                if (val)
+                {
+                    return val;
+                }
+                moved_to_second = true;
+                return enumerator2.MoveNext();
+                
+            }
+
+            public void Reset()
+            {
+                moved_to_second = false;
+                enumerator1.Reset();
+                enumerator2.Reset();
+            }
+        }
+
+
         public static void SetField(object obj, string name, object value)
         {
             HarmonyLib.AccessTools.Field(obj.GetType(), name).SetValue(obj, value);

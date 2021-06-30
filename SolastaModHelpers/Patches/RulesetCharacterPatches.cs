@@ -68,6 +68,12 @@ namespace SolastaModHelpers.Patches
                             RulesetUsablePower usablePower,
                             ref int __result)
             {
+                if (((usablePower.PowerDefinition as NewFeatureDefinitions.IPowerRestriction)?.isReactionForbidden(__instance)).GetValueOrDefault())
+                {
+                    __result = 0;
+                    return;
+                }
+
                 var base_power = (usablePower.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {
@@ -84,6 +90,12 @@ namespace SolastaModHelpers.Patches
             internal static void Postfix(RulesetCharacter __instance,
                                         RulesetUsablePower usablePower)
             {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IApplyEffectOnPowerUse>(__instance);
+                foreach (var f in features)
+                {
+                    f.processPowerUse(__instance, usablePower);
+                }
+
                 var base_power = (usablePower.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {

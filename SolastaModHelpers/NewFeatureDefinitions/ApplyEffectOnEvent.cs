@@ -22,6 +22,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface IApplyEffectOnPowerUse
+    {
+        void processPowerUse(RulesetCharacter character, RulesetUsablePower power);
+    }
+
+
     public interface IApplyEffectOnConditionRemoval
     {
         void processConditionRemoval(RulesetActor actor, ConditionDefinition condition);
@@ -133,6 +139,31 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return null;
         }
     }
+
+
+    public class ApplyConditionOnPowerUseToSelf : FeatureDefinition, IApplyEffectOnPowerUse
+    {
+        public ConditionDefinition condition;
+        public int durationValue;
+        public RuleDefinitions.DurationType durationType;
+        public RuleDefinitions.TurnOccurenceType turnOccurence;
+        public List<FeatureDefinitionPower> powers;
+
+        public void processPowerUse(RulesetCharacter character, RulesetUsablePower usablePower)
+        {
+            if (!powers.Contains(usablePower?.PowerDefinition))
+            {
+                return;
+            }
+
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(character.Guid,
+                                                               condition, durationType, durationValue, turnOccurence,
+                                                               character.Guid,
+                                                               character.CurrentFaction.Name);
+            character.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+    }
+
 
     public class ApplyConditionOnPowerUseToTarget : FeatureDefinition, IApplyEffectOnTargetSavingthrowRoll
     {

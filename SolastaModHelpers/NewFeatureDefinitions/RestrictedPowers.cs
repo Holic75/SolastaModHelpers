@@ -136,12 +136,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public interface IPowerRestriction
     {
         bool isForbidden(RulesetActor character);
+        bool isReactionForbidden(RulesetActor character);
     }
 
 
     public class PowerWithRestrictions : LinkedPower, IPowerRestriction 
     {
         public List<IRestriction> restrictions = new List<IRestriction>();
+        public bool checkReaction = false;
 
         public bool isForbidden(RulesetActor character)
         {
@@ -153,6 +155,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 }
             }
             return false;
+        }
+
+        public bool isReactionForbidden(RulesetActor character)
+        {
+            return checkReaction ? isForbidden(character) : false;
         }
     }
 }

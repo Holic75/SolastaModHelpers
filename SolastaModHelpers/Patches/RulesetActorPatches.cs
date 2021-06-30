@@ -70,14 +70,36 @@ namespace SolastaModHelpers.Patches
         {
             internal static bool Prefix(RulesetActor __instance,
                                         RulesetCondition rulesetCondition, 
-                                        bool refresh,
+                                        ref bool refresh,
                                         bool showGraphics)
             {
+
+                if (NewFeatureDefinitions.ConditionsData.no_refresh_conditions.Contains(rulesetCondition.ConditionDefinition))
+                {
+                    refresh = false;
+                }
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IApplyEffectOnConditionRemoval>(__instance);
 
                 foreach (var f in features)
                 {
                     f.processConditionRemoval(__instance, rulesetCondition.ConditionDefinition);
+                }
+                return true;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetActor), "AddConditionOfCategory")]
+        class AddConditionOfCategory_AddConditionOfCategory
+        {
+            internal static bool Prefix(RulesetActor __instance,
+                                        string category,
+                                        RulesetCondition newCondition,
+                                        ref bool refresh)
+            {
+                if (NewFeatureDefinitions.ConditionsData.no_refresh_conditions.Contains(newCondition.ConditionDefinition))
+                {
+                    refresh = false;
                 }
                 return true;
             }

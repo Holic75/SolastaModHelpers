@@ -162,5 +162,75 @@ namespace SolastaModHelpers.Patches
         }
 
 
+
+        [HarmonyPatch(typeof(RulesetCharacterHero), "LookForFeatureOrigin")]
+        internal class RulesetCharacterHero_LookForFeatureOrigin
+        {
+            internal static void Postfix(RulesetCharacterHero __instance,
+                                        FeatureDefinition featureDefinition,
+                                        ref CharacterRaceDefinition raceDefinition,
+                                        ref CharacterClassDefinition classDefinition,
+                                        ref FeatDefinition featDefinition)
+            {
+                if (featDefinition != null
+                    || raceDefinition != null
+                    || classDefinition != null)
+                {
+                    return;
+                }
+                foreach (FeatureUnlockByLevel featureUnlock in __instance.RaceDefinition.FeatureUnlocks)
+                {
+                    if (((featureUnlock.FeatureDefinition as FeatureDefinitionFeatureSet)?.FeatureSet.Contains(featureDefinition)).GetValueOrDefault())
+                    {
+                        raceDefinition = __instance.RaceDefinition;
+                        return;
+                    }
+                }
+                if ((BaseDefinition)__instance.SubRaceDefinition != (BaseDefinition)null)
+                {
+                    foreach (FeatureUnlockByLevel featureUnlock in __instance.SubRaceDefinition.FeatureUnlocks)
+                    {
+                        if (((featureUnlock.FeatureDefinition as FeatureDefinitionFeatureSet)?.FeatureSet.Contains(featureDefinition)).GetValueOrDefault())
+                        {
+                            raceDefinition = __instance.SubRaceDefinition;
+                            return;
+                        }
+                    }
+                }
+                foreach (KeyValuePair<CharacterClassDefinition, int> classesAndLevel in __instance.ClassesAndLevels)
+                {
+                    foreach (FeatureUnlockByLevel featureUnlock in classesAndLevel.Key.FeatureUnlocks)
+                    {
+                        if (((featureUnlock.FeatureDefinition as FeatureDefinitionFeatureSet)?.FeatureSet.Contains(featureDefinition)).GetValueOrDefault())
+                        {
+                            classDefinition = classesAndLevel.Key;
+                            return;
+                        }
+                    }
+                    if (__instance.ClassesAndSubclasses.ContainsKey(classesAndLevel.Key) && (BaseDefinition)__instance.ClassesAndSubclasses[classesAndLevel.Key] != (BaseDefinition)null)
+                    {
+                        foreach (FeatureUnlockByLevel featureUnlock in __instance.ClassesAndSubclasses[classesAndLevel.Key].FeatureUnlocks)
+                        {
+                            if (((featureUnlock.FeatureDefinition as FeatureDefinitionFeatureSet)?.FeatureSet.Contains(featureDefinition)).GetValueOrDefault())
+                            {
+                                classDefinition = classesAndLevel.Key;
+                                return;
+                            }
+                        }
+                    }
+                }
+                foreach (FeatDefinition trainedFeat in __instance.TrainedFeats)
+                {
+                    foreach (var feature in trainedFeat.Features.OfType<FeatureDefinitionFeatureSet>())
+                    {
+                        if (feature.FeatureSet.Contains(featureDefinition))
+                        {
+                            featDefinition = trainedFeat;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

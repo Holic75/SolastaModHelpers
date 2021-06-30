@@ -53,39 +53,47 @@ namespace SolastaModHelpers.Patches
                     {
                         return;
                     }
+                    Main.Logger.Log("Call Handler");
 
-                    var hero_character = attacker.RulesetCharacter;
-                    if (hero_character != null)
+                    var extra_events = Process(__instance, attacker, defender, attackModifier, attackerAttackMode);
+                    var old_enumerator = __result;
+
+                    __result = new Helpers.Accessors.EnumeratorCombiner(old_enumerator, extra_events);
+                }
+
+
+                internal static System.Collections.IEnumerator Process(GameLocationBattleManager __instance,
+                                            GameLocationCharacter attacker,
+                                            GameLocationCharacter defender,
+                                            ActionModifier attackModifier,
+                                            RulesetAttackMode attackerAttackMode)
+                {
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<IInitiatorApplyEffectOnAttack>(attacker.RulesetCharacter);
+
+                    foreach (var f in features)
                     {
-                        var features = Helpers.Accessors.extractFeaturesHierarchically<IInitiatorApplyEffectOnAttack>(hero_character);
-
-                        foreach (var f in features)
-                        {
-                            f.processAttackInitiator(attacker, defender, attackModifier, attackerAttackMode);
-                        }
+                        f.processAttackInitiator(attacker, defender, attackModifier, attackerAttackMode);
                     }
 
-                    List<System.Collections.IEnumerator> extra_events = new List<System.Collections.IEnumerator>();
-
-                    var units = __instance.Battle.AllContenders;                   
+                    var units = __instance.Battle.AllContenders;
                     foreach (GameLocationCharacter unit in units)
                     {
-                        if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious 
+                        if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious
                             && unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) == ActionDefinitions.ActionStatus.Available)
                         {
-                            var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnAttackAttempt 
+                            var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnAttackAttempt
                                                                                   && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
                                                                                   && (u.PowerDefinition as NewFeatureDefinitions.IReactionPowerOnAttackAttempt)
                                                                                     .canBeUsed(unit, attacker, defender, attackerAttackMode)
                                                                                  ).ToArray();
                             var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
-                                                                                 {
-                                                                                     if (next.PowerDefinition?.overriddenPower != null)
-                                                                                     {
-                                                                                         old.Add(next.PowerDefinition?.overriddenPower);
-                                                                                     }
-                                                                                     return old;
-                                                                                 });
+                            {
+                                if (next.PowerDefinition?.overriddenPower != null)
+                                {
+                                    old.Add(next.PowerDefinition?.overriddenPower);
+                                }
+                                return old;
+                            });
                             powers = powers.Where(pp => !overriden_powers.Contains(pp.powerDefinition)).ToArray();
 
                             foreach (var p in powers)
@@ -98,23 +106,15 @@ namespace SolastaModHelpers.Patches
                                 reactionParams.UsablePower = p;
                                 IRulesetImplementationService service1 = ServiceRepository.GetService<IRulesetImplementationService>();
                                 reactionParams.RulesetEffect = (RulesetEffect)service1.InstantiateEffectPower(attacker.RulesetCharacter, p, false);
-                                reactionParams.StringParameter = p.PowerDefinition.Name;                                
+                                reactionParams.StringParameter = p.PowerDefinition.Name;
                                 reactionParams.IsReactionEffect = true;
                                 IGameLocationActionService service2 = ServiceRepository.GetService<IGameLocationActionService>();
                                 int count = service2.PendingReactionRequestGroups.Count;
                                 (service2 as GameLocationActionManager)?.AddInterruptRequest((ReactionRequest)new ReactionRequestUsePower(reactionParams, "ModifyAttackRollViaPower"));
-                                extra_events.Add(__instance.WaitForReactions(attacker, service2, count));
+                                yield return __instance.WaitForReactions(attacker, service2, count);
                             }
                         }
                     }
-
-                    var all_events = new List<object>();
-                    while (__result.MoveNext())
-                    {
-                        all_events.Add(__result.Current);
-                    }
-                    all_events.AddRange(extra_events);
-                    __result = Helpers.Accessors.convertToEnumerator(all_events);
                 }
             }
         }
@@ -138,9 +138,21 @@ namespace SolastaModHelpers.Patches
                     {
                         return;
                     }
+                    var extra_events = Process(__instance, attacker, defender, magicModifier, activeEffect, actualEffectForms, firstTarget);
+                    var old_enumerator = __result;
 
-                    List<System.Collections.IEnumerator> extra_events = new List<System.Collections.IEnumerator>();
+                    __result = new Helpers.Accessors.EnumeratorCombiner(old_enumerator, extra_events);
+                }
 
+
+                internal static System.Collections.IEnumerator Process(GameLocationBattleManager __instance,
+                            GameLocationCharacter attacker,
+                            GameLocationCharacter defender,
+                            ActionModifier magicModifier,
+                            RulesetEffect activeEffect,
+                            List<EffectForm> actualEffectForms,
+                            bool firstTarget)
+                {
                     var units = __instance.Battle.AllContenders;
                     foreach (GameLocationCharacter unit in units)
                     {
@@ -175,18 +187,10 @@ namespace SolastaModHelpers.Patches
                                 IGameLocationActionService service2 = ServiceRepository.GetService<IGameLocationActionService>();
                                 int count = service2.PendingReactionRequestGroups.Count;
                                 service2.ReactToUsePower(reactionParams);
-                                extra_events.Add(__instance.WaitForReactions(attacker, service2, count));
+                                yield return __instance.WaitForReactions(attacker, service2, count);
                             }
                         }
                     }
-
-                    var all_events = new List<object>();
-                    while (__result.MoveNext())
-                    {
-                        all_events.Add(__result.Current);
-                    }
-                    all_events.AddRange(extra_events);
-                    __result = Helpers.Accessors.convertToEnumerator(all_events);
                 }
             }
         }
@@ -212,8 +216,22 @@ namespace SolastaModHelpers.Patches
                         return;
                     }
 
-                    List<System.Collections.IEnumerator> extra_events = new List<System.Collections.IEnumerator>();
+                    var extra_events = Process(__instance, attacker, defender, attackModifier, attackMode, rangedAttack, advantageType, actualEffectForms);
+                    var old_enumerator = __result;
 
+                    __result = new Helpers.Accessors.EnumeratorCombiner(old_enumerator, extra_events);
+                }
+
+
+                internal static System.Collections.IEnumerator Process(GameLocationBattleManager __instance,
+                            GameLocationCharacter attacker,
+                            GameLocationCharacter defender,
+                            ActionModifier attackModifier,
+                            RulesetAttackMode attackMode,
+                            bool rangedAttack,
+                            RuleDefinitions.AdvantageType advantageType,
+                            List<EffectForm> actualEffectFormst)
+                {
                     var units = __instance.Battle.AllContenders;
                     foreach (GameLocationCharacter unit in units)
                     {
@@ -248,18 +266,10 @@ namespace SolastaModHelpers.Patches
                                 IGameLocationActionService service2 = ServiceRepository.GetService<IGameLocationActionService>();
                                 int count = service2.PendingReactionRequestGroups.Count;
                                 service2.ReactToUsePower(reactionParams);
-                                extra_events.Add(__instance.WaitForReactions(attacker, service2, count));
+                                yield return __instance.WaitForReactions(attacker, service2, count);
                             }
                         }
                     }
-
-                    var all_events = new List<object>();
-                    while (__result.MoveNext())
-                    {
-                        all_events.Add(__result.Current);
-                    }
-                    all_events.AddRange(extra_events);
-                    __result = Helpers.Accessors.convertToEnumerator(all_events);
                 }
             }
         }

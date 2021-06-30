@@ -148,13 +148,13 @@ namespace SolastaModHelpers.Helpers
 
 
         public static void addPowerReactStrings(FeatureDefinitionPower power, string use_power_title, string use_power_description, 
-                                               string react_title, string react_description)
+                                               string react_title, string react_description, string prefix = "Use")
         {
             var power_name = power.name;
-            addStringCopy(use_power_title, "Reaction/&Use" + power_name + "Title");
-            addStringCopy(use_power_description, "Reaction/&Use" + power_name + "Description");
-            addStringCopy(react_title, "Reaction/&Use" + power_name + "ReactTitle");
-            addStringCopy(react_description, "Reaction/&Use" + power_name + "ReactDescription");
+            addStringCopy(use_power_title, "Reaction/&" + prefix + power_name + "Title");
+            addStringCopy(use_power_description, "Reaction/&" + prefix + power_name + "Description");
+            addStringCopy(react_title, "Reaction/&" + prefix + power_name + "ReactTitle");
+            addStringCopy(react_description, "Reaction/&" + prefix + power_name + "ReactDescription");
         }
     }
 }
