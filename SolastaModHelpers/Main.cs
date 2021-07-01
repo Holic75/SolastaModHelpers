@@ -73,6 +73,7 @@ namespace SolastaModHelpers
         {
             Common.initialize();
             CharacterActionModifyAttackRollViaPower.initialize();
+            CharacterActionDeflectMissileCustom.initialize();
             /*var spells = DatabaseRepository.GetDatabase<SpellDefinition>().GetAllElements();
             foreach (var s in spells)
             {

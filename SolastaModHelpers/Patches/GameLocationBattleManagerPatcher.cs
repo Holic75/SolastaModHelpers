@@ -264,6 +264,21 @@ namespace SolastaModHelpers.Patches
                         yield break;
                     }
 
+
+                    if (attackMode != null 
+                        && attackMode.Ranged
+                        && defender.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) == ActionDefinitions.ActionStatus.Available
+                        && Helpers.Accessors.extractFeaturesHierarchically<DeflectMissileCustom>(defender.RulesetCharacter).Any())
+                    {
+                        CharacterActionParams reactionParams = new CharacterActionParams(defender, (ActionDefinitions.Id)ExtendedActionId.DeflectMissileCustom);
+                        reactionParams.ActionModifiers.Add(attackModifier);
+                        reactionParams.TargetCharacters.Add(attacker);
+                        IGameLocationActionService service = ServiceRepository.GetService<IGameLocationActionService>();
+                        int count = service.PendingReactionRequestGroups.Count;
+                        (service as GameLocationActionManager)?.AddInterruptRequest((ReactionRequest)new ReactionRequestDeflectMissileCustom(reactionParams));
+                        yield return __instance.WaitForReactions(attacker, service, count);
+                    }
+
                     var units = __instance.Battle.AllContenders;
                     foreach (GameLocationCharacter unit in units)
                     {
