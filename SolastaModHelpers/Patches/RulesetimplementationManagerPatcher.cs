@@ -11,8 +11,9 @@ namespace SolastaModHelpers.Patches
     class RulesetImplementationManagerPatcher
     {
         [HarmonyPatch(typeof(RulesetImplementationManager), "ApplyDamageForm")]
-        class RulesetimplementationManager_ApplyDamageForm
+        internal class RulesetimplementationManager_ApplyDamageForm
         {
+            internal static int dice_num_bonus = 0;
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var codes = instructions.ToList();
@@ -37,7 +38,7 @@ namespace SolastaModHelpers.Patches
             static int processDiceNumber(int base_dice_num, RulesetImplementationDefinitions.ApplyFormsParams form_params)
             {
                 var dice_num = base_dice_num;
-                var character = (form_params.sourceCharacter as RulesetCharacterHero);
+                var character = (form_params.sourceCharacter as RulesetCharacter);
                 if (character == null)
                 {
                     return dice_num;
@@ -47,6 +48,7 @@ namespace SolastaModHelpers.Patches
                 {
                     dice_num += f.extraDice(form_params);
                 }
+                dice_num_bonus = dice_num - base_dice_num;
                 return dice_num;
             }
         }

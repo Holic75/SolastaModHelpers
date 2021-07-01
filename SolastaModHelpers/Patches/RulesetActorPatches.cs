@@ -34,6 +34,43 @@ namespace SolastaModHelpers.Patches
         }
 
 
+        [HarmonyPatch(typeof(RulesetActor), "RollDamage")]
+        class RulesetActor_RollDamage
+        {
+            internal static bool Prefix(RulesetActor __instance,
+                                        DamageForm damageForm,
+                                        int addDice,
+                                        bool criticalSuccess,
+                                        int additionalDamage,
+                                        int damageRollReduction,
+                                        float damageMultiplier,
+                                        bool useVersatileDamage,
+                                        List<int> rolledValues,
+                                        bool canRerollDice,
+                                        ref int __result)
+            {
+                var character = (__instance as RulesetCharacter);
+                if (character == null)
+                {
+                    return true;
+                }
+
+                var bonus_dice = RulesetImplementationManagerPatcher.RulesetimplementationManager_ApplyDamageForm.dice_num_bonus;
+                if (bonus_dice == 0)
+                {
+                    return true;
+                }
+
+                int num1 = criticalSuccess ? 2 : 1;
+                int num2 = __instance.RollDiceAndSum(useVersatileDamage ? damageForm.VersatileDieType : damageForm.DieType, RuleDefinitions.RollContext.DamageValueRoll, (damageForm.DiceNumber + addDice) * num1 + bonus_dice, rolledValues, canRerollDice);
+                __result = UnityEngine.Mathf.FloorToInt(damageMultiplier * (float)(UnityEngine.Mathf.Clamp(num2 + damageForm.BonusDamage - damageRollReduction, 0, int.MaxValue) + additionalDamage));
+                
+                RulesetImplementationManagerPatcher.RulesetimplementationManager_ApplyDamageForm.dice_num_bonus = 0;
+                return false;
+            }
+        }
+
+
         [HarmonyPatch(typeof(RulesetActor), "IsImmuneToCondition")]
         class RulesetActor_IsImmuneToCondition
         {

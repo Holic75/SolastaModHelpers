@@ -42,23 +42,35 @@ namespace SolastaModHelpers.Patches
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterAttack")]
             internal static class GameLocationBattleManager_HandleCharacterAttack_Patch
             {
-                internal static void Postfix(GameLocationBattleManager __instance,
-                                                            GameLocationCharacter attacker,
-                                                            GameLocationCharacter defender,
-                                                            ActionModifier attackModifier,
-                                                            RulesetAttackMode attackerAttackMode,
-                                                            ref System.Collections.IEnumerator __result)
+                internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result,
+                                                                        GameLocationBattleManager __instance,
+                                                                        GameLocationCharacter attacker,
+                                                                        GameLocationCharacter defender,
+                                                                        ActionModifier attackModifier,
+                                                                        RulesetAttackMode attackerAttackMode
+                                                                        )
                 {
-                    if (__instance.battle == null)
+                    while (__result.MoveNext())
                     {
-                        return;
+                        yield return __result.Current;
                     }
-                    Main.Logger.Log("Call Handler");
-
                     var extra_events = Process(__instance, attacker, defender, attackModifier, attackerAttackMode);
-                    var old_enumerator = __result;
 
-                    __result = new Helpers.Accessors.EnumeratorCombiner(old_enumerator, extra_events);
+                    while (extra_events.MoveNext())
+                    {
+                        yield return extra_events.Current;
+                    }
+
+                    //if (__instance.battle == null)
+                    //{
+                    //    return __result;
+                    //}
+
+
+                    //var extra_events = Process(__instance, attacker, defender, attackModifier, attackerAttackMode);
+                    //var old_enumerator = __result;
+
+                    //return new Helpers.Accessors.EnumeratorCombiner(old_enumerator, extra_events);
                 }
 
 
@@ -68,6 +80,11 @@ namespace SolastaModHelpers.Patches
                                             ActionModifier attackModifier,
                                             RulesetAttackMode attackerAttackMode)
                 {
+                    if (__instance.battle == null)
+                    {
+                        yield break;
+                    }
+
                     var features = Helpers.Accessors.extractFeaturesHierarchically<IInitiatorApplyEffectOnAttack>(attacker.RulesetCharacter);
 
                     foreach (var f in features)
@@ -125,23 +142,27 @@ namespace SolastaModHelpers.Patches
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterMagicalAttackDamage")]
             internal static class GameLocationBattleManager_HandleCharacterMagicalAttackDamage_Patch
             {
-                internal static void Postfix(GameLocationBattleManager __instance,
-                                            GameLocationCharacter attacker,
-                                            GameLocationCharacter defender,
-                                            ActionModifier magicModifier,
-                                            RulesetEffect activeEffect,
-                                            List<EffectForm> actualEffectForms,
-                                            bool firstTarget,
-                                            ref System.Collections.IEnumerator __result)
+                internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result,
+                                                                         GameLocationBattleManager __instance,
+                                                                        GameLocationCharacter attacker,
+                                                                        GameLocationCharacter defender,
+                                                                        ActionModifier magicModifier,
+                                                                        RulesetEffect activeEffect,
+                                                                        List<EffectForm> actualEffectForms,
+                                                                        bool firstTarget)
                 {
-                    if (__instance.battle == null)
+
+                    while (__result.MoveNext())
                     {
-                        return;
+                        yield return __result.Current;
                     }
                     var extra_events = Process(__instance, attacker, defender, magicModifier, activeEffect, actualEffectForms, firstTarget);
-                    var old_enumerator = __result;
 
-                    __result = new Helpers.Accessors.EnumeratorCombiner(old_enumerator, extra_events);
+                    while (extra_events.MoveNext())
+                    {
+                        yield return extra_events.Current;
+                    }
+
                 }
 
 
@@ -153,6 +174,11 @@ namespace SolastaModHelpers.Patches
                             List<EffectForm> actualEffectForms,
                             bool firstTarget)
                 {
+                    if (__instance.battle == null)
+                    {
+                        yield break;
+                    }
+
                     var units = __instance.Battle.AllContenders;
                     foreach (GameLocationCharacter unit in units)
                     {
@@ -201,25 +227,26 @@ namespace SolastaModHelpers.Patches
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterAttackDamage")]
             internal static class GameLocationBattleManager_HandleCharacterAttackDamage_Patch
             {
-                internal static void Postfix(GameLocationBattleManager __instance,
-                                            GameLocationCharacter attacker,
-                                            GameLocationCharacter defender,
-                                            ActionModifier attackModifier,
-                                            RulesetAttackMode attackMode,
-                                            bool rangedAttack,
-                                            RuleDefinitions.AdvantageType advantageType,
-                                            List<EffectForm> actualEffectForms,
-                                            ref System.Collections.IEnumerator __result)
+                internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result,
+                                                                        GameLocationBattleManager __instance,
+                                                                        GameLocationCharacter attacker,
+                                                                        GameLocationCharacter defender,
+                                                                        ActionModifier attackModifier,
+                                                                        RulesetAttackMode attackMode,
+                                                                        bool rangedAttack,
+                                                                        RuleDefinitions.AdvantageType advantageType,
+                                                                        List<EffectForm> actualEffectForms)
                 {
-                    if (__instance.battle == null)
+                    while (__result.MoveNext())
                     {
-                        return;
+                        yield return __result.Current;
                     }
-
                     var extra_events = Process(__instance, attacker, defender, attackModifier, attackMode, rangedAttack, advantageType, actualEffectForms);
-                    var old_enumerator = __result;
 
-                    __result = new Helpers.Accessors.EnumeratorCombiner(old_enumerator, extra_events);
+                    while (extra_events.MoveNext())
+                    {
+                        yield return extra_events.Current;
+                    }
                 }
 
 
@@ -232,6 +259,11 @@ namespace SolastaModHelpers.Patches
                             RuleDefinitions.AdvantageType advantageType,
                             List<EffectForm> actualEffectFormst)
                 {
+                    if (__instance.battle == null)
+                    {
+                        yield break;
+                    }
+
                     var units = __instance.Battle.AllContenders;
                     foreach (GameLocationCharacter unit in units)
                     {
