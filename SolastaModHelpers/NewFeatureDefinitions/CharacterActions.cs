@@ -119,7 +119,6 @@ public class CharacterActionDeflectMissileCustom : CharacterAction
             }
         }
 
-        SolastaModHelpers.Main.Logger.Log("Total bonus: " + max_bonus.ToString());
         int reductionAmount = RuleDefinitions.RollDie(actionDeflectMissile.ActionDefinition.DieType, RuleDefinitions.AdvantageType.None, out int _, out int _) + max_bonus;
         actionDeflectMissile.ActionParams.ActionModifiers[0].DamageRollReduction += reductionAmount;
 

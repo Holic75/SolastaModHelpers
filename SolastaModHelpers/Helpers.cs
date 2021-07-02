@@ -1165,5 +1165,25 @@ namespace SolastaModHelpers.Helpers
             actor.EnumerateFeaturesToBrowse<T>(list, null);
             return list.Select(s => s as T).ToList();
         }
+
+
+        static public RulesetUsablePower[] extractPowers(RulesetCharacter character, Predicate<RulesetUsablePower> predicate)
+        {
+            var powers = character.UsablePowers.Where(u => 
+                                                      character.GetRemainingUsesOfPower(u) > 0
+                                                      && predicate(u)
+                                                     ).ToArray();
+
+            var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
+            {
+                if (next.PowerDefinition?.overriddenPower != null)
+                {
+                    old.Add(next.PowerDefinition?.overriddenPower);
+                }
+                return old;
+            });
+            powers = powers.Where(pp => !overriden_powers.Contains(pp.powerDefinition)).ToArray();
+            return powers;
+        }
     }
 }

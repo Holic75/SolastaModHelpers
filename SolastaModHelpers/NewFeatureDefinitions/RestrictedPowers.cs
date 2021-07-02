@@ -31,6 +31,15 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class NoRangedWeaponRestriction : IRestriction
+    {
+        public bool isForbidden(RulesetActor character)
+        {
+            return !((character as RulesetCharacter)?.IsWieldingRangedWeapon()).GetValueOrDefault();
+        }
+    }
+
+
     public class FreeOffHandRestriciton : IRestriction
     {
         public bool isForbidden(RulesetActor character)

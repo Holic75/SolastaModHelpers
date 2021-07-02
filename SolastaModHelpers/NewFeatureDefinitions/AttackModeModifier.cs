@@ -12,6 +12,37 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon);
     }
 
+
+    public class AddAttackTagForSpecificWeaponType : FeatureDefinition, IAttackModeModifier
+    {
+        public List<string> weaponTypes = new List<string>();
+        public string tag;
+
+        public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        {
+            var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
+            if (weapon2 == null || !weapon2.isWeapon)
+            {
+                return;
+            }
+
+            var description = weapon2.WeaponDescription;
+            if (description == null)
+            {
+                return;
+            }
+
+
+            if (!weaponTypes.Empty() && !weaponTypes.Contains(description.WeaponType))
+            {
+                return;
+            }
+
+            attack_mode.AddAttackTagAsNeeded(tag);
+
+        }
+    }
+
     public class WeaponDamageBonusWithSpecificStat: FeatureDefinition, IAttackModeModifier
     {
         public int value;

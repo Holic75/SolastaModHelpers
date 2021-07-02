@@ -79,7 +79,7 @@ namespace SolastaModHelpers.Patches
                 {
                     return;
                 }
-                __result = Math.Min(__instance.GetRemainingUsesOfPower(base_power), __result);
+                __result = Math.Min(__instance.GetRemainingUsesOfPower(base_power) * base_power.PowerDefinition.CostPerUse / usablePower.PowerDefinition.costPerUse, __result);
             }
         }
 
@@ -102,7 +102,10 @@ namespace SolastaModHelpers.Patches
                     return;
                     
                 }
-                base_power.Consume();
+                for (int i = 0; i < usablePower.PowerDefinition.costPerUse / base_power.PowerDefinition.costPerUse; i++)
+                {
+                    base_power.Consume();
+                }
             }
         }
 
