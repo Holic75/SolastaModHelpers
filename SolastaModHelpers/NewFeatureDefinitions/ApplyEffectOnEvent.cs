@@ -102,6 +102,45 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class ProvideConditionForTurnDuration: FeatureDefinition, IApplyEffectOnTurnStart, IApplyEffectOnTurnEnd
+    {
+        public ConditionDefinition condition;
+        public List<IRestriction> restrictions = new List<IRestriction>();
+
+        public void processTurnEnd(GameLocationCharacter character)
+        {
+            foreach (var conditions in character.RulesetCharacter.ConditionsByCategory.Values.ToArray())
+            {
+                foreach (var c in conditions.ToArray())
+                {
+                    if (c.ConditionDefinition == condition)
+                    {
+                        character.RulesetCharacter.RemoveCondition(c, true, true);
+                    }
+                }
+            }
+        }
+
+        public void processTurnStart(GameLocationCharacter character)
+        {
+
+            foreach (var r in restrictions)
+            {
+                if (r.isForbidden(character.RulesetCharacter))
+                {
+                    return;
+                }
+            }
+
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(character.RulesetCharacter.Guid,
+                                                                                       this.condition, RuleDefinitions.DurationType.Round, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
+                                                                                       character.RulesetCharacter.Guid,
+                                                                                       character.RulesetCharacter.CurrentFaction.Name);
+            character.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+    }
+
+
     public class ApplyPowerOnTurnEndBasedOnClassLevel : ApplyPowerOnTurnEndBase
     {
         public List<(int, FeatureDefinitionPower)> powerLevelList;
