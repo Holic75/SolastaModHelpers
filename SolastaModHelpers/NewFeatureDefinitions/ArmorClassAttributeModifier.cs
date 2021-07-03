@@ -8,7 +8,9 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 {
     public interface IScalingArmorClassBonus
     {
-        void apply(RulesetAttribute armor_class_attribute, RulesetCharacter character);
+        void apply(RulesetAttribute armor_class_attribute, RulesetCharacter character, int precomputedBonus);
+        bool isExclusive();
+        int precomputeBonusValue(RulesetCharacter character);
     }
 
 
@@ -19,17 +21,29 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public bool shieldAlowed;
         public List<ConditionDefinition> forbiddenConditions;
         public bool onlyPositive;
+        public bool exclusive = false;
 
-        public void apply(RulesetAttribute armor_class_attribute, RulesetCharacter character)
+        public void apply(RulesetAttribute armor_class_attribute, RulesetCharacter character, int precomputedBonus)
+        {
+            armor_class_attribute.ValueTrends.Add(new RuleDefinitions.TrendInfo(precomputedBonus, RuleDefinitions.FeatureSourceType.AbilityScore, stat, character));
+            armor_class_attribute.AddModifier(RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Additive, (float)precomputedBonus, "03Class"));
+        }
+
+        public bool isExclusive()
+        {
+            return exclusive;
+        }
+
+        public int precomputeBonusValue(RulesetCharacter character)
         {
             if (!armorAllowed && character.IsWearingArmor())
             {
-                return;
+                return 0;
             }
 
             if (!shieldAlowed && character.IsWearingShield())
             {
-                return;
+                return 0;
             }
 
             if (forbiddenConditions != null)
@@ -38,17 +52,16 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 {
                     if (character.HasConditionOfType(c))
                     {
-                        return;
+                        return 0;
                     }
                 }
             }
             var stat_bonus = AttributeDefinitions.ComputeAbilityScoreModifier(character.GetAttribute(stat, false).CurrentValue);
             if (stat_bonus < 0 && onlyPositive)
             {
-                return;
+                return 0 ;
             }
-            armor_class_attribute.ValueTrends.Add(new RuleDefinitions.TrendInfo(stat_bonus, RuleDefinitions.FeatureSourceType.AbilityScore, stat, character));
-            armor_class_attribute.AddModifier(RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Additive, (float)stat_bonus, "03Class"));
+            return stat_bonus;
         }
     }
 }

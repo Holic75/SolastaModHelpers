@@ -35,10 +35,33 @@ namespace SolastaModHelpers.Patches
             static void applyArmorModifiers(RulesetAttribute attribute, RulesetCharacterHero character)
             {
                 var features = Helpers.Accessors.extractFeaturesHierarchically<IScalingArmorClassBonus>(character);
+                List<(IScalingArmorClassBonus, int)> exclusive_feature_value = new List<(IScalingArmorClassBonus, int)>();
                 foreach (var f in features)
                 {
-                    f.apply(attribute, character);
+                    if (!f.isExclusive())
+                    {
+                        f.apply(attribute, character, f.precomputeBonusValue(character));
+                    }
+                    else
+                    {
+                        exclusive_feature_value.Add((f, f.precomputeBonusValue(character)));
+                    }
                 }
+
+                if (exclusive_feature_value.Empty())
+                {
+                    return;
+                }
+
+                var best_feature_value = exclusive_feature_value[0];
+                for (int i = 1; i < exclusive_feature_value.Count(); i++)
+                {
+                    if (exclusive_feature_value[i].Item2 > best_feature_value.Item2)
+                    {
+                        best_feature_value = exclusive_feature_value[i];
+                    }
+                }
+                best_feature_value.Item1.apply(attribute, character, best_feature_value.Item2);
             }
         }
 

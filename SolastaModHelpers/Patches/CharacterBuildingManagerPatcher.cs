@@ -26,7 +26,7 @@ namespace SolastaModHelpers.Patches
                         return true;
                     }
                     int bonus_known_spells = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
-                                                                         .Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(hero));
+                                                                         .Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(__instance, hero));
 
                     maxNumber = maxNumber + bonus_known_spells;
                     return true;

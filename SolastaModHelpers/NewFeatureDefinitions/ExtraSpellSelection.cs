@@ -9,13 +9,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     public interface IKnownSpellNumberIncrease
     {
-        int getKnownSpellsBonus(RulesetCharacterHero hero);
+        int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero);
     }
 
 
     public interface IReplaceSpellList
     {
-
         SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService);
     }
 
@@ -26,8 +25,17 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public int max_spells;
         public int level;
 
-        public int getKnownSpellsBonus(RulesetCharacterHero hero)
+        public int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero)
         {
+            int current_level;
+            CharacterClassDefinition current_class;
+            manager.GetLastAssignedClassAndLevel(out current_class, out current_level);
+
+            if (caster_class != current_class)
+            {
+                return 0;
+            }
+
             if (hero == null)
             {
                 return 0;
@@ -54,8 +62,17 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public int max_spells;
         public int level;
 
-        public int getKnownSpellsBonus(RulesetCharacterHero hero)
+        public int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero)
         {
+            int current_level;
+            CharacterClassDefinition current_class;
+            manager.GetLastAssignedClassAndLevel(out current_class, out current_level);
+
+            if (caster_class != current_class)
+            {
+                return 0;
+            }
+
             if (hero == null)
             {
                 return 0;
