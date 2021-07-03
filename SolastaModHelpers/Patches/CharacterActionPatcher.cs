@@ -15,7 +15,6 @@ namespace SolastaModHelpers.Patches
         {
             var type_name = nameof(CharacterAction) + (string.IsNullOrEmpty(actionParams.ActionDefinition.ClassNameOverride) ? actionParams.ActionDefinition.Name : actionParams.ActionDefinition.ClassNameOverride);
             var type = System.Type.GetType(type_name);
-            Main.Logger.Log("Type: " + type_name);
             if (type != null)
             {
                 //action type is defined locally

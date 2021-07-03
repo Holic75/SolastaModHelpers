@@ -7,7 +7,7 @@ Helper functions for Solasta modding
 1. Download and install [Unity Mod Manager (UMM)](https://www.nexusmods.com/site/mods/21)
 2. Execute UMM, Select Solasta, and Install
 3. Download and install [SolastaModApi](https://www.nexusmods.com/solastacrownofthemagister/mods/48) using UMM
-4. Download and install the mod (.zip file) via UMM 
+4. Download and install the mod (.zip file from releases page) via UMM 
 
 # How to Compile
 

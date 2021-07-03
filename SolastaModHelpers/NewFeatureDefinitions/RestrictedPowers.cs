@@ -35,7 +35,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public bool isForbidden(RulesetActor character)
         {
-            return !((character as RulesetCharacter)?.IsWieldingRangedWeapon()).GetValueOrDefault();
+            return ((character as RulesetCharacter)?.IsWieldingRangedWeapon()).GetValueOrDefault();
         }
     }
 
