@@ -94,6 +94,11 @@ namespace SolastaModHelpers.Helpers
         public static string Spear = "SpearType";
         public static string LongSword = "LongswordType";
         public static string Unarmed = "UnarmedStrikeType";
+        public static string BattleAxe = "BattleaxeType";
+        public static string MorningStar = "MorningstarType";
+        public static string Rapier = "RapierType";
+        public static string Scimitar = "ScimitarType";
+        public static string Warhammer = "WarhammerType";
 
         public static string Simple = "SimpleWeaponCategory";
         public static string Martial = "MartialWeaponCategory";

@@ -119,6 +119,22 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class HasFeatureRestricition : IRestriction 
+    {
+        private FeatureDefinition feature;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            return !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Any(f => f == feature);
+        }
+
+        public HasFeatureRestricition(FeatureDefinition required_feature)
+        {
+            feature = required_feature;
+        }
+    }
+
+
     public class HasAtLeastOneConditionFromListRestriction : IRestriction
     {
         private List<ConditionDefinition> conditions;
@@ -138,6 +154,54 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public HasAtLeastOneConditionFromListRestriction(params ConditionDefinition[] required_conditions)
         {
             conditions = required_conditions.ToList();
+        }
+    }
+
+
+    public class InverseRestriction : IRestriction
+    {
+        private IRestriction restriction;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            return !restriction.isForbidden(character);
+        }
+
+        public InverseRestriction(IRestriction base_restriction)
+        {
+            restriction = base_restriction;
+        }
+    }
+
+    //holds if at least one of restrictions in the list holds
+    public class OrRestriction : IRestriction
+    {
+        private List<IRestriction> restrictions;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            return restrictions.Any(r => r.isForbidden(character));
+        }
+
+        public OrRestriction(params IRestriction[] or_restriction)
+        {
+            restrictions = or_restriction.ToList();
+        }
+    }
+
+    //holds only if all restrictions in the list hold
+    public class AndRestriction : IRestriction
+    {
+        private List<IRestriction> restrictions;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            return restrictions.All(r => r.isForbidden(character));
+        }
+
+        public AndRestriction(params IRestriction[] and_restriciton)
+        {
+            restrictions = and_restriciton.ToList();
         }
     }
 

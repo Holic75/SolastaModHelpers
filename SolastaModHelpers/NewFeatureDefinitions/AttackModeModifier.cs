@@ -81,19 +81,16 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public CharacterClassDefinition characterClass;
         public List<(int, int, RuleDefinitions.DieType)> levelDamageList;
         public List<string> weaponTypes = new List<string>();
-        public bool allowArmor;
-        public bool allowShield;
+        public List<IRestriction> restrictions = new List<IRestriction>();
 
         public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
-            if (character.IsWearingArmor() && !allowArmor)
+            foreach (var r in restrictions)
             {
-                return;
-            }
-
-            if (character.IsWearingShield() && !allowShield)
-            {
-                return;
+                if (r.isForbidden(character))
+                {
+                    return;
+                }
             }
 
             var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);

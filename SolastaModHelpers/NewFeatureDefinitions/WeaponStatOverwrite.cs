@@ -15,19 +15,16 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public class canUseDexterityWithSpecifiedWeaponTypes : FeatureDefinition, ICanUSeDexterityWithWeapon
     {
         public List<string> weaponTypes;
-        public bool allowArmor;
-        public bool allowShield;
+        public List<IRestriction> restrictions = new List<IRestriction>();
 
         public bool worksOn(RulesetCharacter character, WeaponDescription weapon_description)
         {
-            if (character.IsWearingArmor() && !allowArmor)
+            foreach (var r in restrictions)
             {
-                return false;
-            }
-
-            if (character.IsWearingShield() && !allowShield)
-            {
-                return false;
+                if (r.isForbidden(character))
+                {
+                    return false;
+                }
             }
 
             return weaponTypes.Contains(weapon_description.WeaponType);

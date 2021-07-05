@@ -15,24 +15,20 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public class ExtraUnarmedAttack : FeatureDefinition, IAddExtraAttacks
     {
         public List<string> allowedWeaponTypes;
-        public bool allowShield;
-        public bool allowArmor;
+        public List<IRestriction> restrictions = new List<IRestriction>();
 
         public bool clearAllAttacks = false;
         public ActionDefinitions.ActionType actionType;
 
         public void tryAddExtraAttack(RulesetCharacterHero character)
         {
-            if (character.IsWearingArmor() && !allowArmor)
+            foreach (var r in restrictions)
             {
-                return;
+                if (r.isForbidden(character))
+                {
+                    return;
+                }
             }
-
-            if (character.IsWearingShield() && !allowShield)
-            {
-                return;
-            }
-
 
             RulesetInventorySlot rulesetInventorySlot1 = character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0];
             RulesetInventorySlot rulesetInventorySlot2 = character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeOffHand][0];

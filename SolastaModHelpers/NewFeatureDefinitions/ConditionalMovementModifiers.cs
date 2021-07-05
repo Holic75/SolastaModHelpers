@@ -13,24 +13,21 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class MovementBonusBasedOnEquipment: FeatureDefinition, IConditionalMovementModifier
+    public class MovementBonusWithRestrictions: FeatureDefinition, IConditionalMovementModifier
     {
-        public bool allowArmor;
-        public bool allowShield;
+        public List<IRestriction> restrictions = new List<IRestriction>();
 
         public List<FeatureDefinition> modifiers;
         public CharacterAction characterClass;
 
         public void tryAddConditionalMovementModfiers(RulesetCharacter character, List<FeatureDefinition> existingModifiers)
         {
-            if (character.IsWearingArmor() && !allowArmor)
+            foreach (var r in restrictions)
             {
-                return;
-            }
-
-            if (character.IsWearingShield() && !allowShield)
-            {
-                return;
+                if (r.isForbidden(character))
+                {
+                    return;
+                }
             }
 
             foreach (var m in modifiers)
