@@ -76,7 +76,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class OvewriteDamageOnSpecificWeaponTypesBasedOnClassLevel : FeatureDefinition, IAttackModeModifier
+    public class OverwriteDamageOnSpecificWeaponTypesBasedOnClassLevel : FeatureDefinition, IAttackModeModifier
     {
         public CharacterClassDefinition characterClass;
         public List<(int, int, RuleDefinitions.DieType)> levelDamageList;

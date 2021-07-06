@@ -51,6 +51,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 }
             }
 
+            if (rulesetInventorySlot1.EquipedItem == null && !allowedWeaponTypes.Contains(Helpers.WeaponProficiencies.Unarmed))
+            {
+                return;
+            }
+
             ItemDefinition strikeDefinition = character.UnarmedStrikeDefinition;
             if (clearAllAttacks)
             {

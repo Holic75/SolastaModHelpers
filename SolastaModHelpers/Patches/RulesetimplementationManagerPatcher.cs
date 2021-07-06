@@ -85,35 +85,39 @@ namespace SolastaModHelpers.Patches
 
 
 
-        [HarmonyPatch(typeof(RulesetImplementationManager), "TryRollSavingThrow")]
-        class RulesetimplementationManager_TryRollSavingThrow
+        [HarmonyPatch(typeof(RulesetImplementationManager), "ApplyEffectForms")]
+        class RulesetimplementationManager_ApplyEffectForms
         {
-            static void Postfix(RulesetImplementationManager __instance,
-                                RulesetCharacter caster,
-                                RuleDefinitions.Side sourceSide,
-                                RulesetActor target,
-                                ActionModifier actionModifier,
-                                bool hasHitVisual,
-                                bool hasSavingThrow,
-                                string savingThrowAbility,
-                                int saveDC,
-                                bool disableSavingThrowOnAllies,
-                                bool advantageForEnemies,
-                                bool ignoreCover,
-                                RuleDefinitions.FeatureSourceType featureSourceType,
-                                List<EffectForm> effectForms,
-                                List<SaveAffinityBySenseDescription> savingThrowAffinitiesBySense,
-                                string sourceName,
-                                BaseDefinition sourceDefinition,
-                                string schoolOfMagic,
-                                ref RuleDefinitions.RollOutcome saveOutcome
+            static bool Prefix(RulesetImplementationManager __instance,
+                                    List<EffectForm> effectForms,
+                                    RulesetImplementationDefinitions.ApplyFormsParams formsParams,
+                                    bool retargeting,
+                                    bool proxyOnly,
+                                    bool forceSelfConditionOnly
                                )
             {
-                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IApplyEffectOnTargetSavingthrowRoll>(caster);
+                var caster = formsParams.sourceCharacter;
+                if (caster == null)
+                {
+                    return true;
+                }
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ICasterApplyEffectOnEffectApplication>(caster);
                 foreach (var f in features)
                 {
-                    f.processSavingthrow(caster, target, sourceDefinition, saveOutcome);
+                    f.processCasterEffectApplication(caster, effectForms, formsParams);
                 }
+
+                var target = formsParams.targetCharacter as RulesetCharacter;
+                if (target == null)
+                {
+                    return true;
+                }
+                var features2 = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ITargetApplyEffectOnEffectApplication>(target);
+                foreach (var f in features2)
+                {
+                    f.processTargetEffectApplication(target, effectForms, formsParams);
+                }
+                return true;
             }
         }
     }

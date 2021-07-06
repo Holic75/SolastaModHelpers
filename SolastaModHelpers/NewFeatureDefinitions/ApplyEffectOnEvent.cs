@@ -16,6 +16,18 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface ICasterApplyEffectOnEffectApplication
+    {
+        void processCasterEffectApplication(RulesetCharacter character, List<EffectForm> effectForms, RulesetImplementationDefinitions.ApplyFormsParams formsParams);
+    }
+
+
+    public interface ITargetApplyEffectOnEffectApplication
+    {
+        void processTargetEffectApplication(RulesetCharacter target, List<EffectForm> effectForms, RulesetImplementationDefinitions.ApplyFormsParams formsParams);
+    }
+
+
     public interface IApplyEffectOnConditionApplication
     {
         void processConditionApplication(RulesetActor actor, ConditionDefinition Condition);
@@ -60,6 +72,38 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public interface IApplyEffectOnBattleEnd
     {
         void processBattleEnd(GameLocationCharacter character);
+    }
+
+
+    public class TargetRemoveConditionIfAffectedByHostileNonCaster : FeatureDefinition, ITargetApplyEffectOnEffectApplication
+    {
+        public ConditionDefinition condition;
+
+        public void processTargetEffectApplication(RulesetCharacter target, List<EffectForm> effectForms, RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        {
+
+            var caster = formsParams.sourceCharacter;
+            if (caster == null)
+            {
+                return;
+            }
+
+            if (caster.side == target.side)
+            {
+                return;
+            }
+
+            foreach (var conditions in target.ConditionsByCategory.Values.ToArray())
+            {
+                foreach (var c in conditions.ToArray())
+                {
+                    if (c.ConditionDefinition == condition && c.SourceGuid != caster.Guid)
+                    {
+                        target.RemoveCondition(c, false, true);
+                    }
+                }
+            }
+        }
     }
 
 
