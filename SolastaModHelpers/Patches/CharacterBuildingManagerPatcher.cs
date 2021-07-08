@@ -48,8 +48,8 @@ namespace SolastaModHelpers.Patches
 
                 static void grantSpells(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)
                 {
-                    var features = grantedFeatures.OfType<NewFeatureDefinitions.GrantSpells>().ToList();
-                    features.AddRange(Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.GrantSpells>(__instance.HeroCharacter));
+                    var features = grantedFeatures.OfType<NewFeatureDefinitions.IGrantKnownSpellsOnLevelUp>().ToList();
+                    features.AddRange(Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IGrantKnownSpellsOnLevelUp>(__instance.HeroCharacter));
 
                     CharacterClassDefinition current_class;
                     int current_level;
@@ -58,38 +58,9 @@ namespace SolastaModHelpers.Patches
                     HashSet<SpellDefinition> spells = new HashSet<SpellDefinition>();
                     foreach (var f in features)
                     {
-                        if (f.spellcastingClass != current_class)
-                        {
-                            continue;
-                        }
+                        f.maybeGrantSpellsOnLevelUp(__instance);
 
-                        foreach (var sg in f.spellGroups)
-                        {
-                            if (sg.ClassLevel != current_level)
-                            {
-                                continue;
-                            }
-
-                            foreach (var s in sg.SpellsList)
-                            {
-                                spells.Add(s);
-                            }
-                        }
                     }
-
-                    var repertoire = __instance.HeroCharacter.SpellRepertoires.FirstOrDefault(r => r.spellCastingClass == current_class);
-                    if (repertoire == null)
-                    {
-                        return;
-                    }
-                    foreach (var s in repertoire.KnownSpells)
-                    {
-                        if (spells.Contains(s))
-                        {
-                            spells.Remove(s);
-                        }
-                    }
-                    repertoire.KnownSpells.AddRange(spells);
 
                     return;
                 }
