@@ -23,6 +23,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public bool worksOnMelee;
         public bool worksOnRanged;
         public bool worksOnMagic;
+        public List<ConditionDefinition> checkImmunityToCondtions = new List<ConditionDefinition>();
 
         bool IReactionPowerOnDamage.canBeUsed(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode, bool is_magic)
         {
@@ -73,6 +74,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return false;
             }
 
+            if (checkImmunityToCondtions.Any(c => attacker.rulesetActor.IsImmuneToCondition(c.name)))
+            {
+                return false;
+            }
+
             return true;
         }
     }
@@ -82,6 +88,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public bool worksOnMelee;
         public bool worksOnRanged;
+        public List<ConditionDefinition> checkImmunityToCondtions = new List<ConditionDefinition>();
 
         bool IReactionPowerOnAttackAttempt.canBeUsed(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode)
         {
@@ -116,6 +123,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             if (!works_on_caster && attacker == caster)
+            {
+                return false;
+            }
+
+            if (checkImmunityToCondtions.Any(c => attacker.rulesetActor.IsImmuneToCondition(c.name)))
             {
                 return false;
             }
