@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk" InitialTargets="CheckEnvironmentVars">
     <PropertyGroup>
-         <SolastaInstallDir Condition=" '$(SolastaInstallDir)' == '' ">C:\GOG Games\Solasta\Solasta Crown of the Magister</SolastaInstallDir>
+         <SolastaInstallDir Condition=" '$(SolastaInstallDir)' == '' ">C:\Program Files (x86)\Steam\steamapps\common\Slasta_COTM</SolastaInstallDir>
     </PropertyGroup>
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>

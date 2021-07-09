@@ -71,6 +71,21 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class AttackedRestriction : IRestriction
+    {
+        public bool isForbidden(RulesetActor character)
+        {
+            var ruleset_character = character as RulesetCharacter;
+            if (ruleset_character == null)
+            {
+                return false;
+            }
+
+            return ruleset_character.ExecutedAttacks == 0;
+        }
+    }
+
+
     public class ArmorTypeRestriction : IRestriction
     {
         private ArmorCategoryDefinition armorCategory;
@@ -119,7 +134,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class HasFeatureRestricition : IRestriction 
+    public class HasFeatureRestriction : IRestriction 
     {
         private FeatureDefinition feature;
 
@@ -128,7 +143,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Any(f => f == feature);
         }
 
-        public HasFeatureRestricition(FeatureDefinition required_feature)
+        public HasFeatureRestriction(FeatureDefinition required_feature)
         {
             feature = required_feature;
         }

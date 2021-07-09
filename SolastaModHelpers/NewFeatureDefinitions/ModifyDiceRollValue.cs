@@ -31,7 +31,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 int firstRoll;
                 int secondRoll;
-                int num2 = roller.RollDie(diceType, RuleDefinitions.RollContext.None, RuleDefinitions.AdvantageType.None, out firstRoll, out secondRoll, false, false);
+                int num2 = roller.RollDie(diceType, RuleDefinitions.RollContext.None, false, RuleDefinitions.AdvantageType.None, out firstRoll, out secondRoll, false, false);
                 if (substract)
                 {
                     res -= num2;

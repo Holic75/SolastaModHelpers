@@ -14,6 +14,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public int IndomitableSavingThrows => 0;
 
+        public string PriorityAbilityScore => throw new NotImplementedException();
+
         public int ComputePermanentSavingThrowBonus(string abilityType, int sourceAbilityBonus)
         {
             return 0;
@@ -55,6 +57,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     break;
                 }
             }
+        }
+
+        public void ComputeSavingThrowModifier(RulesetActor saver, string abilityType, EffectForm.EffectFormType formType, string schoolOfMagic, string damageType, string conditionType, int sourceAbilityBonus, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin, int contextField, string ancestryDamageType)
+        {
+            throw new NotImplementedException();
         }
     }
 }

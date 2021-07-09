@@ -25,8 +25,10 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void apply(RulesetAttribute armor_class_attribute, RulesetCharacter character, int precomputedBonus)
         {
-            armor_class_attribute.ValueTrends.Add(new RuleDefinitions.TrendInfo(precomputedBonus, RuleDefinitions.FeatureSourceType.AbilityScore, stat, character));
-            armor_class_attribute.AddModifier(RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Additive, (float)precomputedBonus, "03Class"));
+            var modifier = RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Additive, (float)precomputedBonus, "03Class");
+            armor_class_attribute.AddModifier(modifier);
+            armor_class_attribute.ValueTrends.Add(new RuleDefinitions.TrendInfo(precomputedBonus, RuleDefinitions.FeatureSourceType.AbilityScore, stat, character, modifier));
+            
         }
 
         public bool isExclusive()

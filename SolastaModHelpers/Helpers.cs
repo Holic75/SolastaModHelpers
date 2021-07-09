@@ -715,6 +715,7 @@ namespace SolastaModHelpers.Helpers
             Definition.SpecialInterruptions.AddRange(interruptions);
             Definition.Features.Clear();
             Definition.Features.AddRange(features);
+            Definition.RecurrentEffectForms?.Clear();
         }
 
 

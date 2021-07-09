@@ -19,10 +19,27 @@ namespace SolastaModHelpers.Patches
                                             List<string> restrictedSchools,
                                             int spellLevel,
                                             SpellBox.SpellBoxChangedHandler spellBoxChanged,
-                                            List<SpellDefinition> knownSpells,
+                                            ref List<SpellDefinition> knownSpells,
+                                            List<SpellDefinition> unlearnedSpells,
                                             string spellTag,
-                                            bool canAcquireSpells)
+                                            bool canAcquireSpells,
+                                            bool unlearn)
                 {
+                    if (unlearn)
+                    {
+                        var spell_set = spellListDefinition.SpellsByLevel.Aggregate(new HashSet<SpellDefinition>(), (old, next) => 
+                        {
+                           foreach (var ss in next.spells)
+                           {
+                                old.Add(ss);
+                           }
+                           return old;
+                        }
+                        );
+                        knownSpells = knownSpells.Where(s => spell_set.Contains(s)).ToList();
+                        return true;
+                    }
+
                     var hero = characterBuildingService.HeroCharacter;
                     if (hero == null)
                     {

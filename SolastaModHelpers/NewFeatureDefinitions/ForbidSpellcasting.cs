@@ -8,23 +8,25 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 {
     public interface IForbidSpellcasting
     {
-        bool isSpellcastingForbidden(RulesetCharacter character);
+        bool isSpellcastingForbidden(RulesetActor character);
+        bool shouldBreakConcentration(RulesetActor character);
     }
 
 
     public class SpellcastingForbidden : FeatureDefinition, IForbidSpellcasting
     {
-        public List<FeatureDefinition> exceptionFeatures = new List<FeatureDefinition>();
+        public List<FeatureDefinition> spellcastingExceptionFeatures = new List<FeatureDefinition>();
+        public List<FeatureDefinition> concentrationExceptionFeatures = new List<FeatureDefinition>();
+        public bool forbidConcentration = true;
 
-        public bool isSpellcastingForbidden(RulesetCharacter character)
+        public bool isSpellcastingForbidden(RulesetActor character)
         {
-            var hero = character as RulesetCharacterHero;
-            if (hero == null)
-            {
-                return false;
-            }
+            return !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Any(f => spellcastingExceptionFeatures.Contains(f));
+        }
 
-            return !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(hero).Any(f => exceptionFeatures.Contains(f));
+        public bool shouldBreakConcentration(RulesetActor character)
+        {
+            return forbidConcentration ? !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Any(f => concentrationExceptionFeatures.Contains(f)) : false;
         }
     }
 }

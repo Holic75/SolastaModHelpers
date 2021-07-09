@@ -80,6 +80,12 @@ namespace SolastaModHelpers.Patches
                 {
                     f.processConditionApplication(actor, condition);
                 }
+
+                var concentrated_spell = (actor as RulesetCharacter)?.concentratedSpell;
+                if (concentrated_spell != null && condition.Features.OfType<NewFeatureDefinitions.IForbidSpellcasting>().Any(f => f.shouldBreakConcentration(actor)))
+                {
+                    (actor as RulesetCharacter)?.BreakConcentration();
+                }
             }
         }
 
