@@ -15,8 +15,6 @@ namespace SolastaModHelpers.Patches
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleReactionToDamage")]
             internal static class GameLocationBattleManager_HandleReactionToDamage_Patch
             {
-
-
                 internal static void Postfix(GameLocationBattleManager __instance,
                                             GameLocationCharacter attacker,
                                             GameLocationCharacter defender,
@@ -60,17 +58,6 @@ namespace SolastaModHelpers.Patches
                     {
                         yield return extra_events.Current;
                     }
-
-                    //if (__instance.battle == null)
-                    //{
-                    //    return __result;
-                    //}
-
-
-                    //var extra_events = Process(__instance, attacker, defender, attackModifier, attackerAttackMode);
-                    //var old_enumerator = __result;
-
-                    //return new Helpers.Accessors.EnumeratorCombiner(old_enumerator, extra_events);
                 }
 
 
@@ -131,6 +118,58 @@ namespace SolastaModHelpers.Patches
                                 yield return __instance.WaitForReactions(attacker, service2, count);
                             }
                         }
+                    }
+                }
+            }
+        }
+
+
+        class GameLocationBattleManagerHandleCharacterAttackHitPatcher
+        {
+            [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterAttackHit")]
+            internal static class GameLocationBattleManager_HandleCharacterAttackHit_Patch
+            {
+                internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result,
+                                                                        GameLocationBattleManager __instance,
+                                                                        GameLocationCharacter attacker,
+                                                                        GameLocationCharacter defender,
+                                                                        ActionModifier attackModifier,
+                                                                        int attackRoll,
+                                                                        int successDelta,
+                                                                        bool ranged
+                                                                        )
+                {
+                    while (__result.MoveNext())
+                    {
+                        yield return __result.Current;
+                    }
+                    var extra_events = Process(__instance, attacker, defender, attackModifier, attackRoll, successDelta, ranged);
+
+                    while (extra_events.MoveNext())
+                    {
+                        yield return extra_events.Current;
+                    }
+                }
+
+
+                internal static System.Collections.IEnumerator Process(GameLocationBattleManager __instance,
+                                            GameLocationCharacter attacker,
+                                            GameLocationCharacter defender,
+                                            ActionModifier attackModifier,
+                                            int attackRoll,
+                                            int successDelta,
+                                            bool ranged)
+                {
+                    if (__instance.battle == null)
+                    {
+                        yield break;
+                    }
+
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<IInitiatorApplyEffectOnAttackHit>(attacker.RulesetCharacter);
+
+                    foreach (var f in features)
+                    {
+                        f.processAttackHitInitiator(attacker, defender, attackModifier, attackRoll, successDelta, ranged);
                     }
                 }
             }
@@ -235,17 +274,25 @@ namespace SolastaModHelpers.Patches
                                                                         RulesetAttackMode attackMode,
                                                                         bool rangedAttack,
                                                                         RuleDefinitions.AdvantageType advantageType,
-                                                                        List<EffectForm> actualEffectForms)
+                                                                        List<EffectForm> actualEffectForms,
+                                                                        bool isSpell)
                 {
                     while (__result.MoveNext())
                     {
                         yield return __result.Current;
                     }
-                    var extra_events = Process(__instance, attacker, defender, attackModifier, attackMode, rangedAttack, advantageType, actualEffectForms);
+                    var extra_events = Process(__instance, attacker, defender, attackModifier, attackMode, rangedAttack, advantageType, actualEffectForms, isSpell);
 
                     while (extra_events.MoveNext())
                     {
                         yield return extra_events.Current;
+                    }
+
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<IInitiatorApplyEffectOnDamageDone>(attacker.RulesetCharacter);
+
+                    foreach (var f in features)
+                    {
+                        f.processDamageInitiator(attacker, defender, attackModifier, attackMode, rangedAttack, isSpell);
                     }
                 }
 
@@ -257,7 +304,8 @@ namespace SolastaModHelpers.Patches
                             RulesetAttackMode attackMode,
                             bool rangedAttack,
                             RuleDefinitions.AdvantageType advantageType,
-                            List<EffectForm> actualEffectFormst)
+                            List<EffectForm> actualEffectForms,
+                            bool isSpell)
                 {
                     if (__instance.battle == null)
                     {

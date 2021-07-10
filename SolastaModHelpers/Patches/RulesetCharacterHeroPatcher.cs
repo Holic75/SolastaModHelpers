@@ -159,9 +159,9 @@ namespace SolastaModHelpers.Patches
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var codes = instructions.ToList();
-                var reference_stloc = codes.FindLastIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Stloc_2);
-                var insert_point = reference_stloc - 1;
-
+                var reference_stloc = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Stloc_2);
+                var insert_point = reference_stloc + 2;
+                
                 codes.InsertRange(insert_point,
                               new HarmonyLib.CodeInstruction[]
                               {

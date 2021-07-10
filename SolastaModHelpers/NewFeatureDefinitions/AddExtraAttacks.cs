@@ -68,4 +68,40 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                   character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null));
         }
     }
+
+
+    public class ExtraMainWeaponAttack : FeatureDefinition, IAddExtraAttacks
+    {
+        public List<IRestriction> restrictions = new List<IRestriction>();
+
+        public ActionDefinitions.ActionType actionType;
+
+        public void tryAddExtraAttack(RulesetCharacterHero character)
+        {
+            foreach (var r in restrictions)
+            {
+                if (r.isForbidden(character))
+                {
+                    return;
+                }
+            }
+
+
+            RulesetInventorySlot rulesetInventorySlot1 = character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0];
+            RulesetInventorySlot rulesetInventorySlot2 = character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeOffHand][0];
+            if (rulesetInventorySlot2.EquipedItem != null && rulesetInventorySlot2.EquipedItem.ItemDefinition.IsWeapon)
+            {
+                //no extra attacks if already have and off-hand weapon
+                return;
+            }
+            if (rulesetInventorySlot1.EquipedItem == null || !rulesetInventorySlot1.EquipedItem.ItemDefinition.IsWeapon)
+            {
+                return;
+            }
+            character.AttackModes.Add(character.RefreshAttackMode(actionType, rulesetInventorySlot1.EquipedItem.ItemDefinition,
+                                                                  rulesetInventorySlot1.EquipedItem.ItemDefinition.WeaponDescription, false, true,
+                                                                  character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,
+                                                                  character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null));
+        }
+    }
 }

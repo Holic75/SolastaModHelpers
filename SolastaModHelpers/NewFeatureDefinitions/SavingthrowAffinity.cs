@@ -14,15 +14,16 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public int IndomitableSavingThrows => 0;
 
-        public string PriorityAbilityScore => throw new NotImplementedException();
+        public string PriorityAbilityScore => string.Empty;
 
         public int ComputePermanentSavingThrowBonus(string abilityType, int sourceAbilityBonus)
         {
             return 0;
         }
 
-        public void ComputeSavingThrowModifier(RulesetActor saver, string abilityType, EffectForm.EffectFormType formType, string schoolOfMagic, string damageType, string conditionType, int sourceAbilityBonus, ActionModifier actionModifier, RuleDefinitions.FeatureOrigin featureOrigin, int contextField)
+        public void ComputeSavingThrowModifier(RulesetActor saver, string abilityType, EffectForm.EffectFormType formType, string schoolOfMagic, string damageType, string conditionType, int sourceAbilityBonus, ActionModifier actionModifier, RuleDefinitions.FeatureOrigin featureOrigin, int contextField, string ancestryDamageType)
         {
+            Main.Logger.Log("Checking bonus");
             foreach (var r in restrictions)
             {
                 if (r.isForbidden(saver))
@@ -58,10 +59,35 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 }
             }
         }
+    }
 
-        public void ComputeSavingThrowModifier(RulesetActor saver, string abilityType, EffectForm.EffectFormType formType, string schoolOfMagic, string damageType, string conditionType, int sourceAbilityBonus, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin, int contextField, string ancestryDamageType)
+
+    public interface ICasterDependentSavingthrowAffinityProvider
+    {
+        bool checkCaster(RulesetActor caster, RulesetActor target);
+    }
+
+
+    public class SavingthrowAffinityUnderRestrictionIfHasConditionFromCaster : SavingthrowAffinityUnderRestriction, ICasterDependentSavingthrowAffinityProvider
+    {
+        public ConditionDefinition condition;
+
+        public bool checkCaster(RulesetActor caster, RulesetActor target)
         {
-            throw new NotImplementedException();
+            Main.Logger.Log("Checking Caster");
+            foreach (var conditions in target.ConditionsByCategory.Values.ToArray())
+            {
+                foreach (var c in conditions.ToArray())
+                {
+                    if (c.ConditionDefinition == condition && c.SourceGuid == caster.Guid)
+                    {
+                        Main.Logger.Log("Caster ok");
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
+
 }

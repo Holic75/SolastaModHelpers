@@ -86,6 +86,31 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class UsedCantrip : IRestriction
+    {
+        public bool isForbidden(RulesetActor character)
+        {
+            var ruleset_character = character as RulesetCharacter;
+            if (ruleset_character == null)
+            {
+                return false;
+            }
+
+            var battle = ServiceRepository.GetService<IGameLocationBattleService>()?.Battle;
+            if (battle == null)
+            {
+                return true;
+            }
+            var game_location_character = battle.AllContenders.FirstOrDefault(c => c.RulesetCharacter == character);
+            if (game_location_character == null)
+            {
+                return true;
+            }
+            return !game_location_character.UsedMainCantrip;
+        }
+    }
+
+
     public class ArmorTypeRestriction : IRestriction
     {
         private ArmorCategoryDefinition armorCategory;

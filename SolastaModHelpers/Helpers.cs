@@ -15,6 +15,15 @@ namespace SolastaModHelpers.Helpers
     {
         public static string Cold = "DamageCold";
         public static string Fire = "DamageFire";
+        public static string Radiant = "DamageRadiant";
+    }
+
+
+    public static class SpellSchools
+    {
+        public static string Abjuration = "SchoolAbjuration";
+        public static string Conjuration = "SchoolConjuration";
+        public static string Evocation = "SchoolEvocation";
     }
 
 
@@ -1024,6 +1033,61 @@ namespace SolastaModHelpers.Helpers
 
 
 
+    public class GenericSpellBuilder<T> : BaseDefinitionBuilderWithGuidStorage<T> where T : SpellDefinition
+    {
+        protected GenericSpellBuilder(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite,
+                                       EffectDescription effect_description,
+                                       RuleDefinitions.ActivationTime casting_time,
+                                       int spell_level,
+                                       bool requires_concentration,
+                                       bool verbose_component,
+                                       bool somatic_component,
+                                       string school,
+                                       bool is_ritual = false,
+                                       RuleDefinitions.ActivationTime ritual_time = RuleDefinitions.ActivationTime.Minute10) : base(name, guid)
+        {
+            Definition.SetGuiPresentation(new GuiPresentation());
+            Definition.GuiPresentation.Title = title_string;
+            Definition.GuiPresentation.Description = description_string;
+            Definition.GuiPresentation.SetSpriteReference(sprite);
+
+            Definition.SetCastingTime(casting_time);
+            Definition.SetRitual(is_ritual);
+            Definition.SetRitualCastingTime(ritual_time);
+            Definition.SetSpellLevel(spell_level);
+            Definition.SetRequiresConcentration(requires_concentration);
+            Definition.SetVerboseComponent(verbose_component);
+            Definition.SetSomaticComponent(somatic_component);
+            Definition.SetSchoolOfMagic(school);
+            Definition.SetEffectDescription(effect_description);
+            Definition.SetImplemented(true);
+        }
+
+        public static T createSpell(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite,
+                                       EffectDescription effect_description,
+                                       RuleDefinitions.ActivationTime casting_time,
+                                       int spell_level,
+                                       bool requires_concentration,
+                                       bool verbose_component,
+                                       bool somatic_component,
+                                       string school,
+                                       bool is_ritual = false,
+                                       RuleDefinitions.ActivationTime ritual_time = RuleDefinitions.ActivationTime.Minute10)
+        {
+            return new GenericSpellBuilder<T>(name, guid, title_string, description_string, sprite,
+                                               effect_description,
+                                               casting_time,
+                                               spell_level,
+                                               requires_concentration,
+                                               verbose_component,
+                                               somatic_component,
+                                               school,
+                                               is_ritual,
+                                               ritual_time).AddToDB();
+        }
+    }
+
+
     public class ExtraSpellSelectionBuilder : BaseDefinitionBuilderWithGuidStorage<NewFeatureDefinitions.FeatureDefinitionExtraSpellSelection>
     {
         protected ExtraSpellSelectionBuilder(string name, string guid, string title_string, string description_string,
@@ -1051,8 +1115,32 @@ namespace SolastaModHelpers.Helpers
     }
 
 
+
+
+
     public static class Misc
     {
+        public static List<DiceByRank> createDiceRankTable(int max_level, params (int, int)[] entries)
+        {
+            List<DiceByRank> table = new List<DiceByRank>();
+            for (int i = 1; i <= max_level; i++)
+            {
+                table.Add(new DiceByRank() { rank = i, diceNumber = 0 });
+            }
+
+            int k = 0;
+            for (int i = 0; i < entries.Length; i++)
+            {
+                while (k < table.Count && table[k].rank <= entries[i].Item1)
+                {
+                    table[k].diceNumber = entries[i].Item2;
+                    k++;
+                }
+            }
+            return table;
+        }
+
+
         public static List<FeatureDefinitionCastSpell.SlotsByLevelDuplet> createSpellSlotsByLevel(params List<int>[] slots_num_per_level)
         {
             var res = new List<FeatureDefinitionCastSpell.SlotsByLevelDuplet>();
@@ -1085,6 +1173,9 @@ namespace SolastaModHelpers.Helpers
             return DatabaseRepository.GetDatabase<ConditionDefinition>().GetElement(s.Replace("IMMUNE_IF_HAS_CONDITION_", ""), true);
         }
     }
+
+
+
 
 
     public class Accessors

@@ -142,5 +142,21 @@ namespace SolastaModHelpers.Patches
             }
         }
 
+        //refresh attack modes after spell cast in case some features give extra attacks after using spell/power
+        [HarmonyPatch(typeof(RulesetActor), "ProcessConditionsMatchingInterruption")]
+        class AddConditionOfCategory_ProcessConditionsMatchingInterruption
+        {
+            internal static void Postfix(RulesetActor __instance,
+                                        RuleDefinitions.ConditionInterruption interruption, int amount)
+            {
+
+                if (interruption == RuleDefinitions.ConditionInterruption.UsePowerExecuted
+                    || interruption == RuleDefinitions.ConditionInterruption.CastSpellExecuted)
+                {
+                    (__instance as RulesetCharacter)?.RefreshAttackModes();
+                }
+            }
+        }
+
     }
 }

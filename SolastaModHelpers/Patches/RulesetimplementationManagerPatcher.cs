@@ -95,7 +95,7 @@ namespace SolastaModHelpers.Patches
         class RulesetimplementationManager_ApplyEffectForms
         {
             static bool Prefix(RulesetImplementationManager __instance,
-                                    List<EffectForm> effectForms,
+                                    ref List<EffectForm> effectForms,
                                     RulesetImplementationDefinitions.ApplyFormsParams formsParams,
                                     bool retargeting,
                                     bool proxyOnly,
@@ -106,6 +106,12 @@ namespace SolastaModHelpers.Patches
                 if (caster == null)
                 {
                     return true;
+                }
+
+                var base_definition = formsParams.activeEffect?.SourceDefinition as NewFeatureDefinitions.ICustomEffectBasedOnCasterLevel;
+                if (base_definition != null)
+                {
+                    effectForms = base_definition.getCustomEffect(formsParams.classLevel).effectForms;
                 }
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ICasterApplyEffectOnEffectApplication>(caster);
                 foreach (var f in features)
@@ -124,6 +130,53 @@ namespace SolastaModHelpers.Patches
                     f.processTargetEffectApplication(target, effectForms, formsParams);
                 }
                 return true;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetImplementationManager), "TryRollSavingThrow")]
+        internal class RulesetimplementationManager_TryRollSavingThrow
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var compute_target_savingthrow = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("ComputeSavingThrowModifier"));
+
+                codes[compute_target_savingthrow] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                 new Action<RulesetActor, string, EffectForm.EffectFormType, string, 
+                                                                            string, string, ActionModifier, List<ISavingThrowAffinityProvider>,
+                                                                            int, RulesetCharacter>(ComputeSavingThrowModifier).Method
+                                                                 );
+                codes.Insert(compute_target_savingthrow,
+                             new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_1) // caster
+                            );
+                return codes.AsEnumerable();
+            }
+
+
+            static void ComputeSavingThrowModifier(RulesetActor target,
+                                                  string abilityType,
+                                                  EffectForm.EffectFormType formType,
+                                                  string schoolOfMagic,
+                                                  string damageType,
+                                                  string conditionType,
+                                                  ActionModifier effectModifier,
+                                                  List<ISavingThrowAffinityProvider> accountedProviders,
+                                                  int savingThrowContextField,
+                                                  RulesetCharacter caster
+                                                 )
+            {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<ISavingThrowAffinityProvider>(target);
+                foreach (var  f in features)
+                {
+                    var caster_feature = f as NewFeatureDefinitions.ICasterDependentSavingthrowAffinityProvider;
+
+                    if (caster_feature != null && !caster_feature.checkCaster(caster, target))
+                    {
+                        accountedProviders.Add(f);
+                    }
+                }
+                target.ComputeSavingThrowModifier(abilityType, formType, schoolOfMagic, damageType, conditionType, effectModifier, accountedProviders, savingThrowContextField);
             }
         }
     }

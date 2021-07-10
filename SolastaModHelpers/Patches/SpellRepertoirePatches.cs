@@ -16,7 +16,7 @@ namespace SolastaModHelpers.Patches
             {
                 internal static bool Prefix(ICharacterBuildingService characterBuildingService,
                                             ref SpellListDefinition spellListDefinition,
-                                            List<string> restrictedSchools,
+                                            ref List<string> restrictedSchools,
                                             int spellLevel,
                                             SpellBox.SpellBoxChangedHandler spellBoxChanged,
                                             ref List<SpellDefinition> knownSpells,
@@ -25,13 +25,18 @@ namespace SolastaModHelpers.Patches
                                             bool canAcquireSpells,
                                             bool unlearn)
                 {
+
                     if (unlearn)
                     {
+                        var restricted_schools = restrictedSchools;
                         var spell_set = spellListDefinition.SpellsByLevel.Aggregate(new HashSet<SpellDefinition>(), (old, next) => 
                         {
                            foreach (var ss in next.spells)
                            {
-                                old.Add(ss);
+                                if (restricted_schools.Count == 0 || restricted_schools.Contains(ss.SchoolOfMagic))
+                                {
+                                    old.Add(ss);
+                                }
                            }
                            return old;
                         }
@@ -40,6 +45,7 @@ namespace SolastaModHelpers.Patches
                         return true;
                     }
 
+                    
                     var hero = characterBuildingService.HeroCharacter;
                     if (hero == null)
                     {
@@ -55,6 +61,7 @@ namespace SolastaModHelpers.Patches
                     }
 
                     spellListDefinition = extra_spell_list;
+                    restrictedSchools = new List<string>();
                     return true;
                 }
             }
