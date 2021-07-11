@@ -1,0 +1,5 @@
+Reaction/&CommonUsePowerReactTitle	Reagir
+Rules/&CommonConditioUnderEffectOfPrefix	Efeito de
+Reaction/&DeflectMissileDescriptionCustom	{0} está atacando {1}, que pode reagir para reduzir o dano recebido em 1D10 + {2} modificador + seu {3} nível de classe.
+Failure/&FailureFlagTargetIncorrectWeapon	Sua arma atual não pode ser usada.
+Failure/&FailureFlagTargetIncorrectArmor	O alvo usa armadura incorreta.

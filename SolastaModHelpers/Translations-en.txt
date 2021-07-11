@@ -1,5 +1,5 @@
-Reaction/&CommonUsePowerReactTitle React
-Rules/&CommonConditioUnderEffectOfPrefix Effect of 
+Reaction/&CommonUsePowerReactTitle	React
+Rules/&CommonConditioUnderEffectOfPrefix	Effect of 
 Reaction/&DeflectMissileDescriptionCustom	{0} is attacking {1}, who can react to reduce the incoming damage by 1D10 + {2} modifier + his/her {3} class level.
-Failure/&FailureFlagTargetIncorrectWeapon Your current weapon can not be used.
-Failure/&FailureFlagTargetIncorrectArmor Target wears incorrect armor.
+Failure/&FailureFlagTargetIncorrectWeapon	Your current weapon can not be used.
+Failure/&FailureFlagTargetIncorrectArmor	Target wears incorrect armor.

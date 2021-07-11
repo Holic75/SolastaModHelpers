@@ -1,0 +1,5 @@
+Reaction/&CommonUsePowerReactTitle	反应
+Rules/&CommonConditioUnderEffectOfPrefix	效果
+Reaction/&DeflectMissileDescriptionCustom	{0} 正在攻击 {1}，{1} 可以做出反应，将受到的伤害降低 1D10 + {2} 修正值 + 他/她的 {3} 职业等级。
+Failure/&FailureFlagTargetIncorrectWeapon	您当前的武器无法使用。
+Failure/&FailureFlagTargetIncorrectArmor	目标穿着错误的盔甲。
