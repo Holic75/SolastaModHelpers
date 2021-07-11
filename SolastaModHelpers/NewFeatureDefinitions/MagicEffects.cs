@@ -21,7 +21,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public class SpellWithCasterLevelDependentEffects:  SpellDefinition, ICustomEffectBasedOnCasterLevel
     {
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
-        public int minCustomEffectLevel;
+        public int minCustomEffectLevel = 100;
 
         public EffectDescription getCustomEffect(int caster_level)
         {
