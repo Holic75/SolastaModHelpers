@@ -9,14 +9,15 @@ namespace SolastaModHelpers.Patches
 {
     class CharacterBuildingManagerPatcher
     {
-        class CharacterBuildingManagerSetPointPoolPatcher
+        /*class CharacterBuildingManagerSetPointPoolPatcher
         {
             [HarmonyPatch(typeof(CharacterBuildingManager), "SetPointPool")]
             internal static class CharacterBuildingManager_SetPointPool_Patch
             {
                 internal static bool Prefix(CharacterBuildingManager __instance, HeroDefinitions.PointsPoolType pointPoolType, string tag, ref int maxNumber)
                 {
-                    if (pointPoolType != HeroDefinitions.PointsPoolType.Spell)
+                   
+                    if (pointPoolType != HeroDefinitions.PointsPoolType.Spell || tag == "02Race") //avoid increasing number of spell knows for racial features since they only give spells at lvl 1
                     {
                         return true;
                     }
@@ -30,6 +31,29 @@ namespace SolastaModHelpers.Patches
 
                     maxNumber = maxNumber + bonus_known_spells;
                     return true;
+                }
+            }
+        }*/
+
+
+        class CharacterBuildingManagerApplyFeatureCastSpellPatcher
+        {
+            [HarmonyPatch(typeof(CharacterBuildingManager), "ApplyFeatureCastSpell")]
+            internal static class CharacterBuildingManager_ApplyFeatureCastSpelll_Patch
+            {
+                internal static void Postfix(CharacterBuildingManager __instance, FeatureDefinition feature)
+                {
+                    var hero = __instance.HeroCharacter;
+                    var feature_cast_spell = feature as FeatureDefinitionCastSpell;
+                    if (hero == null || feature_cast_spell == null)
+                    {
+                        return;
+                    }
+                    int bonus_known_spells = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
+                                                                         .Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(__instance, hero, feature_cast_spell));
+
+                    __instance.tempAcquiredSpellsNumber = __instance.tempAcquiredSpellsNumber + bonus_known_spells;
+                    return;
                 }
             }
         }

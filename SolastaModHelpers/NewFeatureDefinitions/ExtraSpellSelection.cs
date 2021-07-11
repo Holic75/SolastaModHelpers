@@ -9,7 +9,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     public interface IKnownSpellNumberIncrease
     {
-        int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero);
+        int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero, FeatureDefinitionCastSpell castSpellFeature);
     }
 
 
@@ -25,7 +25,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public int max_spells;
         public int level;
 
-        public int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero)
+        public int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero, FeatureDefinitionCastSpell castSpellFeature)
         {
             int current_level;
             CharacterClassDefinition current_class;
@@ -42,6 +42,16 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             if (!hero.ClassesAndLevels.ContainsKey(caster_class))
+            {
+                return 0;
+            }
+
+            CharacterClassDefinition class_origin;
+            CharacterRaceDefinition race_origin;
+            FeatDefinition feat_origin;
+
+            hero.LookForFeatureOrigin(castSpellFeature, out race_origin, out class_origin, out feat_origin);
+            if (class_origin != caster_class)
             {
                 return 0;
             }
@@ -55,41 +65,9 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
     }
 
-    public class FeatureDefinitionExtraSpellSelection : FeatureDefinition, IReplaceSpellList, IKnownSpellNumberIncrease
+    public class FeatureDefinitionExtraSpellSelection : FeatureDefinitionExtraSpellsKnown, IReplaceSpellList
     {
         public SpellListDefinition spell_list;
-        public CharacterClassDefinition caster_class;
-        public int max_spells;
-        public int level;
-
-        public int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero)
-        {
-            int current_level;
-            CharacterClassDefinition current_class;
-            manager.GetLastAssignedClassAndLevel(out current_class, out current_level);
-
-            if (caster_class != current_class)
-            {
-                return 0;
-            }
-
-            if (hero == null)
-            {
-                return 0;
-            }
-
-            if (!hero.ClassesAndLevels.ContainsKey(caster_class))
-            {
-                return 0;
-            }
-
-            if (hero.ClassesAndLevels[caster_class] >= level)
-            {
-                return max_spells;
-            }
-
-            return 0;
-        }
 
         public SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService)
         {

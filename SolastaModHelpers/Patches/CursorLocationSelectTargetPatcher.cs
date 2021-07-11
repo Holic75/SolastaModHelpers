@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SolastaModHelpers.Patches
 {
-    class DoNotApplySpellOnSelfPatcher
+    class CursorLocationSelectTargetPatcher
     {
         [HarmonyPatch(typeof(CursorLocationSelectTarget), "IsFilteringValid")]
         internal static class CursorLocationSelectTarget_IsFilteringValid_Patch
@@ -35,16 +35,22 @@ namespace SolastaModHelpers.Patches
                         if (target.RulesetCharacter != null && target.RulesetCharacter.HasConditionOfType(immune_condition))
                         {
                             __result = false;
-                            break;
+                            var action_modifier = __instance.actionModifier;
+                            action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectCreatureFamily");
+                            return;
                         }
 
                     }
                     
                 }
 
-                if (__result && (tag & ExtendedEnums.ExtraTargetFilteringTag.NonCaster) != ExtendedEnums.ExtraTargetFilteringTag.No)
+                if ((tag & ExtendedEnums.ExtraTargetFilteringTag.NonCaster) != ExtendedEnums.ExtraTargetFilteringTag.No
+                    && target != __instance.ActionParams.ActingCharacter)
                 {
-                    __result = target != __instance.ActionParams.ActingCharacter;
+                    __result = false;
+                    var action_modifier = __instance.actionModifier;
+                    action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectCreatureFamily");
+                    return;
                 }
                 if (__result && (tag & ExtendedEnums.ExtraTargetFilteringTag.NoHeavyArmor) != ExtendedEnums.ExtraTargetFilteringTag.No)
                 {
@@ -57,15 +63,24 @@ namespace SolastaModHelpers.Patches
                                          && (DatabaseRepository.GetDatabase<ArmorCategoryDefinition>().GetElement(DatabaseRepository.GetDatabase<ArmorTypeDefinition>().GetElement(equipedItem.ItemDefinition.ArmorDescription.ArmorType, false).ArmorCategory, false) 
                                            == DatabaseHelper.ArmorCategoryDefinitions.HeavyArmorCategory);
                         __result = !is_heavy;
+                        if (!__result)
+                        {
+                            var action_modifier = __instance.actionModifier;
+                            action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectArmor");
+                            return;
+                        }
                     }
                 }
-                 
 
-                if (!__result)
+                var spell_with_attack = __instance.actionParams?.RulesetEffect?.SourceDefinition as NewFeatureDefinitions.IPerformAttackAfterMagicEffectUse;
+                if (spell_with_attack != null && !spell_with_attack.canUse(__instance.actionParams.actingCharacter, target))
                 {
+                    __result = false;
                     var action_modifier = __instance.actionModifier;
-                    action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectCreatureFamily");
+                    action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectWeapon");
+                    return;
                 }
+                 
                 return;
             }
         }

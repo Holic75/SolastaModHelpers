@@ -14,13 +14,59 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public interface IPerformAttackAfterMagicEffectUse
     {
         void performAttackAfterUse(CharacterActionMagicEffect action_magic_effect);
+        bool canUse(GameLocationCharacter character, GameLocationCharacter target);
     }
 
 
-    public class SpellFollowedByAttack : SpellDefinition, IPerformAttackAfterMagicEffectUse, ICustomEffectBasedOnCasterLevel
+    public class SpellWithCasterLevelDependentEffects:  SpellDefinition, ICustomEffectBasedOnCasterLevel
     {
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
         public int minCustomEffectLevel;
+
+        public EffectDescription getCustomEffect(int caster_level)
+        {
+            if (caster_level < minCustomEffectLevel)
+            {
+                return this.effectDescription;
+            }
+
+            foreach (var e in levelEffectList)
+            {
+                if (caster_level <= e.Item1)
+                {
+                    return e.Item2;
+                }
+            }
+
+            return this.effectDescription;
+        }
+    }
+
+    public class SpellFollowedByMeleeAttack : SpellWithCasterLevelDependentEffects, IPerformAttackAfterMagicEffectUse
+    {
+        public bool canUse(GameLocationCharacter caster, GameLocationCharacter target)
+        {
+            var attack_mode = caster.FindActionAttackMode(ActionDefinitions.Id.AttackMain);
+            if (attack_mode == null)
+            {
+                return false;
+            }
+
+            IGameLocationBattleService gameLocationBattleService = ServiceRepository.GetService<IGameLocationBattleService>();
+            if (gameLocationBattleService == null)
+            {
+                return false;
+            }
+
+            ActionModifier attackModifier = new ActionModifier();
+            BattleDefinitions.AttackEvaluationParams attackEvalParams = new BattleDefinitions.AttackEvaluationParams();
+            attackEvalParams.FillForPhysicalReachAttack(caster, caster.LocationPosition, attack_mode, target, target.LocationPosition, attackModifier);
+            if (gameLocationBattleService.CanAttack(attackEvalParams))
+            {
+                return true;
+            }
+            return false;
+        }
 
         public void performAttackAfterUse(CharacterActionMagicEffect action_magic_effect)
         {
@@ -71,25 +117,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             attackModifier = (ActionModifier)null;
             attackEvalParams = new BattleDefinitions.AttackEvaluationParams();
         }
-
-        public EffectDescription getCustomEffect(int caster_level)
-        {
-            if (caster_level < minCustomEffectLevel)
-            {
-                return this.effectDescription;
-            }
-
-            foreach (var e in levelEffectList)
-            {
-                if (caster_level <= e.Item1)
-                {
-                    return e.Item2;
-                }
-            }
-
-            return this.effectDescription;
-        }
     }
-
 
 }
