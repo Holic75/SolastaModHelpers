@@ -81,7 +81,7 @@ namespace SolastaModHelpers.Patches
 
 
 
-        [HarmonyPatch(typeof(GraphicsResourceManager), "LateUpdate")]
+        /*[HarmonyPatch(typeof(GraphicsResourceManager), "LateUpdate")]
         class GraphicsResourceManager_LateUpdate
         {
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -102,6 +102,24 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
                 Addressables.Release<UnityEngine.Object>(asset);
+            }
+        }*/
+
+
+        [HarmonyPatch(typeof(Gui), "ReleaseAddressableAsset")]
+        internal static class Gui_ReleaseAddressableAsset_Patch
+        {
+            internal static bool Prefix(UnityEngine.Object asset)
+            {
+                var sprite = asset as UnityEngine.Sprite;
+                if (sprite != null && CustomIcons.Tools.isCustomIcon(sprite))
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
         }
     }
