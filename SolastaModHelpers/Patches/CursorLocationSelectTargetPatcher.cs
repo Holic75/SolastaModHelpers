@@ -45,14 +45,14 @@ namespace SolastaModHelpers.Patches
                 }
 
                 if ((tag & ExtendedEnums.ExtraTargetFilteringTag.NonCaster) != ExtendedEnums.ExtraTargetFilteringTag.No
-                    && target != __instance.ActionParams.ActingCharacter)
+                    && target == __instance.ActionParams.ActingCharacter)
                 {
                     __result = false;
                     var action_modifier = __instance.actionModifier;
                     action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectCreatureFamily");
                     return;
                 }
-                if (__result && (tag & ExtendedEnums.ExtraTargetFilteringTag.NoHeavyArmor) != ExtendedEnums.ExtraTargetFilteringTag.No)
+                if ((tag & ExtendedEnums.ExtraTargetFilteringTag.NoHeavyArmor) != ExtendedEnums.ExtraTargetFilteringTag.No)
                 {
                     var hero = target.RulesetCharacter as RulesetCharacterHero;
                     if (hero != null)
@@ -62,9 +62,9 @@ namespace SolastaModHelpers.Patches
                                          && equipedItem.ItemDefinition.IsArmor 
                                          && (DatabaseRepository.GetDatabase<ArmorCategoryDefinition>().GetElement(DatabaseRepository.GetDatabase<ArmorTypeDefinition>().GetElement(equipedItem.ItemDefinition.ArmorDescription.ArmorType, false).ArmorCategory, false) 
                                            == DatabaseHelper.ArmorCategoryDefinitions.HeavyArmorCategory);
-                        __result = !is_heavy;
-                        if (!__result)
+                        if (is_heavy)
                         {
+                            __result = false;
                             var action_modifier = __instance.actionModifier;
                             action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectArmor");
                             return;
