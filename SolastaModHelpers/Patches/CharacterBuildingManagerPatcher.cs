@@ -55,7 +55,7 @@ namespace SolastaModHelpers.Patches
                                                      .Aggregate(0, (old, next) => old += next.getKnownCantripsBonus(__instance, hero, feature_cast_spell));
                     //fix FeatureDefinitionBonusCantrip to not count against character cantrips count
                     bonus_known_cantrips += Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinitionBonusCantrips>(__instance.HeroCharacter)
-                                                     .Aggregate(0, (old, next) => old += next.bonusCantrips.Count());
+                                                     .Aggregate(0, (old, next) => old += next.bonusCantrips.Count()) - __instance.bonusCantrips.Count;
 
                     __instance.tempAcquiredSpellsNumber = __instance.tempAcquiredSpellsNumber + bonus_known_spells;
                     __instance.tempAcquiredCantripsNumber = __instance.tempAcquiredCantripsNumber + bonus_known_cantrips;

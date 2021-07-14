@@ -112,6 +112,11 @@ namespace SolastaModHelpers.Helpers
         public static string GreatSword = "GreatswordType";
         public static string GreatAxe = "GreataxeType";
 
+        public static string Longbow = "LongbowType";
+        public static string Shortbow = "ShortbowType";
+        public static string LightCrossbow = "LightCrossbowType";
+        public static string HeavyCrossbow = "HeavyCrossbowType";
+
         public static string Simple = "SimpleWeaponCategory";
         public static string Martial = "MartialWeaponCategory";
 
@@ -314,6 +319,13 @@ namespace SolastaModHelpers.Helpers
         {
             Tools.assertAllTools(tools);
             return new ProficiencyBuilder(name, guid, title_string, "", DatabaseHelper.FeatureDefinitionProficiencys.ProficiencyRogueTools, tools).AddToDB();
+        }
+
+
+        public static FeatureDefinitionProficiency CreateSkillsProficiency(string name, string guid, string title_string, string description_string, params string[] skills)
+        {
+            Skills.assertAllSkills(skills);
+            return new ProficiencyBuilder(name, guid, title_string, description_string, DatabaseHelper.FeatureDefinitionProficiencys.ProficiencySpySkills, skills).AddToDB();
         }
 
 
