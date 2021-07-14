@@ -102,23 +102,24 @@ namespace SolastaModHelpers.Patches
                                     bool forceSelfConditionOnly
                                )
             {
+                
                 var caster = formsParams.sourceCharacter;
                 if (caster == null)
                 {
                     return true;
                 }
 
-                var base_definition = formsParams.activeEffect?.SourceDefinition as NewFeatureDefinitions.ICustomEffectBasedOnCasterLevel;
+                var base_definition = formsParams.activeEffect?.SourceDefinition as NewFeatureDefinitions.ICustomEffectBasedOnCaster;
                 if (base_definition != null)
                 {
-                    effectForms = base_definition.getCustomEffect(formsParams.classLevel).effectForms;
+                    effectForms = base_definition.getCustomEffect(formsParams).effectForms;
                 }
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ICasterApplyEffectOnEffectApplication>(caster);
                 foreach (var f in features)
                 {
                     f.processCasterEffectApplication(caster, effectForms, formsParams);
                 }
-
+               
                 var target = formsParams.targetCharacter as RulesetCharacter;
                 if (target == null)
                 {

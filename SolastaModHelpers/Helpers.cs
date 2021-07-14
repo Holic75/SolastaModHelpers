@@ -16,6 +16,7 @@ namespace SolastaModHelpers.Helpers
         public static string Cold = "DamageCold";
         public static string Fire = "DamageFire";
         public static string Radiant = "DamageRadiant";
+        public static string Force = "DamageForce";
     }
 
 
@@ -108,6 +109,8 @@ namespace SolastaModHelpers.Helpers
         public static string Rapier = "RapierType";
         public static string Scimitar = "ScimitarType";
         public static string Warhammer = "WarhammerType";
+        public static string GreatSword = "GreatswordType";
+        public static string GreatAxe = "GreataxeType";
 
         public static string Simple = "SimpleWeaponCategory";
         public static string Martial = "MartialWeaponCategory";
@@ -444,7 +447,55 @@ namespace SolastaModHelpers.Helpers
 
             return create9LevelSpelllist(name, guid, title_string, spells_by_level.Select(s => s.Spells).ToArray());
         }
+
+
+        public static SpellListDefinition createCombinedSpellListWithLevelRestriction(string name, string guid, string title_string, params (SpellListDefinition, int)[] spell_lists_with_max_lvl)
+        {
+            List<SpellsByLevelDuplet> spells_by_level = new List<SpellsByLevelDuplet>();
+            Dictionary<SpellDefinition, int> min_spell_levels = new Dictionary<SpellDefinition, int>();
+            for (int i = 0; i < 10; i++)
+            {
+                spells_by_level.Add(new SpellsByLevelDuplet());
+                spells_by_level[i].Level = i;
+                spells_by_level[i].Spells = new List<SpellDefinition>();
+            }
+
+            foreach (var sl in spell_lists_with_max_lvl)
+            {
+                foreach (var sll in sl.Item1.SpellsByLevel)
+                {
+                    if (sll.Level > sl.Item2)
+                    {
+                        continue;
+                    }
+                    foreach (var s in sll.Spells)
+                    {
+                        if (!min_spell_levels.ContainsKey(s) || min_spell_levels[s] > sll.Level)
+                        {
+                            min_spell_levels[s] = sll.Level;
+                        }
+                    }
+                }
+            }
+
+            foreach (var kv in min_spell_levels)
+            {
+                spells_by_level[kv.Value].Spells.Add(kv.Key);
+            }
+
+            spells_by_level.RemoveAll(e => e.Spells.Count == 0);
+
+            foreach (var sl in spells_by_level)
+            {
+                sl.Spells.Sort((a, b) => a.name.CompareTo(b.name));
+            }
+
+            return create9LevelSpelllist(name, guid, title_string, spells_by_level.Select(s => s.Spells).ToArray());
+        }
     }
+
+
+
 
 
     public class SpellcastingBuilder : BaseDefinitionBuilderWithGuidStorage<FeatureDefinitionCastSpell>
@@ -458,7 +509,7 @@ namespace SolastaModHelpers.Helpers
         {
             Definition.GuiPresentation.Title = title_string;
             Definition.GuiPresentation.Description = description_string;
-
+            
             Definition.SetSpellcastingAbility(spell_stat);
             Definition.SetSpellKnowledge(spell_knowledge);
             Definition.SetSpellReadyness(spell_readyness);
@@ -480,6 +531,57 @@ namespace SolastaModHelpers.Helpers
         {
             Stats.assertAllStats(new string[] { spell_stat });
             return new SpellcastingBuilder(name, guid, title_string, description_string, spelllist, spell_stat,
+                                           RuleDefinitions.SpellKnowledge.Selection, RuleDefinitions.SpellReadyness.AllKnown,
+                                           Enumerable.Repeat(0, 20).ToList(),
+                                           cantrips_per_level,
+                                           known_spells,
+                                           slots_pre_level,
+                                           DatabaseHelper.FeatureDefinitionCastSpells.CastSpellWizard).AddToDB();
+        }
+    }
+
+
+    public class CustomSpellcastingBuilder<T> : BaseDefinitionBuilderWithGuidStorage<T> where T : FeatureDefinitionCastSpell
+    {
+
+        protected CustomSpellcastingBuilder(string name, string guid, string title_string, string description_string, SpellListDefinition spelllist,
+                                      string spell_stat, RuleDefinitions.SpellKnowledge spell_knowledge, RuleDefinitions.SpellReadyness spell_readyness,
+                                      List<int> scribed_spells, List<int> cantrips_per_level, List<int> known_spells,
+                                      List<FeatureDefinitionCastSpell.SlotsByLevelDuplet> slots_pre_level,
+                                      FeatureDefinitionCastSpell base_feature) : base(name, guid)
+        {
+            Definition.GuiPresentation.Title = title_string;
+            Definition.GuiPresentation.Description = description_string;
+
+            Definition.SetSpellcastingAbility(spell_stat);
+            Definition.SetSpellKnowledge(spell_knowledge);
+            Definition.SetSpellReadyness(spell_readyness);
+            Definition.ScribedSpells.Clear();
+            Definition.ScribedSpells.AddRange(scribed_spells);
+            Definition.KnownSpells.Clear();
+            Definition.KnownSpells.AddRange(known_spells);
+            Definition.SetSpellListDefinition(spelllist);
+            Definition.KnownCantrips.Clear();
+            Definition.KnownCantrips.AddRange(cantrips_per_level);
+            Definition.SlotsPerLevels.Clear();
+            Definition.SlotsPerLevels.AddRange(slots_pre_level);
+            Definition.SetSpellCastingLevel(base_feature.spellCastingLevel);
+            Definition.SetStaticDCValue(base_feature.staticDCValue);
+            Definition.SetStaticToHitValue(base_feature.staticToHitValue);
+            Definition.SetSpellCastingLevel(base_feature.spellCastingLevel);
+            Definition.SetSpellCastingOrigin(base_feature.spellCastingOrigin);
+            Definition.SetSpellPreparationCount(base_feature.spellPreparationCount);
+            Definition.SetSpellcastingParametersComputation(base_feature.spellcastingParametersComputation);
+            Definition.restrictedSchools = base_feature.restrictedSchools.ToArray().ToList();
+        }
+
+        public static T createSpontaneousSpellcasting(string name, string guid, string title_string, string description_string,
+                                                                                SpellListDefinition spelllist, string spell_stat,
+                                                                                List<int> cantrips_per_level, List<int> known_spells,
+                                                                                List<FeatureDefinitionCastSpell.SlotsByLevelDuplet> slots_pre_level)
+        {
+            Stats.assertAllStats(new string[] { spell_stat });
+            return new CustomSpellcastingBuilder<T>(name, guid, title_string, description_string, spelllist, spell_stat,
                                            RuleDefinitions.SpellKnowledge.Selection, RuleDefinitions.SpellReadyness.AllKnown,
                                            Enumerable.Repeat(0, 20).ToList(),
                                            cantrips_per_level,
@@ -1091,7 +1193,7 @@ namespace SolastaModHelpers.Helpers
     public class ExtraSpellSelectionBuilder : BaseDefinitionBuilderWithGuidStorage<NewFeatureDefinitions.FeatureDefinitionExtraSpellSelection>
     {
         protected ExtraSpellSelectionBuilder(string name, string guid, string title_string, string description_string,
-                                          CharacterClassDefinition caster_class, int level, int num_spells,
+                                          CharacterClassDefinition caster_class, int level, int num_spells, int num_cantrips,
                                           SpellListDefinition spell_list)
                 : base(name, guid)
         {
@@ -1103,6 +1205,8 @@ namespace SolastaModHelpers.Helpers
             Definition.level = level;
             Definition.max_spells = num_spells;
             Definition.spell_list = spell_list;
+            Definition.max_cantrips = num_cantrips;
+            Definition.learnCantrips = num_cantrips > 0;
         }
 
 
@@ -1110,7 +1214,15 @@ namespace SolastaModHelpers.Helpers
                                                                                                           CharacterClassDefinition caster_class, int level, int num_spells,
                                                                                                           SpellListDefinition spell_list)
         {
-            return new ExtraSpellSelectionBuilder(name, guid, title_string, description_string, caster_class, level, num_spells, spell_list).AddToDB();
+            return new ExtraSpellSelectionBuilder(name, guid, title_string, description_string, caster_class, level, num_spells, 0, spell_list).AddToDB();
+        }
+
+
+        public static NewFeatureDefinitions.FeatureDefinitionExtraSpellSelection createExtraCantripSelection(string name, string guid, string title_string, string description_string,
+                                                                                                  CharacterClassDefinition caster_class, int level, int num_cantrips,
+                                                                                                  SpellListDefinition spell_list)
+        {
+            return new ExtraSpellSelectionBuilder(name, guid, title_string, description_string, caster_class, level, 0, num_cantrips, spell_list).AddToDB();
         }
     }
 
@@ -1120,6 +1232,27 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        public static SpellDefinition convertSpellToCantrip(SpellDefinition spell, string name,  string title_string, bool self_only = false)
+        {
+            var cantrip = Helpers.CopyFeatureBuilder<SpellDefinition>.createFeatureCopy(name,
+                                                                                        "",
+                                                                                        title_string,
+                                                                                        "",
+                                                                                        null,
+                                                                                        spell);
+            cantrip.spellLevel = 0;
+            cantrip.EffectDescription.EffectAdvancement?.Clear();
+            cantrip.materialComponentType = RuleDefinitions.MaterialComponentType.None;
+            if (self_only)
+            {
+                cantrip.EffectDescription.SetTargetType(RuleDefinitions.TargetType.Self);
+                cantrip.EffectDescription.SetRangeType(RuleDefinitions.RangeType.Self);
+            }
+            cantrip.ritual = false;
+            return cantrip;
+        }
+
+
         public static List<DiceByRank> createDiceRankTable(int max_level, params (int, int)[] entries)
         {
             List<DiceByRank> table = new List<DiceByRank>();
@@ -1138,6 +1271,19 @@ namespace SolastaModHelpers.Helpers
                 }
             }
             return table;
+        }
+
+
+        public static EffectDescription addEffectFormsToEffectDescription(EffectDescription base_effect, params EffectForm[] effect_forms)
+        {
+            var new_effect = new EffectDescription();
+            new_effect.Copy(base_effect);
+            foreach (var ef in effect_forms)
+            {
+                new_effect.effectForms.Add(ef);
+            }
+
+            return new_effect;
         }
 
 

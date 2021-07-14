@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SolastaModHelpers.NewFeatureDefinitions
 {
-    public interface ICustomEffectBasedOnCasterLevel
+    public interface ICustomEffectBasedOnCaster
     {
-        EffectDescription getCustomEffect(int caster_level);
+        EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams);
     }
 
     public interface IPerformAttackAfterMagicEffectUse
@@ -18,13 +18,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class SpellWithCasterLevelDependentEffects:  SpellDefinition, ICustomEffectBasedOnCasterLevel
+    public class SpellWithCasterLevelDependentEffects:  SpellDefinition, ICustomEffectBasedOnCaster
     {
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
         public int minCustomEffectLevel = 100;
 
-        public EffectDescription getCustomEffect(int caster_level)
+        public EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams)
         {
+            int caster_level = formsParams.classLevel;
             if (caster_level < minCustomEffectLevel)
             {
                 return this.effectDescription;
@@ -41,6 +42,40 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return this.effectDescription;
         }
     }
+
+
+    public class SpellWithCasterFeatureDependentEffects : SpellDefinition, ICustomEffectBasedOnCaster
+    {
+        public List<(List<FeatureDefinition>, EffectDescription)> featuresEffectList = new List<(List<FeatureDefinition>, EffectDescription)>();
+
+        public EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        {
+            var caster = formsParams.sourceCharacter;
+
+            var caster_features = Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(caster).ToHashSet();
+
+            foreach (var fe in featuresEffectList)
+            {
+                bool is_ok = true;
+                foreach (var f in fe.Item1)
+                {
+                    if (!caster_features.Contains(f))
+                    {
+                        is_ok = false;
+                        break;
+                    }
+                }
+
+                if (is_ok)
+                {
+                    return fe.Item2;
+                }
+            }
+
+            return this.effectDescription;
+        }
+    }
+
 
     public class SpellFollowedByMeleeAttack : SpellWithCasterLevelDependentEffects, IPerformAttackAfterMagicEffectUse
     {

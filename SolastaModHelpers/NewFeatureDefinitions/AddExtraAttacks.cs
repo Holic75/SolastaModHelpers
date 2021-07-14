@@ -98,8 +98,9 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return;
             }
+            
             character.AttackModes.Add(character.RefreshAttackMode(actionType, rulesetInventorySlot1.EquipedItem.ItemDefinition,
-                                                                  rulesetInventorySlot1.EquipedItem.ItemDefinition.WeaponDescription, false, true,
+                                                                  rulesetInventorySlot1.EquipedItem.ItemDefinition.WeaponDescription, true, true,
                                                                   character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,
                                                                   character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null));
         }

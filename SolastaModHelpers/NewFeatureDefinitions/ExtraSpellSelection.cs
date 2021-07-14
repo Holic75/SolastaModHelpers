@@ -10,12 +10,13 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public interface IKnownSpellNumberIncrease
     {
         int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero, FeatureDefinitionCastSpell castSpellFeature);
+        int getKnownCantripsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero, FeatureDefinitionCastSpell castSpellFeature);
     }
 
 
     public interface IReplaceSpellList
     {
-        SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService);
+        SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService, bool is_cantrip);
     }
 
 
@@ -23,9 +24,21 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public CharacterClassDefinition caster_class;
         public int max_spells;
+        public int max_cantrips = 0;
         public int level;
 
-        public int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero, FeatureDefinitionCastSpell castSpellFeature)
+        public int getKnownCantripsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero, FeatureDefinitionCastSpell castSpellFeature)
+        {
+            if (!checkValidity(manager, hero, castSpellFeature))
+            {
+                return 0;
+            }
+
+            return max_cantrips;
+        }
+
+
+        bool checkValidity(CharacterBuildingManager manager, RulesetCharacterHero hero, FeatureDefinitionCastSpell castSpellFeature)
         {
             int current_level;
             CharacterClassDefinition current_class;
@@ -33,17 +46,17 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
             if (caster_class != current_class)
             {
-                return 0;
+                return false;
             }
 
             if (hero == null)
             {
-                return 0;
+                return false;
             }
 
             if (!hero.ClassesAndLevels.ContainsKey(caster_class))
             {
-                return 0;
+                return false;
             }
 
             CharacterClassDefinition class_origin;
@@ -53,30 +66,53 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             hero.LookForFeatureOrigin(castSpellFeature, out race_origin, out class_origin, out feat_origin);
             if (class_origin != caster_class)
             {
+                return false;
+            }
+            return hero.ClassesAndLevels[caster_class] >= level;
+        }
+
+        public int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero, FeatureDefinitionCastSpell castSpellFeature)
+        {
+            if (!checkValidity(manager, hero, castSpellFeature))
+            {
                 return 0;
             }
 
-            if (hero.ClassesAndLevels[caster_class] >= level)
-            {
-                return max_spells;
-            }
-
-            return 0;
+            return max_spells;
         }
     }
 
     public class FeatureDefinitionExtraSpellSelection : FeatureDefinitionExtraSpellsKnown, IReplaceSpellList
     {
         public SpellListDefinition spell_list;
+        public bool learnCantrips = false;
 
-        public SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService)
+        public SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService, bool is_cantrip)
         {
+            if (is_cantrip && !learnCantrips)
+            {
+                return null;
+            }
             CharacterClassDefinition current_class;
             int current_level;
             characterBuildingService.GetLastAssignedClassAndLevel(out current_class, out current_level);
 
-            int acquired_spells_num = characterBuildingService.AcquiredSpells.Aggregate(0, (num, a) => num += a.Value.Count());
-            if (acquired_spells_num >= max_spells)
+            int acquired_spells_num = 0;
+            int allowed_spells_num = learnCantrips ? max_cantrips : max_spells;
+            if (learnCantrips)
+            {
+                CharacterBuildingManager manager = characterBuildingService as CharacterBuildingManager;
+                if (manager == null)
+                {
+                    return null;
+                }
+                acquired_spells_num = manager.acquiredCantrips.Aggregate(0, (num, a) => num += a.Value.Count());
+            }
+            else
+            {
+                acquired_spells_num = characterBuildingService.AcquiredSpells.Aggregate(0, (num, a) => num += a.Value.Count());
+            }
+            if (acquired_spells_num >= allowed_spells_num)
             {
                 return null;
             }

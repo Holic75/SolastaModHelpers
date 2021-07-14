@@ -39,7 +39,7 @@ namespace SolastaModHelpers.Patches
         class CharacterBuildingManagerApplyFeatureCastSpellPatcher
         {
             [HarmonyPatch(typeof(CharacterBuildingManager), "ApplyFeatureCastSpell")]
-            internal static class CharacterBuildingManager_ApplyFeatureCastSpelll_Patch
+            internal static class CharacterBuildingManager_ApplyFeatureCastSpell_Patch
             {
                 internal static void Postfix(CharacterBuildingManager __instance, FeatureDefinition feature)
                 {
@@ -51,8 +51,14 @@ namespace SolastaModHelpers.Patches
                     }
                     int bonus_known_spells = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
                                                                          .Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(__instance, hero, feature_cast_spell));
+                    int bonus_known_cantrips = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
+                                                     .Aggregate(0, (old, next) => old += next.getKnownCantripsBonus(__instance, hero, feature_cast_spell));
+                    //fix FeatureDefinitionBonusCantrip to not count against character cantrips count
+                    bonus_known_cantrips += Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinitionBonusCantrips>(__instance.HeroCharacter)
+                                                     .Aggregate(0, (old, next) => old += next.bonusCantrips.Count());
 
                     __instance.tempAcquiredSpellsNumber = __instance.tempAcquiredSpellsNumber + bonus_known_spells;
+                    __instance.tempAcquiredCantripsNumber = __instance.tempAcquiredCantripsNumber + bonus_known_cantrips;
                     return;
                 }
             }
