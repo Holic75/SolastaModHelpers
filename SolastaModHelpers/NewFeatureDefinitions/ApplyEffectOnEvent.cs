@@ -15,6 +15,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                 RuleDefinitions.RollOutcome saveOutcome);
     }
 
+    public interface IInitiatorApplyEffectOnTargetKill
+    {
+        void processTargetKill(RulesetCharacter attacker, RulesetCharacter target);
+    }
+
 
     public interface ICasterApplyEffectOnEffectApplication
     {
@@ -157,6 +162,32 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         protected override FeatureDefinitionPower getPower(GameLocationCharacter character)
         {
             return power;
+        }
+    }
+
+
+    public class InitiatorApplyPowerToSelfOnTargetSlain: FeatureDefinition, IInitiatorApplyEffectOnTargetKill
+    {
+        public FeatureDefinitionPower power;
+        public CharacterClassDefinition scaleClass;
+
+        public void processTargetKill(RulesetCharacter attacker, RulesetCharacter target)
+        {
+            CharacterActionParams actionParams;
+
+            var attacker_game_location_character = Helpers.Misc.findGameLocationCharacter(attacker);
+            if (attacker_game_location_character == null)
+            {
+                return;
+            }
+
+            actionParams = new CharacterActionParams(attacker_game_location_character, ActionDefinitions.Id.PowerNoCost, attacker_game_location_character);
+
+            RulesetUsablePower usablePower = new RulesetUsablePower(power, (CharacterRaceDefinition)null, scaleClass);
+            IRulesetImplementationService service = ServiceRepository.GetService<IRulesetImplementationService>();
+            actionParams.RulesetEffect = (RulesetEffect)service.InstantiateEffectPower(attacker, usablePower, false);
+            actionParams.StringParameter = power.Name;
+            ServiceRepository.GetService<IGameLocationActionService>().ExecuteInstantSingleAction(actionParams);
         }
     }
 

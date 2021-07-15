@@ -93,15 +93,10 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             var ruleset_character = character as RulesetCharacter;
             if (ruleset_character == null)
             {
-                return false;
-            }
-
-            var battle = ServiceRepository.GetService<IGameLocationBattleService>()?.Battle;
-            if (battle == null)
-            {
                 return true;
             }
-            var game_location_character = battle.AllContenders.FirstOrDefault(c => c.RulesetCharacter == character);
+
+            var game_location_character = Helpers.Misc.findGameLocationCharacter(ruleset_character);
             if (game_location_character == null)
             {
                 return true;
@@ -130,6 +125,33 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         {
             armorCategory = armor_category;
             not = inverted;
+        }
+    }
+
+
+    public class SpecificWeaponInMainHandRestriction : IRestriction
+    {
+        private List<string> weaponTypes = new List<string>();
+
+        public bool isForbidden(RulesetActor character)
+        {
+            var hero = character as RulesetCharacterHero;
+            if (hero == null)
+            {
+                return true;
+            }
+            RulesetItem equipedItem = hero.characterInventory.InventorySlotsByName[EquipmentDefinitions.SlotTypeMainHand].EquipedItem;
+            if (equipedItem?.itemDefinition == null || !equipedItem.ItemDefinition.IsWeapon)
+            {
+                return true;
+            }
+            return !weaponTypes.Contains(equipedItem.ItemDefinition.weaponDefinition.WeaponType);
+        }
+
+
+        public SpecificWeaponInMainHandRestriction(List<string> weapon_types)
+        {
+            weaponTypes = weapon_types;
         }
     }
 
@@ -165,7 +187,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public bool isForbidden(RulesetActor character)
         {
-            return !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Any(f => f == feature);
+            return !Helpers.Misc.characterHasFeature(character, feature);
         }
 
         public HasFeatureRestriction(FeatureDefinition required_feature)
@@ -173,6 +195,54 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             feature = required_feature;
         }
     }
+
+
+    public class HasAnyFeatureFromListRestriction : IRestriction
+    {
+        private List<FeatureDefinition> features;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            foreach (var ff in features)
+            {
+                if (Helpers.Misc.characterHasFeature(character, ff))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public HasAnyFeatureFromListRestriction(params FeatureDefinition[] required_features)
+        {
+            features = required_features.ToList();
+        }
+    }
+
+
+    public class CanCastSpellRestriction : IRestriction
+    {
+        private SpellDefinition spell;
+        private bool checkSlot;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            var ruleset_character = character as RulesetCharacter;
+            if (ruleset_character == null)
+            {
+                return true;
+            }
+            RulesetSpellRepertoire repertoire = null;
+            return !ruleset_character.CanCastSpell(spell, checkSlot, out repertoire);
+        }
+
+        public CanCastSpellRestriction(SpellDefinition spell_to_check, bool check_slot = true)
+        {
+            spell = spell_to_check;
+            checkSlot = check_slot;
+        }
+    }
+
 
 
     public class HasAtLeastOneConditionFromListRestriction : IRestriction

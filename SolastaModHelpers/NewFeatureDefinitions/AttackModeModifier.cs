@@ -147,4 +147,42 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         }
     }
+
+
+    public class AttackModeExtraMainAttackWithSpecificWeaponType : FeatureDefinition, IAttackModeModifier
+    {
+        public List<string> weaponTypes = new List<string>();
+        public List<IRestriction> restrictions = new List<IRestriction>();
+
+        public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        {
+            foreach (var r in restrictions)
+            {
+                if (r.isForbidden(character))
+                {
+                    return;
+                }
+            }
+
+            var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
+            if (weapon2 == null || !weapon2.isWeapon)
+            {
+                return;
+            }
+
+            var description = weapon2.WeaponDescription;
+            if (description == null)
+            {
+                return;
+            }
+
+
+            if (!weaponTypes.Empty() && !weaponTypes.Contains(description.WeaponType))
+            {
+                return;
+            }
+
+            attack_mode.AttacksNumber ++;
+        }
+    }
 }

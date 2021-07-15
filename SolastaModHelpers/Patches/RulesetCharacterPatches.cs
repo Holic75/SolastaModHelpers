@@ -211,5 +211,33 @@ namespace SolastaModHelpers.Patches
                 }
             }
         }
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "SustainDamage")]
+        class RulesetCharacter_SustainDamage
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var account_slain_enemy = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("AccountSlainEnemy"));
+
+                codes[account_slain_enemy] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                 new Action<RulesetCharacter, RulesetCharacter>(accountSlainEnemy).Method
+                                                                 );
+                codes.Insert(account_slain_enemy,
+                             new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0)//load this == RulesetCharacter (target)
+                            );
+                return codes.AsEnumerable();
+            }
+
+            static void accountSlainEnemy(RulesetCharacter attacker, RulesetCharacter target)
+            {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IInitiatorApplyEffectOnTargetKill>(attacker);
+                foreach (var f in features)
+                {
+                    f.processTargetKill(attacker, target);
+                }
+            }
+        }
     }
 }

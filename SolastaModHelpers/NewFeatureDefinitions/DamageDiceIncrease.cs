@@ -12,7 +12,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class WeaponDamageDiceIncreaseOnCriticalHit:FeatureDefinition, IDamageDiceIncrease
+    public class WeaponDamageDiceIncreaseOnCriticalHit: FeatureDefinition, IDamageDiceIncrease
     {
         public int value;
         public bool applyToRanged;

@@ -8,6 +8,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 {
     public static class ConditionsData
     {
-        public static List<ConditionDefinition> no_refresh_conditions = new List<ConditionDefinition>();
+        public static HashSet<ConditionDefinition> no_refresh_conditions = new HashSet<ConditionDefinition>();
     }
 }

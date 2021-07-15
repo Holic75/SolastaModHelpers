@@ -51,4 +51,30 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return checkReaction ? isForbidden(character) : false;
         }
     }
+
+
+    public class PowerWithRestrictionsAndCasterLevelDependentEffect : PowerWithRestrictions, ICustomEffectBasedOnCaster
+    {
+        public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
+        public int minCustomEffectLevel = 100;
+
+        public EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        {
+            int caster_level = formsParams.classLevel;
+            if (caster_level < minCustomEffectLevel)
+            {
+                return this.effectDescription;
+            }
+
+            foreach (var e in levelEffectList)
+            {
+                if (caster_level <= e.Item1)
+                {
+                    return e.Item2;
+                }
+            }
+
+            return this.effectDescription;
+        }
+    }
 }

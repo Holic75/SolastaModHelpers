@@ -1244,6 +1244,50 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        public static bool characterHasFeature(RulesetActor actor, FeatureDefinition feature)
+        {
+            if (feature is FeatureDefinitionFeatureSet)
+            {
+                //TODO: make a proper check for FeatureSet
+                var feature_set = feature as FeatureDefinitionFeatureSet;
+                if (feature_set.mode == FeatureDefinitionFeatureSet.FeatureSetMode.Union)
+                {
+                    return feature_set.FeatureSet.Count > 0 ? characterHasFeature(actor, feature_set.FeatureSet[0]) : false;
+                }
+                else
+                {
+                    foreach (var f in feature_set.FeatureSet)
+                    {
+                        if (characterHasFeature(actor, f))
+                        {
+                            return true;
+                        }
+                       
+                    }
+                    return false;
+                }
+            }
+            else
+            {
+                return Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(actor).Any(f => f == feature);
+            }
+
+        }
+        public static GameLocationCharacter findGameLocationCharacter(RulesetCharacter character)
+        {
+            if (character == null)
+            {
+                return null;
+            }
+            var battle = ServiceRepository.GetService<IGameLocationBattleService>()?.Battle;
+            if (battle == null)
+            {
+                return null;
+            }
+            return battle.AllContenders.FirstOrDefault(c => c.RulesetCharacter == character);
+        }
+
+
         public static SpellDefinition convertSpellToCantrip(SpellDefinition spell, string name,  string title_string, bool self_only = false)
         {
             var cantrip = Helpers.CopyFeatureBuilder<SpellDefinition>.createFeatureCopy(name,
