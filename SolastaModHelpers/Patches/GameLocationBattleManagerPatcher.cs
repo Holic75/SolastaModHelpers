@@ -368,5 +368,65 @@ namespace SolastaModHelpers.Patches
                 }
             }
         }
+
+
+        class GameLocationBattleManagerHandleFailedSavingThrowAgainstEffectPatcher
+        {
+            [HarmonyPatch(typeof(GameLocationBattleManager), "HandleFailedSavingThrowAgainstEffect")]
+            internal static class GameLocationBattleManager_HandleFailedSavingThrowAgainstEffect_Patch
+            {
+                internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result,
+                                                                        GameLocationBattleManager __instance,
+                                                                        CharacterActionMagicEffect action,
+                                                                        GameLocationCharacter caster,
+                                                                        GameLocationCharacter defender,
+                                                                        RulesetEffect rulesetEffect,
+                                                                        ActionModifier saveModifier,
+                                                                        bool hasHitVisual
+                                                                        )
+                {
+                    while (__result.MoveNext())
+                    {
+                        yield return __result.Current;
+                    }
+                    var extra_events = Process(__instance, action, caster, defender, rulesetEffect, saveModifier, hasHitVisual);
+
+                    while (extra_events.MoveNext())
+                    {
+                        yield return extra_events.Current;
+                    }
+                }
+
+
+                internal static System.Collections.IEnumerator Process(GameLocationBattleManager __instance,
+                                                                        CharacterActionMagicEffect action,
+                                                                        GameLocationCharacter caster,
+                                                                        GameLocationCharacter defender,
+                                                                        RulesetEffect rulesetEffect,
+                                                                        ActionModifier saveModifier,
+                                                                        bool hasHitVisual)
+                {
+                    var power = defender.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.RerollFailedSavePower
+                                                      && defender.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
+                                                     ).FirstOrDefault();
+                    if (power != null)
+                    {
+                        var reactionParams = new CharacterActionParams(defender, (ActionDefinitions.Id)ExtendedActionId.ConsumePowerUse);
+                        reactionParams.RulesetEffect = rulesetEffect;
+                        reactionParams.UsablePower = power;
+                        IGameLocationActionService service = ServiceRepository.GetService<IGameLocationActionService>();
+                        int count = service.PendingReactionRequestGroups.Count;
+                        (service as GameLocationActionManager)?.AddInterruptRequest(new ReactionRequestConsumePowerUse(reactionParams));
+                        yield return (object)__instance.WaitForReactions(defender, service, count);
+                        if (reactionParams.ReactionValidated)
+                        {
+                            RuleDefinitions.RollOutcome saveOutcome = RuleDefinitions.RollOutcome.Neutral;
+                            action.RolledSaveThrow = rulesetEffect.TryRollSavingThrow(action.ActingCharacter.RulesetCharacter, action.ActingCharacter.Side, defender.RulesetActor, saveModifier, hasHitVisual, out saveOutcome);
+                            action.SaveOutcome = saveOutcome;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

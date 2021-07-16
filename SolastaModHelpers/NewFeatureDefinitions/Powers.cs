@@ -77,4 +77,13 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return this.effectDescription;
         }
     }
+
+
+    public class HiddenPower: PowerWithRestrictions
+    { 
+    }
+
+    public class RerollFailedSavePower : HiddenPower
+    {
+    }
 }

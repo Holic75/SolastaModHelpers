@@ -18,10 +18,10 @@ namespace SolastaModHelpers.ExtendedEnums
 
     public enum ExtraRitualCasting
     {
-        None,
-        Prepared,
-        Spellbook,
-        Spontaneous
+        None = RuleDefinitions.RitualCasting.None,
+        Prepared = RuleDefinitions.RitualCasting.Prepared,
+        Spellbook = RuleDefinitions.RitualCasting.Spellbook,
+        Spontaneous = 10
     }
 
 

@@ -12,7 +12,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public enum ExtendedActionId
     {
         ModifyAttackRollViaPower = 128,
-        DeflectMissileCustom = 129
+        DeflectMissileCustom = 129,
+        ConsumePowerUse = 130
     }
 }
 
@@ -166,6 +167,87 @@ public class ReactionRequestDeflectMissileCustom : ReactionRequest
         }
 
         return string.Format(base.FormatDescription(), (object)guiCharacter2.Name, (object)guiCharacter1.Name, deflect_missile_feature.characterStat, deflect_missile_feature.characterClass.Name);
+    }
+}
+
+
+public class CharacterActionConsumePowerUse : CharacterAction
+{
+    static public ActionDefinition consumePowerUseActionDefinition;
+    static public ReactionDefinition consumePowerUseReactionDefinition;
+
+    static public void initialize()
+    {
+        consumePowerUseActionDefinition = SolastaModHelpers.Helpers.CopyFeatureBuilder<ActionDefinition>
+            .createFeatureCopy("ConsumePowerUsection", "a243323c-9c33-4554-9581-51a00e132f7a", "", "", null, DatabaseHelper.ActionDefinitions.SpendPower);
+        consumePowerUseActionDefinition.id = (ActionDefinitions.Id)ExtendedActionId.ConsumePowerUse;
+        consumePowerUseActionDefinition.classNameOverride = "ConsumePowerUse";
+
+        consumePowerUseReactionDefinition = SolastaModHelpers.Helpers.CopyFeatureBuilder<ReactionDefinition>
+                    .createFeatureCopy("ConsumePowerUse", "d95c9f4b-5b6d-4f71-a0ec-ed6015ce3b32", "Reaction/&ConsumePowerUse{0}Title", "Reaction/&ConsumePowerUse{0}Description", null, DatabaseHelper.ReactionDefinitions.SpendPower);
+
+        consumePowerUseReactionDefinition.reactTitle = "Reaction/&ConsumePowerUse{0}ReactTitle";
+        consumePowerUseReactionDefinition.reactDescription = "Reaction/&ConsumePowerUse{0}ReactDescription";
+    }
+
+
+    public CharacterActionConsumePowerUse(CharacterActionParams actionParams)
+      : base(actionParams)
+    {
+    }
+
+    public override IEnumerator ExecuteImpl()
+    {
+        actionParams.ActingCharacter?.RulesetCharacter?.UsePower(actionParams.usablePower);
+        yield return null;
+    }
+}
+
+
+public class ReactionRequestConsumePowerUse : ReactionRequest
+{
+    public const string Name = "ConsumePowerUse";
+
+    public ReactionRequestConsumePowerUse(CharacterActionParams reactionParams)
+      : base("ConsumePowerUse", reactionParams)
+    {
+    }
+
+    public override string FormatDescription()
+    {
+        GuiCharacter guiCharacter = new GuiCharacter(this.ReactionParams.ActingCharacter);
+        string empty = string.Empty;
+        RulesetEffect rulesetEffect = this.ReactionParams.RulesetEffect;
+        string effect_name = !(rulesetEffect is RulesetEffectSpell) ? Gui.Localize((rulesetEffect as RulesetEffectPower).PowerDefinition.GuiPresentation.Title) : Gui.Localize((rulesetEffect as RulesetEffectSpell).SpellDefinition.GuiPresentation.Title);
+
+        var tr_string =  string.Format(DatabaseRepository.GetDatabase<ReactionDefinition>().GetElement(this.DefinitionName).GuiPresentation.Description, 
+                             this.ReactionParams.UsablePower.PowerDefinition.name
+                             );
+        return string.Format(Gui.Localize(tr_string), effect_name);
+    }
+
+
+    public override string FormatTitle()
+    {
+        GuiCharacter guiCharacter = new GuiCharacter(this.ReactionParams.ActingCharacter);
+        string empty = string.Empty;
+        return string.Format(DatabaseRepository.GetDatabase<ReactionDefinition>().GetElement(this.DefinitionName).GuiPresentation.Title, this.ReactionParams.UsablePower.PowerDefinition.name);
+    }
+
+
+    public override string FormatReactTitle()
+    {
+        GuiCharacter guiCharacter = new GuiCharacter(this.ReactionParams.ActingCharacter);
+        string empty = string.Empty;
+        return string.Format(DatabaseRepository.GetDatabase<ReactionDefinition>().GetElement(this.DefinitionName).ReactTitle, this.ReactionParams.UsablePower.PowerDefinition.name);
+    }
+
+
+    public override string FormatReactDescription()
+    {
+        GuiCharacter guiCharacter = new GuiCharacter(this.ReactionParams.ActingCharacter);
+        string empty = string.Empty;
+        return string.Format(DatabaseRepository.GetDatabase<ReactionDefinition>().GetElement(this.DefinitionName).ReactDescription, this.ReactionParams.UsablePower.PowerDefinition.name);
     }
 }
 

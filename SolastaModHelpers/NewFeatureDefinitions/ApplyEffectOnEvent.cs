@@ -355,25 +355,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class InitiatorApplyConditionOnAttackHitToTarget : FeatureDefinition, IInitiatorApplyEffectOnAttackHit
-    {
-        public ConditionDefinition condition;
-        public int durationValue;
-        public RuleDefinitions.DurationType durationType;
-        public RuleDefinitions.TurnOccurenceType turnOccurence;
-
-        public void processAttackHitInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, int attackRoll, int successDelta, bool ranged)
-        {
-            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
-                                                                                       condition, durationType, durationValue, turnOccurence,
-                                                                                       attacker.RulesetCharacter.Guid,
-                                                                                       attacker.RulesetCharacter.CurrentFaction.Name);
-            defender.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
-        }
-
-    }
-
-
     public class TargetApplyConditionOnDamageTaken : FeatureDefinition, ITargetApplyEffectOnDamageTaken
     {
         public ConditionDefinition condition;

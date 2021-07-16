@@ -74,6 +74,7 @@ namespace SolastaModHelpers
             Common.initialize();
             CharacterActionModifyAttackRollViaPower.initialize();
             CharacterActionDeflectMissileCustom.initialize();
+            CharacterActionConsumePowerUse.initialize();
             DatabaseHelper.SpellDefinitions.MageArmor.EffectDescription.SetTargetFilteringTag(RuleDefinitions.TargetFilteringTag.Unarmored); //fix mage armor tag to unarmored
             /*var spells = DatabaseRepository.GetDatabase<SpellDefinition>().GetAllElements();
             foreach (var s in spells)
