@@ -422,6 +422,11 @@ namespace SolastaModHelpers.Patches
                     {
                         yield return __result.Current;
                     }
+                    if (action.SaveOutcome != RuleDefinitions.RollOutcome.CriticalFailure || action.SaveOutcome != RuleDefinitions.RollOutcome.Failure)
+                    {
+                        yield return null;
+                    }
+
                     var extra_events = Process(__instance, action, caster, defender, rulesetEffect, saveModifier, hasHitVisual);
 
                     while (extra_events.MoveNext())
@@ -439,11 +444,8 @@ namespace SolastaModHelpers.Patches
                                                                         ActionModifier saveModifier,
                                                                         bool hasHitVisual)
                 {
-                    if (action.SaveOutcome != RuleDefinitions.RollOutcome.CriticalFailure || action.SaveOutcome != RuleDefinitions.RollOutcome.Failure)
-                    {
-                        yield return null;
-                    }
-                    var power = defender.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.RerollFailedSavePower
+
+                    var power = defender.RulesetCharacter?.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.RerollFailedSavePower
                                                       && defender.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
                                                      ).FirstOrDefault();
                     if (power != null)
@@ -451,10 +453,14 @@ namespace SolastaModHelpers.Patches
                         var reactionParams = new CharacterActionParams(defender, (ActionDefinitions.Id)ExtendedActionId.ConsumePowerUse);
                         reactionParams.RulesetEffect = rulesetEffect;
                         reactionParams.UsablePower = power;
-                        IGameLocationActionService service = ServiceRepository.GetService<IGameLocationActionService>();
+                        GameLocationActionManager service = ServiceRepository.GetService<IGameLocationActionService>() as GameLocationActionManager;
+                        if (service == null)
+                        {
+                            yield return null;
+                        }
                         int count = service.PendingReactionRequestGroups.Count;
-                        (service as GameLocationActionManager)?.AddInterruptRequest(new ReactionRequestConsumePowerUse(reactionParams));
-                        yield return (object)__instance.WaitForReactions(defender, service, count);
+                        service.AddInterruptRequest(new ReactionRequestConsumePowerUse(reactionParams));
+                        yield return __instance.WaitForReactions(defender, service, count);
                         if (reactionParams.ReactionValidated)
                         {
                             RuleDefinitions.RollOutcome saveOutcome = RuleDefinitions.RollOutcome.Neutral;
