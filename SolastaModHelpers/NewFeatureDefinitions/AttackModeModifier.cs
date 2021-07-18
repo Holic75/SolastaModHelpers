@@ -156,6 +156,10 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
+            if (attack_mode.ActionType != ActionDefinitions.ActionType.Main)
+            {
+                return;
+            }
             foreach (var r in restrictions)
             {
                 if (r.isForbidden(character))

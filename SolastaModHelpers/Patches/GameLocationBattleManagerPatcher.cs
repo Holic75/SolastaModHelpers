@@ -190,6 +190,39 @@ namespace SolastaModHelpers.Patches
                                                                         List<EffectForm> actualEffectForms,
                                                                         bool firstTarget)
                 {
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<IAdditionalDamageProvider>(attacker.RulesetCharacter);
+                    foreach (FeatureDefinition featureDefinition1 in features)
+                    {
+                        FeatureDefinition featureDefinition = featureDefinition1;
+                        IAdditionalDamageProvider provider = featureDefinition as IAdditionalDamageProvider;
+                        bool validTrigger = false;
+                        bool validUses = true;
+                        if ((uint)provider.LimitedUsage > 0U)
+                        {
+                            if (provider.LimitedUsage == RuleDefinitions.FeatureLimitedUsage.OnceInMyturn && (attacker.UsedSpecialFeatures.ContainsKey(featureDefinition.Name) || __instance.Battle != null && __instance.Battle.ActiveContender != attacker))
+                                validUses = false;
+                            else if (provider.LimitedUsage == RuleDefinitions.FeatureLimitedUsage.OncePerTurn && attacker.UsedSpecialFeatures.ContainsKey(featureDefinition.Name))
+                                validUses = false;
+                        }
+                        if (validUses)
+                        {
+                            Main.Logger.Log("Checking: " + (activeEffect is RulesetEffectSpell).ToString());
+                            if (provider.TriggerCondition == (RuleDefinitions.AdditionalDamageTriggerCondition)ExtendedEnums.AdditionalDamageTriggerCondition.RadiantOrFireSpellDamage 
+                                && activeEffect is RulesetEffectSpell
+                                && Helpers.Misc.hasDamageType(activeEffect.EffectDescription.effectForms, Helpers.DamageTypes.Fire, Helpers.DamageTypes.Radiant)
+                                )
+                            {
+                                if (((activeEffect.EffectDescription.RangeType != RuleDefinitions.RangeType.Distance ? 0 : (!activeEffect.EffectDescription.IsAoE ? 1 : 0)) & (firstTarget ? 1 : 0)) != 0)
+                                    validTrigger = true;
+                                else if (activeEffect.EffectDescription.RangeType != RuleDefinitions.RangeType.Distance || activeEffect.EffectDescription.IsAoE)
+                                    validTrigger = true;
+                            }
+                            if (validTrigger)
+                                __instance.ComputeAndNotifyAdditionalDamage(attacker, defender, provider, actualEffectForms, (CharacterActionParams)null);
+                        }
+                        provider = (IAdditionalDamageProvider)null;
+                        featureDefinition = (FeatureDefinition)null;
+                    }
 
                     while (__result.MoveNext())
                     {
@@ -406,6 +439,10 @@ namespace SolastaModHelpers.Patches
                                                                         ActionModifier saveModifier,
                                                                         bool hasHitVisual)
                 {
+                    if (action.SaveOutcome != RuleDefinitions.RollOutcome.CriticalFailure || action.SaveOutcome != RuleDefinitions.RollOutcome.Failure)
+                    {
+                        yield return null;
+                    }
                     var power = defender.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.RerollFailedSavePower
                                                       && defender.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
                                                      ).FirstOrDefault();

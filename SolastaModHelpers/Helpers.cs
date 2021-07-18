@@ -1244,6 +1244,18 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        static public bool hasDamageType(List<EffectForm> actualEffectForms, params string[] damage_types)
+        {
+            foreach (EffectForm actualEffectForm in actualEffectForms)
+            {
+                EffectForm effectForm = actualEffectForm;
+                if (effectForm.FormType == EffectForm.EffectFormType.Damage && damage_types.Contains(effectForm.DamageForm.DamageType))
+                {
+                    return true;  
+                }
+            }
+            return false;
+        }
         public static bool characterHasFeature(RulesetActor actor, FeatureDefinition feature)
         {
             if (feature is FeatureDefinitionFeatureSet)

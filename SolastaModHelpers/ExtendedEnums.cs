@@ -29,4 +29,9 @@ namespace SolastaModHelpers.ExtendedEnums
     {
         RollsForDamage = 128
     }
+
+    public enum AdditionalDamageTriggerCondition
+    {
+        RadiantOrFireSpellDamage = 128
+    }
 }
