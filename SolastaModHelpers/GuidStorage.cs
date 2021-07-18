@@ -98,7 +98,15 @@ namespace SolastaModHelpers
                 return new_guid;
             }
         }
+
+
+        static public string mergeGuids(string guid1, string guid2)
+        {
+            return guid1.Substring(0, guid1.Length / 2) + guid2.Substring(guid1.Length / 2);
+        }
     }
+
+
 
 
     public class BaseDefinitionBuilderWithGuidStorage<TDefinition> : BaseDefinitionBuilder<TDefinition> where TDefinition : BaseDefinition

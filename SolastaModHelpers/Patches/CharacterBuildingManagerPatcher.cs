@@ -49,6 +49,7 @@ namespace SolastaModHelpers.Patches
                     {
                         return;
                     }
+
                     int bonus_known_spells = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
                                                                          .Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(__instance, hero, feature_cast_spell));
                     int bonus_known_cantrips = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
@@ -73,7 +74,46 @@ namespace SolastaModHelpers.Patches
                 internal static bool Prefix(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures, string tag)
                 {
                     grantSpells(__instance, grantedFeatures);
+                    if (tag.Contains("06Subclass"))
+                    {
+                        correctNumberOfSpellsKnown(__instance, grantedFeatures);
+                    }
                     return true;
+                }
+
+                //correct bonus number of spells  known for the features granted by subclass at level 1 
+                //Since at this time spell repertoires are not yet created, so they will not be applied until next lvl up
+                static void correctNumberOfSpellsKnown(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)
+                {
+                    var cantrip_pools = __instance.pointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip];
+                    var spell_pools = __instance.pointPoolStacks[HeroDefinitions.PointsPoolType.Spell];
+                    var bonus_known_spells_features = grantedFeatures.OfType<NewFeatureDefinitions.IKnownSpellNumberIncrease>();
+                   
+                    foreach (var f in bonus_known_spells_features)
+                    {
+                        foreach (var cp in cantrip_pools.activePools)
+                        {
+                            var sp_features = __instance.heroCharacter.activeFeatures[cp.Key].OfType<FeatureDefinitionCastSpell>().Where(sp => !__instance.heroCharacter.spellRepertoires.Any(sr => sr.SpellCastingFeature == sp));
+                            foreach (var sp_f in sp_features)
+                            {
+                                var bonus = f.getKnownCantripsBonus(__instance, __instance.heroCharacter, sp_f);
+                                cp.Value.RemainingPoints += bonus;
+                                cp.Value.MaxPoints += bonus;
+                            }
+
+                        }
+
+                        foreach (var cp in spell_pools.activePools)
+                        {
+                            var sp_features = __instance.heroCharacter.activeFeatures[cp.Key].OfType<FeatureDefinitionCastSpell>().Where(sp => !__instance.heroCharacter.spellRepertoires.Any(sr => sr.SpellCastingFeature == sp));
+                            foreach (var sp_f in sp_features)
+                            {
+                                var bonus = f.getKnownSpellsBonus(__instance, __instance.heroCharacter, sp_f);
+                                cp.Value.RemainingPoints += bonus;
+                                cp.Value.MaxPoints += bonus;
+                            }
+                        }
+                    }
                 }
 
                 static void grantSpells(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)

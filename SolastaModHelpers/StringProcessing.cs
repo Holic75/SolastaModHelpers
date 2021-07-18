@@ -115,6 +115,43 @@ namespace SolastaModHelpers.Helpers
         }
 
 
+        public static string addCustomString(string new_string_id, string format_string, params (string, string)[] tag_replacement)
+        {
+            var languageSourceData = LocalizationManager.Sources[0];
+            if (languageSourceData.mDictionary.ContainsKey(new_string_id))
+            {
+                throw new SystemException($"String: {new_string_id} is already present in LanguageSourceData");
+            }
+
+            List<(string, TermData)> tag_terms = new List<(string, TermData)>();
+
+            foreach (var tr in tag_replacement)
+            {
+                if (!languageSourceData.mDictionary.ContainsKey(tr.Item2))
+                {
+                    throw new SystemException($"String: {tr.Item2} is not found");
+                }
+                tag_terms.Add((tr.Item1, languageSourceData.mDictionary[tr.Item2]));
+            }
+            var term = languageSourceData.mDictionary[Common.common_no_title];
+            var new_term = languageSourceData.AddTerm(new_string_id);
+            new_term.Languages = term.Languages.ToArray();
+            for (int i = 0; i < new_term.Languages.Count(); i++)
+            {
+                string s = format_string;
+
+                foreach (var tt in tag_terms)
+                {
+
+                    s = s.Replace(tt.Item1, tt.Item2.Languages[i]);
+                }
+                new_term.Languages[i] = s;
+            }
+
+            return new_string_id;
+        }
+
+
         public static string concatenateStrings(string old_string_id1, string old_string_id2, string new_string_id, string text_in_between = "")
         {
             var languageSourceData = LocalizationManager.Sources[0];

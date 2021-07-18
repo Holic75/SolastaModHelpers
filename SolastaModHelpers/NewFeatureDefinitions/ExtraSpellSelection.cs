@@ -62,7 +62,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             CharacterClassDefinition class_origin;
             CharacterRaceDefinition race_origin;
             FeatDefinition feat_origin;
-
+            
             hero.LookForFeatureOrigin(castSpellFeature, out race_origin, out class_origin, out feat_origin);
             if (class_origin != caster_class)
             {
