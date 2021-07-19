@@ -206,7 +206,6 @@ namespace SolastaModHelpers.Patches
                         }
                         if (validUses)
                         {
-                            Main.Logger.Log("Checking: " + (activeEffect is RulesetEffectSpell).ToString());
                             if (provider.TriggerCondition == (RuleDefinitions.AdditionalDamageTriggerCondition)ExtendedEnums.AdditionalDamageTriggerCondition.RadiantOrFireSpellDamage 
                                 && activeEffect is RulesetEffectSpell
                                 && Helpers.Misc.hasDamageType(activeEffect.EffectDescription.effectForms, Helpers.DamageTypes.Fire, Helpers.DamageTypes.Radiant)

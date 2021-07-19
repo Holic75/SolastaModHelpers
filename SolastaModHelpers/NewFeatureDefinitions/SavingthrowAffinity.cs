@@ -6,6 +6,58 @@ using System.Threading.Tasks;
 
 namespace SolastaModHelpers.NewFeatureDefinitions
 {
+    public abstract class CustomSavingthrowBonusUnderRestrictionBase : FeatureDefinition, ISavingThrowAffinityProvider
+    {
+        public List<IRestriction> restrictions = new List<IRestriction>();
+
+        public abstract int getBonus(RulesetActor saver, string abilityType, string schoolOfMagic);
+
+        public int IndomitableSavingThrows => 0;
+
+        public string PriorityAbilityScore => string.Empty;
+
+        public int ComputePermanentSavingThrowBonus(string abilityType, int sourceAbilityBonus)
+        {
+            return 0;
+        }
+
+        public void ComputeSavingThrowModifier(RulesetActor saver, string abilityType, EffectForm.EffectFormType formType, string schoolOfMagic, string damageType, string conditionType, int sourceAbilityBonus, ActionModifier actionModifier, RuleDefinitions.FeatureOrigin featureOrigin, int contextField, string ancestryDamageType)
+        {
+            foreach (var r in restrictions)
+            {
+                if (r.isForbidden(saver))
+                {
+                    return;
+                }
+            }
+
+            if (schoolOfMagic != string.Empty)
+            {
+                string additionalDetails = string.Empty;
+                if (!string.IsNullOrEmpty(featureOrigin.tags))
+                    additionalDetails = Gui.Format("({0})", featureOrigin.tags);
+                var bonus = getBonus(saver, abilityType, schoolOfMagic);
+                if (bonus != 0)
+                {
+                    actionModifier.SavingThrowModifier = actionModifier.GetRawSavingThrowModifier() + bonus;
+                    actionModifier.SavingThrowModifierTrends.Add(new RuleDefinitions.TrendInfo(bonus, featureOrigin.sourceType, featureOrigin.sourceName, (object)null, additionalDetails));
+                }
+
+            }
+        }
+    }
+
+
+    public class FixedSavingthrowBonusAgainstSpells : CustomSavingthrowBonusUnderRestrictionBase
+    {
+        public int bonus;
+
+        public override int getBonus(RulesetActor saver, string abilityType, string schoolOfMagic)
+        {
+            return schoolOfMagic == string.Empty ? 0 : bonus;
+        }
+    }
+
     public class SavingthrowAffinityUnderRestriction : FeatureDefinition, ISavingThrowAffinityProvider
     {
         public List<IRestriction> restrictions = new List<IRestriction>();
@@ -23,7 +75,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void ComputeSavingThrowModifier(RulesetActor saver, string abilityType, EffectForm.EffectFormType formType, string schoolOfMagic, string damageType, string conditionType, int sourceAbilityBonus, ActionModifier actionModifier, RuleDefinitions.FeatureOrigin featureOrigin, int contextField, string ancestryDamageType)
         {
-            Main.Logger.Log("Checking bonus");
             foreach (var r in restrictions)
             {
                 if (r.isForbidden(saver))
@@ -74,14 +125,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public bool checkCaster(RulesetActor caster, RulesetActor target)
         {
-            Main.Logger.Log("Checking Caster");
             foreach (var conditions in target.ConditionsByCategory.Values.ToArray())
             {
                 foreach (var c in conditions.ToArray())
                 {
                     if (c.ConditionDefinition == condition && c.SourceGuid == caster.Guid)
                     {
-                        Main.Logger.Log("Caster ok");
                         return true;
                     }
                 }
