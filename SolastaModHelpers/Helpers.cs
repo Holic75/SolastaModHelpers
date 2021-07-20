@@ -17,6 +17,7 @@ namespace SolastaModHelpers.Helpers
         public static string Fire = "DamageFire";
         public static string Radiant = "DamageRadiant";
         public static string Force = "DamageForce";
+        public static string Psychic = "DamagePsychic";
     }
 
 
@@ -25,6 +26,7 @@ namespace SolastaModHelpers.Helpers
         public static string Abjuration = "SchoolAbjuration";
         public static string Conjuration = "SchoolConjuration";
         public static string Evocation = "SchoolEvocation";
+        public static string Enchantment = "SchoolEnchantment";
     }
 
 
@@ -1175,6 +1177,8 @@ namespace SolastaModHelpers.Helpers
             Definition.SetSchoolOfMagic(school);
             Definition.SetEffectDescription(effect_description);
             Definition.SetImplemented(true);
+
+            
         }
 
         public static T createSpell(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite,
@@ -1188,7 +1192,7 @@ namespace SolastaModHelpers.Helpers
                                        bool is_ritual = false,
                                        RuleDefinitions.ActivationTime ritual_time = RuleDefinitions.ActivationTime.Minute10)
         {
-            return new GenericSpellBuilder<T>(name, guid, title_string, description_string, sprite,
+            var spell = new GenericSpellBuilder<T>(name, guid, title_string, description_string, sprite,
                                                effect_description,
                                                casting_time,
                                                spell_level,
@@ -1198,6 +1202,8 @@ namespace SolastaModHelpers.Helpers
                                                school,
                                                is_ritual,
                                                ritual_time).AddToDB();
+            NewFeatureDefinitions.SpellData.registerSpell(spell);
+            return spell;
         }
     }
 
@@ -1244,6 +1250,47 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        static public void addSpellToSpelllist(SpellListDefinition spelllist, SpellDefinition spell)
+        {
+            if (spell.spellLevel == 0 && !spelllist.hasCantrips)
+            {
+                throw new System.Exception($"Trying to add cantrip {spell.name} to spell list without cantrips {spelllist.name}");
+            }
+
+            if (spelllist.ContainsSpell(spell))
+            {
+                throw new System.Exception($"Spelllist {spelllist.name} already contains spell {spell}");
+            }
+
+
+            if (spelllist.hasCantrips)
+            {
+                spelllist.spellsByLevel[spell.spellLevel].spells.Add(spell);
+            }
+            else
+            {
+                spelllist.spellsByLevel[spell.spellLevel - 1].spells.Add(spell);
+            }
+        }
+
+        static public List<SpellDefinition> filterCharacterSpells(RulesetCharacter character, Predicate<SpellDefinition> filter)
+        {
+            List<SpellDefinition> spells = new List<SpellDefinition>();
+            character.EnumerateUsableSpells();
+            if (character.UsableSpells.Count > 0)
+            {
+                foreach (SpellDefinition usableSpell in character.usableSpells)
+                {
+                    if (filter(usableSpell))
+                    {
+                        spells.Add(usableSpell);
+                    }
+                }
+            }
+            return spells;
+        }
+
+
         static public bool hasDamageType(List<EffectForm> actualEffectForms, params string[] damage_types)
         {
             foreach (EffectForm actualEffectForm in actualEffectForms)

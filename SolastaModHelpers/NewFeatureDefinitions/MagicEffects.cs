@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace SolastaModHelpers.NewFeatureDefinitions
 {
+    public interface IMagicEffectReactionOnDamageDoneToCaster
+    {
+        bool canUseMagicalEffectInReactionToDamageDoneToCaster(GameLocationCharacter attacker, GameLocationCharacter caster);
+    }
+
+
     public interface ICustomEffectBasedOnCaster
     {
         EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams);
@@ -18,7 +24,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class SpellWithCasterLevelDependentEffects:  SpellDefinition, ICustomEffectBasedOnCaster
+    public class SpellWithCasterLevelDependentEffects : SpellDefinition, ICustomEffectBasedOnCaster
     {
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
         public int minCustomEffectLevel = 100;
@@ -133,7 +139,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return;
             }
-            
+
             IGameLocationBattleService gameLocationBattleService = ServiceRepository.GetService<IGameLocationBattleService>();
             IGameLocationActionService gameLocationActionService = ServiceRepository.GetService<IGameLocationActionService>();
             CharacterActionParams attackActionParams = new CharacterActionParams(caster, ActionDefinitions.Id.AttackFree);
@@ -153,5 +159,15 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             attackEvalParams = new BattleDefinitions.AttackEvaluationParams();
         }
     }
+
+
+    public class ReactionOnDamageSpell : SpellDefinition, IMagicEffectReactionOnDamageDoneToCaster
+    {
+        public bool canUseMagicalEffectInReactionToDamageDoneToCaster(GameLocationCharacter attacker, GameLocationCharacter caster)
+        {
+            return (caster.LocationPosition - attacker.LocationPosition).magnitude <= this.EffectDescription.rangeParameter;
+        }
+    }
+
 
 }

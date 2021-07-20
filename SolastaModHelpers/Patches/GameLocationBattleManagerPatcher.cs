@@ -15,13 +15,35 @@ namespace SolastaModHelpers.Patches
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleReactionToDamage")]
             internal static class GameLocationBattleManager_HandleReactionToDamage_Patch
             {
-                internal static void Postfix(GameLocationBattleManager __instance,
-                                            GameLocationCharacter attacker,
-                                            GameLocationCharacter defender,
-                                            ActionModifier modifier,
-                                            List<EffectForm> effectForms,
-                                            ref System.Collections.IEnumerator __result)
+                internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result,
+                                                                       GameLocationBattleManager __instance,
+                                                                        GameLocationCharacter attacker,
+                                                                        GameLocationCharacter defender,
+                                                                        ActionModifier modifier,
+                                                                        List<EffectForm> effectForms)
                 {
+                    while (__result.MoveNext())
+                    {
+                        yield return __result.Current;
+                    }
+                    var extra_events = Process(__instance, attacker, defender, modifier, effectForms);
+
+                    while (extra_events.MoveNext())
+                    {
+                        yield return extra_events.Current;
+                    }
+                }
+
+                internal static System.Collections.IEnumerator Process(GameLocationBattleManager __instance,
+                            GameLocationCharacter attacker,
+                            GameLocationCharacter defender,
+                            ActionModifier modifier,
+                            List<EffectForm> effectForms)
+                {
+                    if (__instance.battle == null)
+                    {
+                        yield break;
+                    }
                     var hero_character = defender.RulesetCharacter;
                     if (hero_character != null)
                     {
@@ -29,6 +51,42 @@ namespace SolastaModHelpers.Patches
                         foreach (var f in features)
                         {
                             f.processDamageTarget(attacker, defender, modifier, effectForms);
+                        }
+                    }
+
+                    if (defender?.RulesetCharacter != null
+                        && !defender.RulesetCharacter.IsDeadOrDyingOrUnconscious && defender.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction) == ActionDefinitions.ActionStatus.Available)
+                    {
+                        var spells = Helpers.Misc.filterCharacterSpells(defender.RulesetCharacter,
+                                                                        s => ((s as IMagicEffectReactionOnDamageDoneToCaster)?.canUseMagicalEffectInReactionToDamageDoneToCaster(attacker, defender)).GetValueOrDefault()
+                                                                        );
+                        foreach (var s in spells)
+                        {
+                            if (defender.GetActionStatus(ActionDefinitions.Id.CastReaction, ActionDefinitions.ActionScope.Battle, ActionDefinitions.ActionStatus.Available) != ActionDefinitions.ActionStatus.Available)
+                            {
+                                break;
+                            }
+                            RulesetSpellRepertoire matchingRepertoire;
+                            int slotLevel = defender.RulesetCharacter.GetLowestSlotLevelAndRepertoireToCastSpell(s, out matchingRepertoire);
+                            if (matchingRepertoire == null || !defender.RulesetCharacter.AreSpellComponentsValid(s))
+                            {
+                                continue;
+                            }
+                            CharacterActionParams reactionParams = new CharacterActionParams(defender, ActionDefinitions.Id.CastReaction);
+                            reactionParams.IntParameter = 1;
+                            reactionParams.TargetCharacters.Add(attacker);
+                            reactionParams.ActionModifiers.Add(new ActionModifier());
+                            IRulesetImplementationService service1 = ServiceRepository.GetService<IRulesetImplementationService>();
+                            reactionParams.RulesetEffect = (RulesetEffect)service1.InstantiateEffectSpell(defender.RulesetCharacter, matchingRepertoire, s, slotLevel, false);
+                            reactionParams.IsReactionEffect = true;
+                            GameLocationActionManager service2 = ServiceRepository.GetService<IGameLocationActionService>() as GameLocationActionManager;
+                            if (service2 == null)
+                            {
+                                break;
+                            }
+                            int count = service2.PendingReactionRequestGroups.Count;
+                            service2.AddInterruptRequest(new ReactionRequestCastSpellInResponseToAttack(reactionParams));
+                            yield return (object)__instance.WaitForReactions(attacker, service2, count);
                         }
                     }
                 }
@@ -82,8 +140,7 @@ namespace SolastaModHelpers.Patches
                     var units = __instance.Battle.AllContenders;
                     foreach (GameLocationCharacter unit in units)
                     {
-                        if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious
-                            && unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) == ActionDefinitions.ActionStatus.Available)
+                        if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious)
                         {
                             var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnAttackAttempt
                                                                                   && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
@@ -102,6 +159,10 @@ namespace SolastaModHelpers.Patches
 
                             foreach (var p in powers)
                             {
+                                if (unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) != ActionDefinitions.ActionStatus.Available)
+                                {
+                                    break;
+                                }
                                 CharacterActionParams reactionParams = new CharacterActionParams(unit, (ActionDefinitions.Id)ExtendedActionId.ModifyAttackRollViaPower);
                                 reactionParams.TargetCharacters.Add(attacker);
                                 reactionParams.TargetCharacters.Add(defender);
@@ -253,8 +314,7 @@ namespace SolastaModHelpers.Patches
                     var units = __instance.Battle.AllContenders;
                     foreach (GameLocationCharacter unit in units)
                     {
-                        if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious
-                            && unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) == ActionDefinitions.ActionStatus.Available)
+                        if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious)
                         {
                             var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnDamage
                                                                                   && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
@@ -274,6 +334,10 @@ namespace SolastaModHelpers.Patches
 
                             foreach (var p in powers)
                             {
+                                if (unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) != ActionDefinitions.ActionStatus.Available)
+                                {
+                                    break;
+                                }
                                 CharacterActionParams reactionParams = new CharacterActionParams(unit, ActionDefinitions.Id.PowerReaction);
                                 reactionParams.TargetCharacters.Add(attacker);
                                 reactionParams.ActionModifiers.Add(new ActionModifier());
@@ -362,8 +426,7 @@ namespace SolastaModHelpers.Patches
                     var units = __instance.Battle.AllContenders;
                     foreach (GameLocationCharacter unit in units)
                     {
-                        if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious
-                            && unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) == ActionDefinitions.ActionStatus.Available)
+                        if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious)
                         {
                             var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnDamage
                                                                                   && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
@@ -383,6 +446,10 @@ namespace SolastaModHelpers.Patches
 
                             foreach (var p in powers)
                             {
+                                if (unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) != ActionDefinitions.ActionStatus.Available)
+                                {
+                                    break;
+                                }
                                 CharacterActionParams reactionParams = new CharacterActionParams(unit, ActionDefinitions.Id.PowerReaction);
                                 reactionParams.TargetCharacters.Add(attacker);
                                 reactionParams.ActionModifiers.Add(new ActionModifier());

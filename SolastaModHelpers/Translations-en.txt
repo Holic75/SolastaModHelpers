@@ -3,3 +3,7 @@ Rules/&CommonConditioUnderEffectOfPrefix	Effect of
 Reaction/&DeflectMissileDescriptionCustom	{0} is attacking {1}, who can react to reduce the incoming damage by 1D10 + {2} modifier + his/her {3} class level.
 Failure/&FailureFlagTargetIncorrectWeapon	Your current weapon can not be used.
 Failure/&FailureFlagTargetIncorrectArmor	Target wears incorrect armor.
+Reaction/&CastSpellInResponseToAttackDescription	{0} is attacking {1}! You can cast {2} to punish your attacker.
+Reaction/&CastSpellInResponseToAttackReactDescription	Click to cast {0} and punish the attacker.
+Reaction/&CastSpellInResponseToAttackReactTitle	Cast Spell
+Reaction/&CastSpellInResponseToAttackTitle	Punish Attacker.

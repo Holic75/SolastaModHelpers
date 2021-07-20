@@ -252,3 +252,36 @@ public class ReactionRequestConsumePowerUse : ReactionRequest
 }
 
 
+public class ReactionRequestCastSpellInResponseToAttack : ReactionRequestCastSpell
+{
+    static public ReactionDefinition castSpellInResponseToAttackReactionDefinition;
+    static public void initialize()
+    {
+        castSpellInResponseToAttackReactionDefinition = SolastaModHelpers.Helpers.CopyFeatureBuilder<ReactionDefinition>
+                    .createFeatureCopy("CastSpellInResponseToAttack", "ead1ad34-ec8b-4416-9746-b1ecdc50adf5", "Reaction/&CastSpellInResponseToAttackTitle", "Reaction/&CastSpellInResponseToAttackDescription", null, DatabaseHelper.ReactionDefinitions.AlterAttackSpell);
+
+        castSpellInResponseToAttackReactionDefinition.reactTitle = "Reaction/&CastSpellInResponseToAttackReactTitle";
+        castSpellInResponseToAttackReactionDefinition.reactDescription = "Reaction/&CastSpellInResponseToAttackReactDescription";
+    }
+
+    public ReactionRequestCastSpellInResponseToAttack(
+      CharacterActionParams actionParams)
+      : base("CastSpellInResponseToAttack", actionParams)
+    {
+        this.BuildSlotSubOptions();
+    }
+
+    public override string FormatDescription()
+    {
+        SpellDefinition spellDefinition = (this.ReactionParams.RulesetEffect as RulesetEffectSpell).SpellDefinition;
+        return Gui.Format(base.FormatDescription(), this.reactionParams.targetCharacters[0].RulesetActor.Name, this.Character.Name, spellDefinition.GuiPresentation.Title);
+    }
+
+    public override string FormatReactDescription()
+    {
+        SpellDefinition spellDefinition = (this.ReactionParams.RulesetEffect as RulesetEffectSpell).SpellDefinition;
+        return Gui.Format(base.FormatReactDescription(), (this.ReactionParams.RulesetEffect as RulesetEffectSpell).SpellDefinition.GuiPresentation.Title);
+    }
+}
+
+
