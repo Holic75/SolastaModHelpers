@@ -29,6 +29,36 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface ICustomPowerAbilityScore
+    {
+        string getPowerAbilityScore(RulesetCharacter character);
+    }
+
+
+    public class HighestAbilityScorePower: FeatureDefinitionPower, ICustomPowerAbilityScore
+    {
+        public List<string> validAbilityScores = new List<string>();
+
+        public string getPowerAbilityScore(RulesetCharacter character)
+        {
+            int max_value = 0;
+            string max_stat = "";
+
+            foreach (var a in validAbilityScores)
+            {
+                var val = character.GetAttribute(a).currentValue;
+                if (val > max_value)
+                {
+                    max_value = val;
+                    max_stat = a;
+                }
+            }
+            Main.Logger.Log("Found max stat: " + max_stat);
+            return max_stat;
+        }
+    }
+
+
     public class PowerWithRestrictions : LinkedPower, IPowerRestriction
     {
         public List<IRestriction> restrictions = new List<IRestriction>();

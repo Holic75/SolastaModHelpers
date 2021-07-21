@@ -78,6 +78,18 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return 0;
             }
 
+            if (castSpellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Spellbook)
+            {
+                //for wizards we do not need to keep increasing their number of scribed spells after they learn an extra one
+                int current_level;
+                CharacterClassDefinition current_class;
+                manager.GetLastAssignedClassAndLevel(out current_class, out current_level);
+                if (current_level > level)
+                {
+                    return 0;
+                }
+            }
+
             return max_spells;
         }
     }
