@@ -11,6 +11,10 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         bool worksOn(RulesetCharacter character, WeaponDescription weapon_description);
     }
 
+    public interface IAttackAbilityScoreModeModifier
+    {
+        void applyAbilityScoreModification(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon);
+    }
 
     public class canUseDexterityWithSpecifiedWeaponTypes : FeatureDefinition, ICanUSeDexterityWithWeapon
     {
@@ -28,6 +32,50 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             return weaponTypes.Contains(weapon_description.WeaponType);
+        }
+    }
+
+
+    public class ReplaceWeaponAbilityScoreWithHighestStatIfWeaponHasFeature : FeatureDefinition, IAttackAbilityScoreModeModifier
+    {
+        public FeatureDefinition weaponFeature;
+        public List<string> abilityScores = new List<string>();
+
+        public void applyAbilityScoreModification(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        {
+            var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
+            if (weapon2 == null || !weapon2.isWeapon)
+            {
+                return;
+            }
+            var description = weapon2.WeaponDescription;
+            if (description == null)
+            {
+                return;
+            }
+            if (weapon == null || !weapon.dynamicItemProperties.Any(d => d.featureDefinition == weaponFeature))
+            {
+                return;
+            }
+
+            var current_value = character.GetAttribute(attack_mode.AbilityScore).CurrentValue;
+            var current_stat = attack_mode.AbilityScore;
+
+            foreach (var a in abilityScores)
+            {
+                var new_val = character.GetAttribute(a).CurrentValue;
+                if (new_val > current_value)
+                {
+                    current_value = new_val;
+                    current_stat = a;
+                }
+            }
+            
+            if (current_stat != attack_mode.AbilityScore)
+            {             
+                attack_mode.AbilityScore = current_stat;         
+            }
+
         }
     }
 }

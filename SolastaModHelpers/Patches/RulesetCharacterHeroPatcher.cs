@@ -78,8 +78,16 @@ namespace SolastaModHelpers.Patches
                 codes[finesse_string_load] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
                                                                  new Func<WeaponDescription, RulesetCharacterHero, bool>(canUseDexterity).Method
                                                                  );
-
                 codes.RemoveAt(finesse_string_load + 1);
+
+                var ranged = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("Ranged"));
+                codes.InsertRange(ranged + 1,
+                                  new List<CodeInstruction>
+                                  {
+                                      new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0), //load this
+                                      new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldloc_0), //attack mode
+                                       new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call, new Action<RulesetCharacterHero, RulesetAttackMode>(modifyAttackAbilityScore).Method)
+                                  });
                 return codes.AsEnumerable();
             }
 
@@ -95,6 +103,17 @@ namespace SolastaModHelpers.Patches
                 }
 
                 return weapon_description.WeaponTags.Contains("Finesse");
+            }
+
+
+            static void modifyAttackAbilityScore(RulesetCharacterHero hero, RulesetAttackMode attack_mode)
+            {
+
+                var features = Helpers.Accessors.extractFeaturesHierarchically<IAttackAbilityScoreModeModifier>(hero);
+                foreach (var f in features)
+                {
+                    f.applyAbilityScoreModification(hero, attack_mode, attack_mode.SourceObject as RulesetItem);
+                }
             }
 
             internal static void Postfix(RulesetCharacterHero __instance,

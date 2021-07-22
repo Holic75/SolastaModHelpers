@@ -54,6 +54,30 @@ namespace SolastaModHelpers.Patches
         }
 
 
+        [HarmonyPatch(typeof(RulesetImplementationManagerLocation), "ApplyItemPropertyForm")]
+        class RulesetImplementationManager_ApplyItemPropertyForm
+        {
+            static bool Prefix(RulesetImplementationManagerLocation __instance,
+                               EffectForm effectForm,
+                               ref RulesetImplementationDefinitions.ApplyFormsParams formsParams
+                              )
+            {
+                if (formsParams.activeEffect?.EffectDescription == null)
+                {
+                    return true;
+                }
+
+                if (formsParams.targetItem == null && formsParams.activeEffect?.EffectDescription.itemSelectionType == ActionDefinitions.ItemSelectionType.Weapon)
+                {
+                    formsParams.targetItem = formsParams.sourceCharacter?.CharacterInventory?.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0]?.equipedItem;
+                }
+
+                return true;
+            }
+
+        }
+
+
         [HarmonyPatch(typeof(RulesetImplementationManager), "ApplyConditionForm")]
         class RulesetImplementationManager_ApplyConditionForm
         {

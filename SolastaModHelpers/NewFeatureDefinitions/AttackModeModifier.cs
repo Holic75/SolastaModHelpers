@@ -43,6 +43,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
     }
 
+
     public class WeaponDamageBonusWithSpecificStat: FeatureDefinition, IAttackModeModifier
     {
         public int value;
@@ -187,6 +188,71 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             attack_mode.AttacksNumber ++;
+        }
+    }
+
+
+
+    public class OverwriteDamageOnWeaponWithFeature : FeatureDefinition, IAttackModeModifier
+    {
+        public FeatureDefinition weaponFeature;
+        public int numDice;
+        public RuleDefinitions.DieType dieType;
+
+        public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        {
+            var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
+            if (weapon2 == null || !weapon2.isWeapon)
+            {
+                return;
+            }
+
+            if (weapon == null || !weapon.dynamicItemProperties.Any(d => d.featureDefinition == weaponFeature))
+            {
+                return;
+            }
+
+            var damage = attack_mode?.EffectDescription?.FindFirstDamageForm();
+            if (damage == null)
+            {
+                return;
+            }
+            int old_damage = RuleDefinitions.DieAverage(damage.dieType) * damage.diceNumber;
+            int old_damage_versatile = RuleDefinitions.DieAverage(damage.versatileDieType) * damage.diceNumber;
+            int new_damage = RuleDefinitions.DieAverage(dieType) * numDice;
+
+            if (new_damage > old_damage)
+            {
+                damage.DieType = dieType;
+                damage.DiceNumber = numDice;
+            }
+            if (new_damage > old_damage_versatile)
+            {
+                damage.VersatileDieType = dieType;
+            }
+        }
+    }
+
+
+    public class AddAttackTagonWeaponWithFeature : FeatureDefinition, IAttackModeModifier
+    {
+        public FeatureDefinition weaponFeature;
+        public string tag;
+
+        public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        {
+            var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
+            if (weapon2 == null || !weapon2.isWeapon)
+            {
+                return;
+            }
+
+            if (weapon == null || !weapon.dynamicItemProperties.Any(d => d.featureDefinition == weaponFeature))
+            {
+                return;
+            }
+
+            attack_mode.AddAttackTagAsNeeded(tag);
         }
     }
 }

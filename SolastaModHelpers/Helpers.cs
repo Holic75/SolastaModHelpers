@@ -27,6 +27,7 @@ namespace SolastaModHelpers.Helpers
         public static string Conjuration = "SchoolConjuration";
         public static string Evocation = "SchoolEvocation";
         public static string Enchantment = "SchoolEnchantment";
+        public static string Transmutation = "SchoolTransmutation";
     }
 
 
@@ -927,7 +928,7 @@ namespace SolastaModHelpers.Helpers
 
     public class OnlyDescriptionFeatureBuilder : BaseDefinitionBuilderWithGuidStorage<FeatureDefinition>
     {
-        protected OnlyDescriptionFeatureBuilder(string name, string guid, string title_string, string description_string)
+        protected OnlyDescriptionFeatureBuilder(string name, string guid, string title_string, string description_string, AssetReferenceSprite sprite)
                 : base(name, guid)
         {
             if (title_string != "")
@@ -938,14 +939,26 @@ namespace SolastaModHelpers.Helpers
             {
                 Definition.GuiPresentation.Description = description_string;
             }
-
-            Definition.GuiPresentation.SetSpriteReference(DatabaseHelper.FeatureDefinitionPointPools.PointPoolAbilityScoreImprovement.GuiPresentation.SpriteReference);
+            if (sprite == null)
+            {
+                Definition.GuiPresentation.SetSpriteReference(DatabaseHelper.FeatureDefinitionPointPools.PointPoolAbilityScoreImprovement.GuiPresentation.SpriteReference);
+            }
+            else
+            {
+                Definition.GuiPresentation.SetSpriteReference(sprite);
+            }
         }
 
 
         public static FeatureDefinition createOnlyDescriptionFeature(string name, string guid, string new_title_string, string new_description_string)
         {
-            return new OnlyDescriptionFeatureBuilder(name, guid, new_title_string, new_description_string).AddToDB();
+            return new OnlyDescriptionFeatureBuilder(name, guid, new_title_string, new_description_string, null).AddToDB();
+        }
+
+
+        public static FeatureDefinition createOnlyDescriptionFeature(string name, string guid, string new_title_string, string new_description_string, AssetReferenceSprite sprite)
+        {
+            return new OnlyDescriptionFeatureBuilder(name, guid, new_title_string, new_description_string, sprite).AddToDB();
         }
     }
 

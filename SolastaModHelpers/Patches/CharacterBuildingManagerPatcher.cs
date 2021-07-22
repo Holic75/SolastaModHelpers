@@ -9,31 +9,23 @@ namespace SolastaModHelpers.Patches
 {
     class CharacterBuildingManagerPatcher
     {
-        /*class CharacterBuildingManagerSetPointPoolPatcher
+        class CharacterBuildingManagerSetPointPoolPatcher
         {
             [HarmonyPatch(typeof(CharacterBuildingManager), "SetPointPool")]
             internal static class CharacterBuildingManager_SetPointPool_Patch
             {
                 internal static bool Prefix(CharacterBuildingManager __instance, HeroDefinitions.PointsPoolType pointPoolType, string tag, ref int maxNumber)
                 {
-                   
-                    if (pointPoolType != HeroDefinitions.PointsPoolType.Spell || tag == "02Race") //avoid increasing number of spell knows for racial features since they only give spells at lvl 1
+                    //fix dev's hack to add extra elf cantrips
+                    if (pointPoolType == HeroDefinitions.PointsPoolType.Cantrip && tag != "02Race") 
                     {
-                        return true;
+                        if (__instance.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Cantrip) && __instance.pointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools.ContainsKey(tag))
+                            maxNumber = maxNumber - __instance.pointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools[tag].MaxPoints;
                     }
-                    var hero = __instance.HeroCharacter;
-                    if (hero == null)
-                    {
-                        return true;
-                    }
-                    int bonus_known_spells = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
-                                                                         .Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(__instance, hero));
-
-                    maxNumber = maxNumber + bonus_known_spells;
                     return true;
                 }
             }
-        }*/
+        }
 
 
         class CharacterBuildingManagerApplyFeatureCastSpellPatcher
@@ -54,7 +46,7 @@ namespace SolastaModHelpers.Patches
                                                                          .Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(__instance, hero, feature_cast_spell));
                     int bonus_known_cantrips = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
                                                      .Aggregate(0, (old, next) => old += next.getKnownCantripsBonus(__instance, hero, feature_cast_spell));
-                    //fix FeatureDefinitionBonusCantrip to not count against character cantrips count
+
                     bonus_known_cantrips += Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinitionBonusCantrips>(__instance.HeroCharacter)
                                                      .Aggregate(0, (old, next) => old += next.bonusCantrips.Count()) - __instance.bonusCantrips.Count;
 

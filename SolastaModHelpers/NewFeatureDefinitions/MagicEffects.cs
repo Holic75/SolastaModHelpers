@@ -169,5 +169,36 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
     }
 
+    public interface ISpellRestriction
+    {
+        bool isForbidden(RulesetActor character);
+        bool isReactionForbidden(RulesetActor character);
+    }
+
+
+    public class SpellWithRestricitons : SpellDefinition, ISpellRestriction
+    {
+        public List<IRestriction> restrictions = new List<IRestriction>();
+        public bool checkReaction = false;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            foreach (var r in restrictions)
+            {
+                if (r.isForbidden(character))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool isReactionForbidden(RulesetActor character)
+        {
+            return checkReaction ? isForbidden(character) : false;
+        }
+    }
+
+
 
 }

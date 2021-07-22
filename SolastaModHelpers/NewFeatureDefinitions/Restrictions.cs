@@ -140,7 +140,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return true;
             }
-            RulesetItem equipedItem = hero.characterInventory.InventorySlotsByName[EquipmentDefinitions.SlotTypeMainHand].EquipedItem;
+            RulesetItem equipedItem = hero?.characterInventory?.InventorySlotsByName[EquipmentDefinitions.SlotTypeMainHand]?.EquipedItem;
             if (equipedItem?.itemDefinition == null || !equipedItem.ItemDefinition.IsWeapon)
             {
                 return true;

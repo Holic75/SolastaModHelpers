@@ -198,6 +198,12 @@ namespace SolastaModHelpers.Patches
                         return;
                     }
                 }
+
+                if (((spellDefinition as NewFeatureDefinitions.ISpellRestriction)?.isForbidden(__instance)).GetValueOrDefault())
+                {
+                    __result = false;
+                    return;
+                }
             }
         }
 
