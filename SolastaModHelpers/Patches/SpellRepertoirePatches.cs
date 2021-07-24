@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace SolastaModHelpers.Patches
 {
-    class SpellRepertoirePatches
+    public class SpellRepertoirePatches
     {
+        public static bool EnableCombinedSpellCasting = false;
+
         class SpellsByLevelGroupBindLearningPatcher
         {
             [HarmonyPatch(typeof(SpellsByLevelGroup), "BindLearning")]
@@ -75,7 +77,7 @@ namespace SolastaModHelpers.Patches
                                            int slotLevel)
                 {
                     var warlock_spellcasting = (__instance?.spellCastingFeature as NewFeatureDefinitions.WarlockCastSpell);
-                    if (warlock_spellcasting == null || slotLevel == 0)
+                    if (warlock_spellcasting == null || slotLevel == 0 || EnableCombinedSpellCasting)
                     {
                         return true;
                     }
@@ -101,7 +103,7 @@ namespace SolastaModHelpers.Patches
                 internal static bool Prefix(RulesetSpellRepertoire __instance, ref int __result)
                 {
                     var warlock_spellcasting = (__instance?.spellCastingFeature as NewFeatureDefinitions.WarlockCastSpell);
-                    if (warlock_spellcasting == null)
+                    if (warlock_spellcasting == null || EnableCombinedSpellCasting)
                     {
                         return true;
                     }
@@ -120,7 +122,7 @@ namespace SolastaModHelpers.Patches
                 internal static bool Prefix(RulesetSpellRepertoire __instance, ref int __result)
                 {
                     var warlock_spellcasting = (__instance?.spellCastingFeature as NewFeatureDefinitions.WarlockCastSpell);
-                    if (warlock_spellcasting == null)
+                    if (warlock_spellcasting == null || EnableCombinedSpellCasting)
                     {
                         return true;
                     }
@@ -132,7 +134,7 @@ namespace SolastaModHelpers.Patches
                     __instance.usedSpellsSlots.TryGetValue(1, out used);
                     __result = max - used;
 
-                   return false;
+                    return false;
                 }
             }
 
@@ -144,7 +146,7 @@ namespace SolastaModHelpers.Patches
                                            int spellLevel, ref int remaining, ref int max)
                 {
                     var warlock_spellcasting = (__instance?.spellCastingFeature as NewFeatureDefinitions.WarlockCastSpell);
-                    if (warlock_spellcasting == null || spellLevel == 0)
+                    if (warlock_spellcasting == null || spellLevel == 0 || EnableCombinedSpellCasting)
                     {
                         return true;
                     }
