@@ -1351,12 +1351,13 @@ namespace SolastaModHelpers.Helpers
             {
                 return null;
             }
-            var battle = ServiceRepository.GetService<IGameLocationBattleService>()?.Battle;
+            /*var battle = ServiceRepository.GetService<IGameLocationBattleService>()?.Battle;
             if (battle == null)
             {
                 return null;
             }
-            return battle.AllContenders.FirstOrDefault(c => c.RulesetCharacter == character);
+            return battle.AllContenders.FirstOrDefault(c => c.RulesetCharacter == character);*/
+            return GameLocationCharacter.GetFromActor(character);
         }
 
 
