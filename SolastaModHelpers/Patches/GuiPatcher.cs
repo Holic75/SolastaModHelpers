@@ -11,8 +11,6 @@ namespace SolastaModHelpers.Patches
 {
     class GuiPatcher
     {
-
-
         [HarmonyPatch(typeof(GuiItemProperty), "SetupSprite")]
         class GuiItemProperty_SetupSprite
         {

@@ -35,7 +35,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     public interface IApplyEffectOnConditionApplication
     {
-        void processConditionApplication(RulesetActor actor, ConditionDefinition Condition);
+        void processConditionApplication(RulesetActor actor, ConditionDefinition Condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams);
     }
 
 
@@ -546,7 +546,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public List<ConditionDefinition> appliedConditions;
         public List<ConditionDefinition> removeConditions;
 
-        public void processConditionApplication(RulesetActor actor, ConditionDefinition applied_condition)
+        public void processConditionApplication(RulesetActor actor, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
         {
             if (!appliedConditions.Contains(applied_condition))
             {

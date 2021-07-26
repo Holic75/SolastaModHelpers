@@ -102,7 +102,7 @@ namespace SolastaModHelpers.Patches
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IApplyEffectOnConditionApplication>(actor);
                 foreach (var f in features)
                 {
-                    f.processConditionApplication(actor, condition);
+                    f.processConditionApplication(actor, condition, formsParams);
                 }
 
                 var concentrated_spell = (actor as RulesetCharacter)?.concentratedSpell;
