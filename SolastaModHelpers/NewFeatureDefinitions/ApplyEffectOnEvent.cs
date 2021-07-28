@@ -21,6 +21,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface IInitiatorApplyEffectOnCharacterDeath
+    {
+        void processDeath(RulesetCharacter attacker, RulesetCharacter target);
+    }
+
+
     public interface ICasterApplyEffectOnEffectApplication
     {
         void processCasterEffectApplication(RulesetCharacter character, List<EffectForm> effectForms, RulesetImplementationDefinitions.ApplyFormsParams formsParams);

@@ -16,9 +16,26 @@ namespace SolastaModHelpers
         public static string common_no_title = "Feature/&NoContentTitle";
         public static AssetReferenceSprite common_no_icon = DatabaseHelper.FeatureDefinitionPointPools.PointPoolRangerSkillPoints.GuiPresentation.SpriteReference;
 
+        public static ConditionDefinition polymorph_merge_condition;
+        public static ConditionDefinition wildshaped_unit_condition = DatabaseHelper.ConditionDefinitions.ConditionConjuredCreature;
+
         static public void initialize()
         {
             fillRitualSpellcastingMap();
+            createPolymorphMergeCondition();
+        }
+
+        static void createPolymorphMergeCondition()
+        {
+            polymorph_merge_condition = Helpers.ConditionBuilder.createCondition("PolymorphRemoveFromGameCondition",
+                                                                                        "9898e483-2ab3-4044-afa3-b4d463724192",
+                                                                                        "Rules/&PolymorphMergeConditionTitle",
+                                                                                        Common.common_no_title,
+                                                                                        null,
+                                                                                        DatabaseHelper.ConditionDefinitions.ConditionMagicallyArmored
+                                                                                        );
+            polymorph_merge_condition.removedFromTheGame = true;
+            polymorph_merge_condition.conditionTags.Clear();
         }
 
 

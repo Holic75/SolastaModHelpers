@@ -226,6 +226,31 @@ namespace SolastaModHelpers.Patches
         [HarmonyPatch(typeof(RulesetCharacter), "SustainDamage")]
         class RulesetCharacter_SustainDamage
         {
+            static void Postfix(RulesetCharacter __instance,
+                                int totalDamageRaw,
+                                string damageType,
+                                bool criticalSuccess,
+                                ulong sourceGuid,
+                                RollInfo rollInfo,
+                                bool forceKillOnZeroHp,
+                                ConditionDefinition specialDeathCondition)
+            {
+                if (__instance.currentHitPoints > 0)
+                {
+                    return;
+                }
+
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IInitiatorApplyEffectOnCharacterDeath>(__instance);
+                foreach (var f in features)
+                {
+                    RulesetCharacter entity = (RulesetCharacter)null;
+                    RulesetEntity.TryGetEntity<RulesetCharacter>(sourceGuid, out entity);
+                    f.processDeath(entity, __instance);
+                }
+
+                //NewFeatureDefinitions.Polymorph.maybeProcessPolymorphedDeath(__instance);
+            }
+
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var codes = instructions.ToList();
@@ -239,6 +264,7 @@ namespace SolastaModHelpers.Patches
                             );
                 return codes.AsEnumerable();
             }
+
 
             static void accountSlainEnemy(RulesetCharacter attacker, RulesetCharacter target)
             {
