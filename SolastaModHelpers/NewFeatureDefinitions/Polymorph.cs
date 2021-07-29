@@ -10,6 +10,42 @@ using TA.AI;
 
 namespace SolastaModHelpers.NewFeatureDefinitions
 {
+    public class CancelPolymorphFeature: FeatureDefinition, ITargetApplyEffectOnEffectApplication, IApplyEffectOnConditionRemoval
+    {
+        public BaseDefinition effectSource;
+        private bool removing = false;
+        public void processConditionRemoval(RulesetActor actor, ConditionDefinition condition)
+        {
+            if (condition == Common.wildshaped_unit_condition)
+            {
+                if (!removing)
+                {
+                    removing = true;
+                    Polymorph.maybeProcessPolymorphedDeath(actor as RulesetCharacter);
+                    removing = false;
+                }
+            }
+        }
+
+        public void processTargetEffectApplication(RulesetCharacter target, List<EffectForm> effectForms, RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        {
+
+            if (formsParams.activeEffect?.SourceDefinition == effectSource)
+            {
+                var battle = ServiceRepository.GetService<IGameLocationBattleService>()?.Battle;
+                if (battle != null)
+                {
+                    if (formsParams.activeEffect.ActionType == ActionDefinitions.ActionType.Bonus || formsParams.activeEffect.ActionType == ActionDefinitions.ActionType.Main)
+                    {
+                        var game_location_target = Helpers.Misc.findGameLocationCharacter(target);
+                        game_location_target.CurrentActionRankByType[formsParams.activeEffect.ActionType]++;
+                    }
+                }
+                Polymorph.maybeProcessPolymorphedDeath(target);
+            }
+        }
+    }
+
     public class Polymorph : FeatureDefinition, IApplyEffectOnConditionApplication
     {
         static public string tagWildshapeOriginal = "255TagWildshapeOriginal";
@@ -45,7 +81,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
             IGameLocationCharacterService service1 = ServiceRepository.GetService<IGameLocationCharacterService>();
             RulesetCharacterMonster characterMonster = new RulesetCharacterMonster(monster, 0, new RuleDefinitions.SpawnOverrides(), GadgetDefinitions.CreatureSex.Random);
-            RulesetCondition condition2 = characterMonster.InflictCondition(Common.wildshaped_unit_condition.Name, RuleDefinitions.DurationType.Permanent, formParams.activeEffect.RemainingRounds, RuleDefinitions.TurnOccurenceType.EndOfTurn, tagWildshapePolymorphed, actor.Guid, (actor as RulesetCharacter).CurrentFaction.Name , 1, string.Empty, 0, 5);
+            RulesetCondition condition2 = characterMonster.InflictCondition(Common.wildshaped_unit_condition.Name, RuleDefinitions.DurationType.Round, formParams.activeEffect.RemainingRounds, RuleDefinitions.TurnOccurenceType.StartOfTurn, tagWildshapePolymorphed, actor.Guid, (actor as RulesetCharacter).CurrentFaction.Name , 1, string.Empty, 0, 5);
             GameLocationBehaviourPackage behaviourPackage = new GameLocationBehaviourPackage();
             behaviourPackage.NodePositions = new List<int3>();
             behaviourPackage.NodeOrientations = new List<LocationDefinitions.Orientation>();
@@ -78,7 +114,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             transferContextToWildshapedUnit(target_character, character, formParams.activeEffect, features_to_transfer);
             Main.Logger.Log("Finished context transfer");
             //remove from the game
-            RulesetCondition condition3 = target.InflictCondition(Common.polymorph_merge_condition.name, RuleDefinitions.DurationType.Permanent, formParams.activeEffect.RemainingRounds, RuleDefinitions.TurnOccurenceType.EndOfTurn, tagWildshapeMerge, target.Guid, target.CurrentFaction.Name, 1, string.Empty, 0, 5);
+            RulesetCondition condition3 = target.InflictCondition(Common.polymorph_merge_condition.name, RuleDefinitions.DurationType.Permanent, formParams.activeEffect.RemainingRounds, RuleDefinitions.TurnOccurenceType.StartOfTurn, tagWildshapeMerge, target.Guid, target.CurrentFaction.Name, 1, string.Empty, 0, 5);
             formParams.activeEffect.TrackCondition(formParams.sourceCharacter, formParams.sourceCharacter.Guid, target, character.Guid, condition3, tagWildshapeMerge);
 
             IGameLocationPositioningService service3 = ServiceRepository.GetService<IGameLocationPositioningService>();
@@ -134,7 +170,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 var idx = battle.initiativeSortedContenders.IndexOf(original);
                 if (idx >= 0)
                 {
-                    Main.Logger.Log("Active contender: " + battle.ActiveContender.Name);
                     if (battle.ActiveContender != original)
                     {
                         battle.initiativeSortedContenders.Remove(wildshaped);
@@ -143,29 +178,41 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     }
                     else
                     {
-                        Main.Logger.Log("Adding active contender");
+                        int used_tactical_moves = original.UsedTacticalMoves;
+                        bool usedBonusSpell = original.usedBonusSpell;
+                        bool usedMainSpell = original.usedMainSpell;
+                        int sustainedAttacks = original.sustainedAttacks;
+                        int usedMainAttacks = original.usedMainAttacks;
+                        var action_performance = new Dictionary<ActionDefinitions.ActionType, int>();
+                        foreach (var kv in original.currentActionRankByType)
+                        {
+                            action_performance[kv.Key] = kv.Value;
+                        }
+
+                        Main.Logger.Log(battle.activeContenderIndex.ToString() + " / " + battle.initiativeSortedContenders.Count.ToString());
                         battle.initiativeSortedContenders.Remove(wildshaped);
                         battle.initiativeSortedContenders.Insert(idx + 1, wildshaped);
+                        battle.activeContenderIndex--;
                         battle.NextTurn();
                         battle.initiativeSortedContenders.Remove(original);
                         battle.activeContenderIndex = idx;
                         battle.ActiveContender = wildshaped;
-                        foreach (var kv in original.currentActionRankByType)
+                        foreach (var kv in action_performance)
                         {
                             wildshaped.currentActionRankByType[kv.Key] = kv.Value;
                         }
-                        if (effect != null)
+                        if (effect != null && (effect.ActionType == ActionDefinitions.ActionType.Bonus || effect.ActionType == ActionDefinitions.ActionType.Main))
                         {
                             wildshaped.CurrentActionRankByType[effect.ActionType]++;
                         }
-                        wildshaped.usedBonusSpell = original.usedBonusSpell;
-                        wildshaped.usedMainSpell = original.usedMainSpell;
-                        wildshaped.sustainedAttacks = original.sustainedAttacks;
-                        wildshaped.usedMainAttacks = original.usedMainAttacks;
+                        wildshaped.usedBonusSpell = usedBonusSpell;
+                        wildshaped.usedMainSpell = usedMainSpell;
+                        wildshaped.sustainedAttacks = sustainedAttacks;
+                        wildshaped.usedMainAttacks = usedMainAttacks;
                         wildshaped.RefreshActionPerformances();
                         wildshaped.ActionsRefreshed?.Invoke(wildshaped);
                         wildshaped.RulesetCharacter.RefreshAll();
-                        wildshaped.UsedTacticalMoves = Math.Min(original.UsedTacticalMoves, wildshaped.MaxTacticalMoves);
+                        wildshaped.UsedTacticalMoves = Math.Min(used_tactical_moves, wildshaped.MaxTacticalMoves);
                     }
                 }
             }
@@ -293,6 +340,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             var battle = ServiceRepository.GetService<IGameLocationBattleService>()?.Battle;
             battle?.IntroduceNewContender(original);
             makeReadyForBattle(wildshaped, original, null);
+            Gui.GuiService.GetScreen<GameLocationScreenExploration>()?.Refresh();
         }
 
         public static RulesetCharacter extractOriginalFromWildshaped(RulesetCharacter character)
@@ -315,6 +363,33 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                         }
 
                         return original;
+                    }
+                }
+            }
+            return null;
+        }
+
+
+        public static RulesetCharacter extractWildshapedFromOriginal(RulesetCharacter character)
+        {
+            if (character.conditionsByCategory.ContainsKey(Polymorph.tagWildshapeMerge)
+                && character.conditionsByCategory[Polymorph.tagWildshapeMerge].Count == 1)
+            {
+                var condition = character.conditionsByCategory[Polymorph.tagWildshapeMerge][0];
+                RulesetCharacter caster = (RulesetCharacter)null;
+                if (RulesetEntity.TryGetEntity<RulesetCharacter>(condition.sourceGuid, out caster))
+                {
+                    var eff = caster.EnumerateActiveEffectsActivatedByMe().Where(e => e.TrackedConditionGuids.Contains(condition.guid)).FirstOrDefault();
+                    if (eff != null)
+                    {
+                        RulesetCharacter original = null;
+                        RulesetCharacter wildshaped = null;
+                        if (!Polymorph.extractOriginalAndWildshapeFromEffect(eff, out original, out wildshaped))
+                        {
+                            return null;
+                        }
+
+                        return wildshaped;
                     }
                 }
             }
@@ -391,7 +466,72 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     class PolymorphPatcher
     {
-        [HarmonyPatch(typeof(GuiCharacter), "Name", MethodType.Getter)]
+        [HarmonyPatch(typeof(RulesetActor), "ProcessConditionsMatchingOccurenceType")]
+        class RulesetActor_ProcessConditionsMatchingOccurenceType
+        {
+            static bool Prefix(RulesetActor __instance, RuleDefinitions.TurnOccurenceType occurenceType)
+            {
+                if (__instance.conditionsByCategory.ContainsKey(Polymorph.tagWildshapePolymorphed)
+                    && __instance.conditionsByCategory[Polymorph.tagWildshapePolymorphed].Count == 1)
+                {
+                    var c = __instance.conditionsByCategory[Polymorph.tagWildshapePolymorphed][0];
+                    if (c.EndOccurence == occurenceType && c.HasFinished)
+                    {
+                        __instance.RemoveCondition(c);
+                        __instance.ProcessConditionDurationEnded(c);
+                    }
+                }
+                return true;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "AddActiveSpell")]
+        class RulesetCharacter_AddActiveSpell
+        {
+            static void Postfix(RulesetCharacter __instance, RulesetEffectSpell rulesetEffectSpell)
+            {
+                foreach (var c_guid in rulesetEffectSpell.trackedConditionGuids)
+                {
+                    RulesetCondition local = null;
+                    if (RulesetEntity.TryGetEntity<RulesetCondition>(c_guid, out local))
+                    {
+                        if (local.conditionDefinition == Common.polymorph_merge_condition
+                            || local.conditionDefinition == Common.wildshaped_unit_condition)
+                        {
+                            Gui.GuiService.GetScreen<GameLocationScreenExploration>()?.partyControlPanel?.Refresh();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "AddActivePower")]
+        class RulesetCharacter_AddActivePower
+        {
+            static void Postfix(RulesetCharacter __instance, RulesetEffectPower rulesetEffectPower)
+            {
+                foreach (var c_guid in rulesetEffectPower.trackedConditionGuids)
+                {
+                    RulesetCondition local = null;
+                    if (RulesetEntity.TryGetEntity<RulesetCondition>(c_guid, out local))
+                    {
+                        if (local.conditionDefinition == Common.polymorph_merge_condition
+                            || local.conditionDefinition == Common.wildshaped_unit_condition)
+                        {
+                            Gui.GuiService.GetScreen<GameLocationScreenExploration>()?.partyControlPanel?.Refresh();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+        /*[HarmonyPatch(typeof(GuiCharacter), "Name", MethodType.Getter)]
         class GuiCharacter_Name
         {
             static void Postfix(GuiCharacter __instance, ref string __result)
@@ -428,7 +568,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     __result = original.Name;
                 }
             }
-        }
+        }*/
 
 
         [HarmonyPatch(typeof(RulesetEffect), "Terminate")]
@@ -482,6 +622,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         class PartyControlPanel_Refresh
         {
             static List<GameLocationCharacter> original_party;
+            static List<GameLocationCharacter> original_guests;
             static bool Prefix(PartyControlPanel __instance)
             {
                 IGameLocationCharacterService service1 = ServiceRepository.GetService<IGameLocationCharacterService>();
@@ -490,16 +631,31 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     return true;
                 }
                 original_party = service1.PartyCharacters.ToArray().ToList();
+                original_guests = service1.GuestCharacters.ToArray().ToList();
 
-                foreach (var pc in service1.PartyCharacters.ToArray())
+                for (int i = 0; i < service1.PartyCharacters.Count; i++)
                 {
-                    if (pc.RulesetCharacter.ConditionsByCategory.ContainsKey(Polymorph.tagWildshapeMerge)
-                        && pc.RulesetCharacter.ConditionsByCategory[Polymorph.tagWildshapeMerge].Count > 0)
+                    var wildshaped = Helpers.Misc.findGameLocationCharacter(Polymorph.extractWildshapedFromOriginal(service1.PartyCharacters[i].RulesetCharacter));
+                    if (wildshaped != null && service1.GuestCharacters.Contains(wildshaped))
                     {
-                        service1.PartyCharacters.Remove(pc);
+                        service1.GuestCharacters.Remove(wildshaped);
+                        service1.PartyCharacters[i] = wildshaped;
                     }
                 }
-               
+
+                foreach (var gc in service1.GuestCharacters.ToArray())
+                {
+                    if (gc?.RulesetCharacter == null)
+                    {
+                        continue;
+                    }
+                    if (gc.RulesetCharacter.conditionsByCategory.ContainsKey(Polymorph.tagWildshapePolymorphed) 
+                        && gc.RulesetCharacter.conditionsByCategory[Polymorph.tagWildshapePolymorphed].Count > 0)
+                    {
+                        service1.GuestCharacters.Remove(gc);
+                    }
+                }
+
                 return true;
             }
 
@@ -507,7 +663,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             static void Postfix(PartyControlPanel __instance)
             {
                 IGameLocationCharacterService service1 = ServiceRepository.GetService<IGameLocationCharacterService>();
-                if (service1 == null || original_party.Count == 0)
+                if (service1 == null)
                 {
                     return;
                 }
@@ -516,11 +672,54 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 {
                     service1.PartyCharacters.Add(pc);
                 }
+
+                service1.GuestCharacters.Clear();
+                foreach (var gc in original_guests)
+                {
+                    service1.GuestCharacters.Add(gc);
+                }
             }
         }
 
+        //fix experience distribution
+        [HarmonyPatch(typeof(GameLocationBattle), "ApplyVictoryEffects")]
+        class GameLocationBattle_ApplyVictoryEffects
+        {
+            static List<GameLocationCharacter> original_contenders_characters;
+            static bool Prefix(GameLocationBattle __instance)
+            {
+                original_contenders_characters = __instance.playerContenders.ToArray().ToList();
+                IGameLocationCharacterService service1 = ServiceRepository.GetService<IGameLocationCharacterService>();
+                if (service1 == null)
+                {
+                    return true;
+                }
 
-        //TODO: patch ApplyVictoryEffects to give  exp to polymorphed characters
+                var party_characters = service1.PartyCharacters.ToArray().ToList();
+
+                foreach (var pc in party_characters)
+                {
+                    if (!__instance.playerContenders.Contains(pc))
+                    {
+                        __instance.playerContenders.Add(pc);
+                    }
+                }
+                foreach (var pc in __instance.playerContenders.ToArray())
+                {
+                    if (pc.RulesetCharacter.conditionsByCategory.ContainsKey(Polymorph.tagWildshapePolymorphed) && pc.RulesetCharacter.conditionsByCategory[Polymorph.tagWildshapePolymorphed].Count > 0)
+                    {
+                        __instance.playerContenders.Remove(pc);
+                    }
+                }
+                return true;
+            }
+
+            static void Postfix(GameLocationBattle __instance)
+            {
+                __instance.playerContenders = original_contenders_characters;
+            }
+        }
+
 
         [HarmonyPatch(typeof(GameLocationBattleManager), "TriggerBattleStart")]
         class GameLocationBattleManager_TriggerBattleStart
@@ -573,6 +772,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
             static void Postfix(GameLocationSelectionManager __instance, GameLocationCharacter gameCharacter, bool ignoreInactive, ref bool __result)
             {
+                if (!__result &&
+                    gameCharacter.Side == RuleDefinitions.Side.Ally && !gameCharacter.RulesetCharacter.HasForcedBehavior
+                    && !((gameCharacter?.RulesetCharacter?.IsDeadOrDyingOrUnconscious).GetValueOrDefault() && ignoreInactive))
+                {
+                    ServiceRepository.GetService<IPlayerControllerService>()?.ActivePlayerController?.RecomputeControlledCharacters();
+                    __result = true;
+                }
+
                 if (ignore_selection_constraints)
                 {
                     __result = true;
@@ -586,10 +793,10 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
 
 
+
         [HarmonyPatch(typeof(RulesetCharacter), "TerminateAllSpellsAndEffects")]
         internal class RulesetCharacter_TerminateAllSpellsAndEffects
         {
-
             static bool Prefix(RulesetCharacter __instance)
             {
                 Polymorph.maybeProcessPolymorphedDeath(__instance);

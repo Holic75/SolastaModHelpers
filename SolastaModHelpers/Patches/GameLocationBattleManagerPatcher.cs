@@ -371,13 +371,15 @@ namespace SolastaModHelpers.Patches
                                                                         bool rangedAttack,
                                                                         RuleDefinitions.AdvantageType advantageType,
                                                                         List<EffectForm> actualEffectForms,
-                                                                        bool isSpell)
+                                                                        RulesetEffect rulesetEffect,
+                                                                        bool criticalHit,
+                                                                        bool firstTarget)
                 {
                     while (__result.MoveNext())
                     {
                         yield return __result.Current;
                     }
-                    var extra_events = Process(__instance, attacker, defender, attackModifier, attackMode, rangedAttack, advantageType, actualEffectForms, isSpell);
+                    var extra_events = Process(__instance, attacker, defender, attackModifier, attackMode, rangedAttack, advantageType, actualEffectForms, rulesetEffect, criticalHit, firstTarget);
 
                     while (extra_events.MoveNext())
                     {
@@ -388,20 +390,22 @@ namespace SolastaModHelpers.Patches
 
                     foreach (var f in features)
                     {
-                        f.processDamageInitiator(attacker, defender, attackModifier, attackMode, rangedAttack, isSpell);
+                        f.processDamageInitiator(attacker, defender, attackModifier, attackMode, rangedAttack, attackMode == null);
                     }
                 }
 
 
                 internal static System.Collections.IEnumerator Process(GameLocationBattleManager __instance,
-                            GameLocationCharacter attacker,
-                            GameLocationCharacter defender,
-                            ActionModifier attackModifier,
-                            RulesetAttackMode attackMode,
-                            bool rangedAttack,
-                            RuleDefinitions.AdvantageType advantageType,
-                            List<EffectForm> actualEffectForms,
-                            bool isSpell)
+                                                                        GameLocationCharacter attacker,
+                                                                        GameLocationCharacter defender,
+                                                                        ActionModifier attackModifier,
+                                                                        RulesetAttackMode attackMode,
+                                                                        bool rangedAttack,
+                                                                        RuleDefinitions.AdvantageType advantageType,
+                                                                        List<EffectForm> actualEffectForms,
+                                                                        RulesetEffect rulesetEffect,
+                                                                        bool criticalHit,
+                                                                        bool firstTarge)
                 {
                     if (__instance.battle == null)
                     {

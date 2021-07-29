@@ -149,6 +149,7 @@ namespace SolastaModHelpers.Patches
                 {
                     return true;
                 }
+
                 var features2 = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ITargetApplyEffectOnEffectApplication>(target);
                 foreach (var f in features2)
                 {

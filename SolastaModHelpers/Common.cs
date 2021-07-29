@@ -17,25 +17,101 @@ namespace SolastaModHelpers
         public static AssetReferenceSprite common_no_icon = DatabaseHelper.FeatureDefinitionPointPools.PointPoolRangerSkillPoints.GuiPresentation.SpriteReference;
 
         public static ConditionDefinition polymorph_merge_condition;
-        public static ConditionDefinition wildshaped_unit_condition = DatabaseHelper.ConditionDefinitions.ConditionConjuredCreature;
+        public static ConditionDefinition wildshaped_unit_condition;
+
+        public static FeatureDefinitionPower cancel_polymorph_power;
+        public static NewFeatureDefinitions.CancelPolymorphFeature cancel_polymorph_feature;
 
         static public void initialize()
         {
             fillRitualSpellcastingMap();
-            createPolymorphMergeCondition();
+            createPolymorphFeatures();
         }
 
-        static void createPolymorphMergeCondition()
+        static void createPolymorphFeatures()
         {
             polymorph_merge_condition = Helpers.ConditionBuilder.createCondition("PolymorphRemoveFromGameCondition",
                                                                                         "9898e483-2ab3-4044-afa3-b4d463724192",
-                                                                                        "Rules/&PolymorphMergeConditionTitle",
+                                                                                        Common.common_no_title,
                                                                                         Common.common_no_title,
                                                                                         null,
-                                                                                        DatabaseHelper.ConditionDefinitions.ConditionMagicallyArmored
+                                                                                        DatabaseHelper.ConditionDefinitions.ConditionDummy
                                                                                         );
             polymorph_merge_condition.removedFromTheGame = true;
             polymorph_merge_condition.conditionTags.Clear();
+            
+            wildshaped_unit_condition = Helpers.CopyFeatureBuilder<ConditionDefinition>.createFeatureCopy("PolymorphPolymorphedUnitMarkCondition",
+                                                                                                          "a85f25e8-30ac-4c4c-ae64-32eac0f03381",
+                                                                                                          "Rules/&WildshapedConditionTitle",
+                                                                                                          "Rules/&WildshapedConditionDescription",
+                                                                                                          DatabaseHelper.ConditionDefinitions.ConditionSpiderClimb.guiPresentation.SpriteReference,
+                                                                                                          DatabaseHelper.ConditionDefinitions.ConditionConjuredCreature,
+                                                                                                          a =>
+                                                                                                          {
+                                                                                                              a.parentCondition = DatabaseHelper.ConditionDefinitions.ConditionConjuredCreature;
+                                                                                                          }
+                                                                                                          );
+                                                             
+
+
+
+            var effect = new EffectDescription();
+            effect.Copy(DatabaseHelper.SpellDefinitions.Banishment.effectDescription);
+            effect.effectForms.Clear();
+            var effect_form = new EffectForm();
+            effect_form.formType = EffectForm.EffectFormType.Kill;
+            effect_form.killForm = new KillForm();
+            effect_form.killForm.killCondition = KillCondition.Always;
+            //effect.effectForms.Add(effect_form);
+            effect.hasSavingThrow = false;
+            effect.rangeParameter = 1;
+            effect.targetSide = Side.Ally;
+            effect.targetType = TargetType.Self;
+            effect.rangeType = RangeType.Self;
+
+            cancel_polymorph_power = Helpers.PowerBuilder.createPower("CancelPolymorphSelfPower",
+                                                                      "11e21ac5-58d5-4968-ad83-5903cb09e43b",
+                                                                      "Feature/&CancelPolymorphSelfPowerTitle",
+                                                                      "Feature/&CancelPolymorphSelfPowerDescription",
+                                                                      null,
+                                                                      DatabaseHelper.FeatureDefinitionPowers.PowerTraditionShockArcanistArcaneFury,
+                                                                      effect,
+                                                                      ActivationTime.BonusAction,
+                                                                      1,
+                                                                      UsesDetermination.Fixed,
+                                                                      RechargeRate.LongRest);
+
+            cancel_polymorph_feature = Helpers.FeatureBuilder<NewFeatureDefinitions.CancelPolymorphFeature>.createFeature("CancelPolymorphWatcher",
+                                                                                                                          "5c3616f8-f1c0-4649-8814-6e6d68c87d13",
+                                                                                                                          Common.common_no_title,
+                                                                                                                          Common.common_no_title,
+                                                                                                                          Common.common_no_icon,
+                                                                                                                          a =>
+                                                                                                                          {
+                                                                                                                              a.effectSource = cancel_polymorph_power;
+                                                                                                                          }
+                                                                                                                          );
+        }
+
+
+        public static MonsterDefinition createPolymoprhUnit(MonsterDefinition base_unit, string name, string guid, string title, string description)
+        {
+            var unit = Helpers.CopyFeatureBuilder<MonsterDefinition>.createFeatureCopy(name,
+                                                                                       guid,
+                                                                                       title,
+                                                                                       description,
+                                                                                       null,
+                                                                                       base_unit,
+                                                                                       a =>
+                                                                                       {
+                                                                                           a.defaultFaction = DatabaseHelper.FactionDefinitions.Party.Name;
+                                                                                           a.fullyControlledWhenAllied = true;
+                                                                                           a.features = new List<FeatureDefinition>();
+                                                                                           a.features.AddRange(base_unit.features);
+                                                                                           a.features.Add(cancel_polymorph_power);
+                                                                                           a.features.Add(cancel_polymorph_feature);
+                                                                                       });
+            return unit;
         }
 
 

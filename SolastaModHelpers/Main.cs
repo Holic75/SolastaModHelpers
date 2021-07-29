@@ -103,7 +103,6 @@ namespace SolastaModHelpers
 
             
 
-
             /*var spells = DatabaseRepository.GetDatabase<SpellDefinition>().GetAllElements();
             foreach (var s in spells)
             {
@@ -124,6 +123,18 @@ namespace SolastaModHelpers
                 if (sprite_reference != null)
                 {
                     CustomIcons.Tools.saveSpriteFromAssetReferenceAsPNG(p.GuiPresentation.SpriteReference, $@"{UnityModManager.modsPath}/SolastaModHelpers/Powers/{p.name}.png");
+                }
+            }
+
+
+            var conditions = DatabaseRepository.GetDatabase<ConditionDefinition>().GetAllElements();
+            foreach (var c in conditions)
+            {
+                var sprite_reference = c.GuiPresentation.SpriteReference;
+
+                if (sprite_reference != null)
+                {
+                    CustomIcons.Tools.saveSpriteFromAssetReferenceAsPNG(c.GuiPresentation.SpriteReference, $@"{UnityModManager.modsPath}/SolastaModHelpers/Conditions/{c.name}.png");
                 }
             }*/
         }

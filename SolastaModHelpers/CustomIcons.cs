@@ -73,10 +73,17 @@ namespace SolastaModHelpers.CustomIcons
 
         public static void saveSpriteFromAssetReferenceAsPNG(AssetReferenceSprite sprite_reference, string path)
         {
-            Sprite sprite = Gui.LoadAssetSync<Sprite>(sprite_reference);
+            try
+            {
+                Sprite sprite = Gui.LoadAssetSync<Sprite>(sprite_reference);
 
-            var texture = textureFromSprite(sprite);
-            saveTextureAsPNG(texture, path);
+                var texture = textureFromSprite(sprite);
+                saveTextureAsPNG(texture, path);
+            }
+            catch (Exception e)
+            {
+                Main.Logger.Log(e.ToString());
+            }
         }
 
 
