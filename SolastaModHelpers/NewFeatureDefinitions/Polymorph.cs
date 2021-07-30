@@ -23,6 +23,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     removing = true;
                     Polymorph.maybeProcessPolymorphedDeath(actor as RulesetCharacter);
                     removing = false;
+
                 }
             }
         }
@@ -52,8 +53,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         static public string tagWildshapePolymorphed = "255TagWildshapePolymorphed";
         static public string tagWildshapeMerge = "255TagMerge";
 
-
         static public List<ConditionDefinition> unstransferableConditions = new List<ConditionDefinition> {DatabaseHelper.ConditionDefinitions.ConditionHealthy,
+                                                                                                           DatabaseHelper.ConditionDefinitions.ConditionUnconscious,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionEncumbered,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionHeavilyEncumbered,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionHeavyArmorOverload,
@@ -62,15 +63,17 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionSeverelyWounded
                                                                                                           };
         public MonsterDefinition monster;
-        public bool transfer_features;
+        public bool transferFeatures;
+        public string[] statsToTransfer = new string[0];
+        public bool transferSpells;
 
-        private List<GameLocationCharacter> dummyCharacterList = new List<GameLocationCharacter>();
-        private List<RulesetActor.SizeParameters> dummySizesList = new List<RulesetActor.SizeParameters>();
-        private List<int3> placementPositions = new List<int3>();
-        private List<int3> emptyFormationPositions = new List<int3>();
 
         public void processConditionApplication(RulesetActor actor, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams formParams)
         {
+            List<GameLocationCharacter> dummyCharacterList = new List<GameLocationCharacter>();
+            List<RulesetActor.SizeParameters> dummySizesList = new List<RulesetActor.SizeParameters>();
+            List<int3> placementPositions = new List<int3>();
+            List<int3> emptyFormationPositions = new List<int3>();
             var condition = (actor as RulesetCharacter)?.FindFirstConditionHoldingFeature(this)?.conditionDefinition;
             var target = actor as RulesetCharacter;
             if (applied_condition != condition)
@@ -103,7 +106,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             var target_character = Helpers.Misc.findGameLocationCharacter(target);
 
             List<FeatureDefinition> features_to_transfer = new List<FeatureDefinition>();
-            if (transfer_features && (target is RulesetCharacterHero))
+            if (transferFeatures && (target is RulesetCharacterHero))
             {
                 var hero = target as RulesetCharacterHero;
                 foreach (var f in hero.activeFeatures)
@@ -113,6 +116,19 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
             transferContextToWildshapedUnit(target_character, character, formParams.activeEffect, features_to_transfer);
             Main.Logger.Log("Finished context transfer");
+
+            foreach (var s in statsToTransfer)
+            {
+                characterMonster.Attributes[s].AddModifier(RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Set,
+                                                                                                          target.Attributes[s].baseValue, tagWildshapePolymorphed ));
+            }
+            characterMonster.Attributes["CharacterLevel"] = target.Attributes["CharacterLevel"];
+            Main.Logger.Log("Finished attribute transfer");
+
+            if (transferSpells)
+            {
+                characterMonster.spellRepertoires = target.spellRepertoires;
+            }
             //remove from the game
             RulesetCondition condition3 = target.InflictCondition(Common.polymorph_merge_condition.name, RuleDefinitions.DurationType.Permanent, formParams.activeEffect.RemainingRounds, RuleDefinitions.TurnOccurenceType.StartOfTurn, tagWildshapeMerge, target.Guid, target.CurrentFaction.Name, 1, string.Empty, 0, 5);
             formParams.activeEffect.TrackCondition(formParams.sourceCharacter, formParams.sourceCharacter.Guid, target, character.Guid, condition3, tagWildshapeMerge);
@@ -120,19 +136,21 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             IGameLocationPositioningService service3 = ServiceRepository.GetService<IGameLocationPositioningService>();
             int3 position = game_location_character.locationPosition;
             LocationDefinitions.Orientation orientation = LocationDefinitions.Orientation.North;
-            this.dummyCharacterList.Clear();
-            this.dummyCharacterList.Add(character);
-            this.dummySizesList.Clear();
-            this.dummySizesList.Add(characterMonster.SizeParams);
-            this.placementPositions.Clear();
+            dummyCharacterList.Clear();
+            dummyCharacterList.Add(character);
+            dummySizesList.Clear();
+            dummySizesList.Add(characterMonster.SizeParams);
+            placementPositions.Clear();
 
-            service3.ComputeFormationPlacementPositions(this.dummyCharacterList, position, orientation, this.emptyFormationPositions, CellHelpers.PlacementMode.Station, this.placementPositions, this.dummySizesList);
+            service3.ComputeFormationPlacementPositions(dummyCharacterList, position, orientation, emptyFormationPositions, CellHelpers.PlacementMode.Station, placementPositions, dummySizesList);
 
-            service3.PlaceCharacter(character, this.placementPositions[0], orientation);
+            service3.PlaceCharacter(character, placementPositions[0], orientation);
             character.RefreshActionPerformances();
             service1.RevealCharacter(character);
             fixSelectedCharacters(target_character, character);
             makeReadyForBattle(target_character, character, formParams.activeEffect);
+           
+
             Main.Logger.Log("Finished Polymorph Transformation");
         }
 
@@ -466,6 +484,37 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     class PolymorphPatcher
     {
+        [HarmonyPatch(typeof(RulesetCharacter), "GetSpellcastingLevel")]
+        class RulesetCharacter_GetSpellcastingLevel
+        {
+            static bool Prefix(RulesetCharacter __instance, RulesetSpellRepertoire spellRepertoire, ref int __result)
+            {
+                var original = Polymorph.extractOriginalFromWildshaped(__instance);
+                if (original != null)
+                {
+                    __result = original.GetSpellcastingLevel(spellRepertoire);
+                    return false;
+                }
+                return true;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "RefreshSpellRepertoires")]
+        class RulesetCharacter_RefreshSpellRepertoires
+        {
+            static bool Prefix(RulesetCharacter __instance)
+            {
+                var original = Polymorph.extractOriginalFromWildshaped(__instance);
+                if (original != null)
+                {
+                    __instance.spellRepertoires = original.spellRepertoires;
+                }
+                return true;
+            }
+        }
+
+
         [HarmonyPatch(typeof(RulesetActor), "ProcessConditionsMatchingOccurenceType")]
         class RulesetActor_ProcessConditionsMatchingOccurenceType
         {
