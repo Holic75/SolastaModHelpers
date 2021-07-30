@@ -59,7 +59,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class PowerWithContextFromCondition : FeatureDefinitionPower, ICustomPowerAbilityScore, ICustomEffectBasedOnCaster
+    public class PowerWithContextFromCondition : PowerWithRestrictions, ICustomPowerAbilityScore, ICustomEffectBasedOnCaster
     {
         public ConditionDefinition condition;
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();

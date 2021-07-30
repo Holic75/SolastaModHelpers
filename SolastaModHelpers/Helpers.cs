@@ -19,6 +19,7 @@ namespace SolastaModHelpers.Helpers
         public static string Force = "DamageForce";
         public static string Psychic = "DamagePsychic";
         public static string Necrotic = "DamageNecrotic";
+        public static string Lightning = "DamageLightning";
     }
 
 
@@ -1440,6 +1441,21 @@ namespace SolastaModHelpers.Helpers
             }
 
             return res;
+        }
+
+        public static string createImmuneIfHasNoConditionFamily(ConditionDefinition condition)
+        {
+            return "IMMUNE_IF_HAS_NO_CONDITION_" + condition.name;
+        }
+
+        public static ConditionDefinition extractImmuneIfHasNoCondition(string s)
+        {
+            if (!s.Contains("IMMUNE_IF_HAS_NO_CONDITION_"))
+            {
+                return null;
+            }
+
+            return DatabaseRepository.GetDatabase<ConditionDefinition>().GetElement(s.Replace("IMMUNE_IF_HAS_NO_CONDITION_", ""), true);
         }
 
 

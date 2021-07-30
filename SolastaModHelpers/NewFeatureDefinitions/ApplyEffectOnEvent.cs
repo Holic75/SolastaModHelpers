@@ -546,6 +546,54 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class GrantPowerOnConditionApplication : FeatureDefinition, IApplyEffectOnConditionApplication, IApplyEffectOnConditionRemoval
+    {
+        public FeatureDefinitionPower power;
+        public ConditionDefinition condition;
+
+        public void processConditionApplication(RulesetActor actor, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
+        {
+            if (applied_condition != condition)
+            {
+                return;
+            }
+
+            var character = actor as RulesetCharacter;
+            if (character == null)
+            {
+                return;
+            }
+
+            if (character.UsablePowers.Any(p => p.powerDefinition == power))
+            {
+                return;
+            }
+
+            var usable_power = new RulesetUsablePower(power, null, null);
+            character.UsablePowers.Add(usable_power);
+            usable_power.Recharge();
+        }
+
+
+        public void processConditionRemoval(RulesetActor actor, ConditionDefinition removed_condition)
+        {
+            if (removed_condition != condition)
+            {
+                return;
+            }
+
+            var character = actor as RulesetCharacter;
+            if (character == null)
+            {
+                return;
+            }
+
+            character.UsablePowers.RemoveAll(p => p.powerDefinition == power);
+
+        }
+    }
+
+
 
     public class RemoveConditionsOnConditionApplication: FeatureDefinition, IApplyEffectOnConditionApplication
     {

@@ -181,6 +181,22 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class HasConditionRestriction : IRestriction
+    {
+        private ConditionDefinition condition;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            return !character.HasConditionOfType(condition.Name);
+        }
+
+        public HasConditionRestriction(ConditionDefinition forbidden_condition)
+        {
+            condition = forbidden_condition;
+        }
+    }
+
+
     public class HasFeatureRestriction : IRestriction 
     {
         private FeatureDefinition feature;

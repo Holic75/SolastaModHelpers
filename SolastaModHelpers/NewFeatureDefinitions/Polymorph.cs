@@ -53,7 +53,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         static public string tagWildshapePolymorphed = "255TagWildshapePolymorphed";
         static public string tagWildshapeMerge = "255TagMerge";
 
-        static public List<ConditionDefinition> unstransferableConditions = new List<ConditionDefinition> {DatabaseHelper.ConditionDefinitions.ConditionHealthy,
+        static public HashSet<ConditionDefinition> unstransferableConditions = new HashSet<ConditionDefinition> {DatabaseHelper.ConditionDefinitions.ConditionHealthy,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionUnconscious,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionEncumbered,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionHeavilyEncumbered,
@@ -62,6 +62,9 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionDead,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionSeverelyWounded
                                                                                                           };
+
+        static public HashSet<FeatureDefinitionPower> transferablePowers = new HashSet<FeatureDefinitionPower>();
+
         public MonsterDefinition monster;
         public bool transferFeatures;
         public string[] statsToTransfer = new string[0];
@@ -125,7 +128,16 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 characterMonster.Attributes[s] = target.Attributes[s];
             }
+
+            foreach (var u in target.UsablePowers)
+            {
+                if (transferablePowers.Contains(u.powerDefinition))
+                {
+                    characterMonster.UsablePowers.Add(u);
+                }
+            }
             characterMonster.Attributes["CharacterLevel"] = target.Attributes["CharacterLevel"];
+            characterMonster.Attributes["ProficiencyBonus"] = target.Attributes["ProficiencyBonus"];
             Main.Logger.Log("Finished attribute transfer");
 
             characterMonster.spellRepertoires = target.spellRepertoires;

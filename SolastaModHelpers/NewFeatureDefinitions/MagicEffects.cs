@@ -176,7 +176,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class SpellWithRestricitons : SpellDefinition, ISpellRestriction
+    public class SpellWithRestrictions : SpellDefinition, ISpellRestriction
     {
         public List<IRestriction> restrictions = new List<IRestriction>();
         public bool checkReaction = false;

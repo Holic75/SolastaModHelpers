@@ -20,7 +20,7 @@ namespace SolastaModHelpers.Patches
                     return __result;
                 }
 
-                return custom_power.getPowerAbilityScore(__instance.user);
+                return custom_power.getPowerAbilityScore(__instance.User);
             }
         }
 
