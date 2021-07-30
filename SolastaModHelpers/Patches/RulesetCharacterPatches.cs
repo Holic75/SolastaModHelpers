@@ -192,7 +192,7 @@ namespace SolastaModHelpers.Patches
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IForbidSpellcasting>(__instance);
                 foreach (var f in features)
                 {
-                    if (f.isSpellcastingForbidden(__instance))
+                    if (f.isSpellcastingForbidden(__instance, spellDefinition))
                     {
                         __result = false;
                         return;
