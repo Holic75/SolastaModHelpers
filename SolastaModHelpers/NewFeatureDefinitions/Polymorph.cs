@@ -618,6 +618,37 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
 
 
+        [HarmonyPatch(typeof(RulesetEffectSpell), "GetClassLevel")]
+        class RulesetEffectSpell_GetClassLevel
+        {
+            static void Prefix(RulesetEffectSpell __instance, ref RulesetCharacter character)
+            {
+                if (__instance.spellRepertoire != null)
+                {
+                    var original = Polymorph.extractOriginalFromWildshaped(character);
+                    if (original != null)
+                    {
+                        character = original;
+                    }
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetEffectPower), "GetClassLevel")]
+        class RulesetEffectPower_GetClassLevel
+        {
+            static void Prefix(RulesetEffectPower __instance, ref RulesetCharacter character)
+            {
+                var original = Polymorph.extractOriginalFromWildshaped(character);
+                if (original != null)
+                {
+                    character = original;
+                }
+            }
+        }
+
+
 
         /*[HarmonyPatch(typeof(GuiCharacter), "Name", MethodType.Getter)]
         class GuiCharacter_Name
