@@ -21,6 +21,7 @@ namespace SolastaModHelpers
 
         public static FeatureDefinitionPower cancel_polymorph_power;
         public static NewFeatureDefinitions.CancelPolymorphFeature cancel_polymorph_feature;
+        public static NewFeatureDefinitions.SpellcastingForbidden polymorph_spellcasting_forbidden;
 
         static public void initialize()
         {
@@ -91,6 +92,17 @@ namespace SolastaModHelpers
                                                                                                                               a.effectSource = cancel_polymorph_power;
                                                                                                                           }
                                                                                                                           );
+
+            polymorph_spellcasting_forbidden = Helpers.FeatureBuilder<NewFeatureDefinitions.SpellcastingForbidden>.createFeature("PolymorphSpellcstingForbidden",
+                                                                                                                                  "5bb54b18-efb5-4b38-9d52-7fd9e56ccfc2",
+                                                                                                                                  Common.common_no_title,
+                                                                                                                                  Common.common_no_title,
+                                                                                                                                  Common.common_no_icon,
+                                                                                                                                  a =>
+                                                                                                                                  {
+                                                                                                                                      a.forbidConcentration = false;
+                                                                                                                                  }
+                                                                                                                                  );
         }
 
 

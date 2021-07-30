@@ -21,12 +21,13 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public bool isSpellcastingForbidden(RulesetActor character, SpellDefinition spellDefinition)
         {
-            return !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Any(f => spellcastingExceptionFeatures.Contains(f));
+
+            return spellcastingExceptionFeatures.Empty() || !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Any(f => spellcastingExceptionFeatures.Contains(f));
         }
 
         public bool shouldBreakConcentration(RulesetActor character)
         {
-            return forbidConcentration ? !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Any(f => concentrationExceptionFeatures.Contains(f)) : false;
+            return forbidConcentration ? concentrationExceptionFeatures.Empty() || !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Any(f => concentrationExceptionFeatures.Contains(f)) : false;
         }
     }
 }

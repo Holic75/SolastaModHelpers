@@ -65,7 +65,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public MonsterDefinition monster;
         public bool transferFeatures;
         public string[] statsToTransfer = new string[0];
-        public bool transferSpells;
+        public bool allowSpellcasting;
 
 
         public void processConditionApplication(RulesetActor actor, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams formParams)
@@ -114,21 +114,21 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     features_to_transfer.AddRange(f.Value);
                 }
             }
+            if (!allowSpellcasting)
+            {
+                features_to_transfer.Add(Common.polymorph_spellcasting_forbidden);
+            }
             transferContextToWildshapedUnit(target_character, character, formParams.activeEffect, features_to_transfer);
             Main.Logger.Log("Finished context transfer");
 
             foreach (var s in statsToTransfer)
             {
-                characterMonster.Attributes[s].AddModifier(RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Set,
-                                                                                                          target.Attributes[s].baseValue, tagWildshapePolymorphed ));
+                characterMonster.Attributes[s] = target.Attributes[s];
             }
             characterMonster.Attributes["CharacterLevel"] = target.Attributes["CharacterLevel"];
             Main.Logger.Log("Finished attribute transfer");
 
-            if (transferSpells)
-            {
-                characterMonster.spellRepertoires = target.spellRepertoires;
-            }
+            characterMonster.spellRepertoires = target.spellRepertoires;
             //remove from the game
             RulesetCondition condition3 = target.InflictCondition(Common.polymorph_merge_condition.name, RuleDefinitions.DurationType.Permanent, formParams.activeEffect.RemainingRounds, RuleDefinitions.TurnOccurenceType.StartOfTurn, tagWildshapeMerge, target.Guid, target.CurrentFaction.Name, 1, string.Empty, 0, 5);
             formParams.activeEffect.TrackCondition(formParams.sourceCharacter, formParams.sourceCharacter.Guid, target, character.Guid, condition3, tagWildshapeMerge);
@@ -489,6 +489,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         {
             static bool Prefix(RulesetCharacter __instance, RulesetSpellRepertoire spellRepertoire, ref int __result)
             {
+                
                 var original = Polymorph.extractOriginalFromWildshaped(__instance);
                 if (original != null)
                 {
@@ -508,7 +509,9 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 var original = Polymorph.extractOriginalFromWildshaped(__instance);
                 if (original != null)
                 {
+                    original.RefreshSpellRepertoires();
                     __instance.spellRepertoires = original.spellRepertoires;
+                    return false;
                 }
                 return true;
             }
