@@ -18,6 +18,7 @@ namespace SolastaModHelpers.Helpers
         public static string Radiant = "DamageRadiant";
         public static string Force = "DamageForce";
         public static string Psychic = "DamagePsychic";
+        public static string Necrotic = "DamageNecrotic";
     }
 
 
@@ -1263,6 +1264,20 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        static public RulesetEffect findConditionParentEffect(RulesetCondition condition)
+        {
+            RulesetCharacter caster = (RulesetCharacter)null;
+            if (RulesetEntity.TryGetEntity<RulesetCharacter>(condition.sourceGuid, out caster))
+            {
+                var eff = caster.EnumerateActiveEffectsActivatedByMe().Where(e => e.TrackedConditionGuids.Contains(condition.guid)).FirstOrDefault();
+                if (eff != null)
+                {
+                    return eff;
+                }
+            }
+            return null;
+        }
+
         static public void addSpellToSpelllist(SpellListDefinition spelllist, SpellDefinition spell)
         {
             if (spell.spellLevel == 0 && !spelllist.hasCantrips)
@@ -1441,6 +1456,50 @@ namespace SolastaModHelpers.Helpers
             }
 
             return DatabaseRepository.GetDatabase<ConditionDefinition>().GetElement(s.Replace("IMMUNE_IF_HAS_CONDITION_", ""), true);
+        }
+
+
+        public static string createContextDeterminedAttribute(ConditionDefinition condition)
+        {
+            return "CONTEXT_DETERMINED_ATTRIBUTE_" + condition.name;
+        }
+
+
+        public static string extractContextDeterminedAttribute(RulesetCharacter character, string s)
+        {
+            if (!s.Contains("CONTEXT_DETERMINED_ATTRIBUTE_"))
+            {
+                return string.Empty;
+            }
+
+            var condition_name = s.Replace("CONTEXT_DETERMINED_ATTRIBUTE_", "");
+            RulesetEffectSpell spell_effect = null;
+            foreach (var cc in character.ConditionsByCategory)
+            {
+                foreach (var c in cc.Value)
+                {
+                    if (c.ConditionDefinition.name == condition_name)
+                    {
+                        spell_effect = Helpers.Misc.findConditionParentEffect(c) as RulesetEffectSpell;
+                        break;
+                    }
+                }
+            }
+
+            if (spell_effect == null)
+            {
+                return string.Empty;
+            }
+
+            var stat = spell_effect.SpellRepertoire?.SpellCastingFeature?.SpellcastingAbility;
+            if (stat != string.Empty)
+            {
+                return stat;
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
     }
 

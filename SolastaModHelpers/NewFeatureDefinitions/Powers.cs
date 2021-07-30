@@ -53,8 +53,80 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     max_stat = a;
                 }
             }
-            Main.Logger.Log("Found max stat: " + max_stat);
+
             return max_stat;
+        }
+    }
+
+
+    public class PowerWithContextFromCondition : FeatureDefinitionPower, ICustomPowerAbilityScore, ICustomEffectBasedOnCaster
+    {
+        public ConditionDefinition condition;
+        public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
+        public int minCustomEffectLevel = 100;
+
+        public EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        {
+            RulesetEffectSpell spell_effect = getParentSpellEffect(formsParams.sourceCharacter);
+
+            if (spell_effect == null)
+            {
+                return this.effectDescription;
+            }
+
+            if (spell_effect.slotLevel < minCustomEffectLevel)
+            {
+                return this.effectDescription;
+            }
+
+            foreach (var e in levelEffectList)
+            {
+                if (spell_effect.slotLevel <= e.Item1)
+                {
+                    return e.Item2;
+                }
+            }
+
+            return this.effectDescription;
+        }
+
+
+        RulesetEffectSpell getParentSpellEffect(RulesetCharacter character)
+        {
+            RulesetEffectSpell spell_effect = null;
+            foreach (var cc in character.ConditionsByCategory)
+            {
+                foreach (var c in cc.Value)
+                {
+                    if (c.ConditionDefinition == condition)
+                    {
+                        spell_effect = Helpers.Misc.findConditionParentEffect(c) as RulesetEffectSpell;
+                        break;
+                    }
+                }
+            }
+
+            return spell_effect;
+        }
+
+        public string getPowerAbilityScore(RulesetCharacter character)
+        {
+            RulesetEffectSpell spell_effect = getParentSpellEffect(character);
+
+            if (spell_effect == null)
+            {
+                return this.abilityScore;
+            }
+
+            var stat = spell_effect.SpellRepertoire?.SpellCastingFeature?.SpellcastingAbility;
+            if (stat != string.Empty)
+            {
+                return stat;
+            }
+            else
+            {
+                return this.abilityScore;
+            }
         }
     }
 

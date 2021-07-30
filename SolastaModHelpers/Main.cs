@@ -77,32 +77,9 @@ namespace SolastaModHelpers
             CharacterActionConsumePowerUse.initialize();
             ReactionRequestCastSpellInResponseToAttack.initialize();
             DatabaseHelper.SpellDefinitions.MageArmor.EffectDescription.SetTargetFilteringTag(RuleDefinitions.TargetFilteringTag.Unarmored); //fix mage armor tag to unarmored
-            //fix vampiric touch to work indpendently of specificed attribute 
-            var vampiric_touch_power = DatabaseHelper.FeatureDefinitionPowers.PowerVampiricTouchIntelligence;
-            var vampiric_touch_power_custom = Helpers.GenericPowerBuilder<NewFeatureDefinitions.HighestAbilityScorePower>
-                                                            .createPower("VampiricTouchHitPower",
-                                                                          "c960dbd5-0864-41a6-96f9-1745462ebaa6",
-                                                                          vampiric_touch_power.GuiPresentation.title,
-                                                                          vampiric_touch_power.GuiPresentation.description,
-                                                                          vampiric_touch_power.GuiPresentation.spriteReference,
-                                                                          vampiric_touch_power.effectDescription,
-                                                                          vampiric_touch_power.activationTime,
-                                                                          vampiric_touch_power.fixedUsesPerRecharge,
-                                                                          vampiric_touch_power.UsesDetermination,
-                                                                          vampiric_touch_power.rechargeRate,
-                                                                          vampiric_touch_power.UsesAbilityScoreName,
-                                                                          vampiric_touch_power.abilityScore,
-                                                                          vampiric_touch_power.costPerUse,
-                                                                          vampiric_touch_power.showCasting
-                                                                          );
-            vampiric_touch_power_custom.attackHitComputation = vampiric_touch_power.AttackHitComputation;
-            vampiric_touch_power_custom.abilityScoreBonusToAttack = vampiric_touch_power.AbilityScoreBonusToAttack;
-            vampiric_touch_power_custom.proficiencyBonusToAttack = vampiric_touch_power.proficiencyBonusToAttack;
-            vampiric_touch_power_custom.validAbilityScores = new List<string> { Helpers.Stats.Intelligence, Helpers.Stats.Wisdom, Helpers.Stats.Charisma };
-            DatabaseHelper.ActionDefinitions.VampiricTouchIntelligence.activatedPower = vampiric_touch_power_custom;
+            Fixes.fixVampiricTouch();
 
-            
-
+         
             /*var spells = DatabaseRepository.GetDatabase<SpellDefinition>().GetAllElements();
             foreach (var s in spells)
             {
