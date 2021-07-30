@@ -146,12 +146,36 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
             service3.PlaceCharacter(character, placementPositions[0], orientation);
             character.RefreshActionPerformances();
+
+            identifyMonster(characterMonster);
             service1.RevealCharacter(character);
+
             fixSelectedCharacters(target_character, character);
             makeReadyForBattle(target_character, character, formParams.activeEffect);
            
 
             Main.Logger.Log("Finished Polymorph Transformation");
+        }
+
+
+        static void identifyMonster(RulesetCharacterMonster monster)
+        {
+            IGameLoreService service = ServiceRepository.GetService<IGameLoreService>();
+            if (!service.HasBestiaryEntry(monster))
+                return;
+            MonsterDefinition monsterDefinition = monster.MonsterDefinition;
+            KnowledgeLevelDefinition monsterKnowledgeLevel = (KnowledgeLevelDefinition)null;
+            foreach (KnowledgeLevelDefinition knowledgeLevelDefinition in DatabaseRepository.GetDatabase<KnowledgeLevelDefinition>())
+            {
+                if (knowledgeLevelDefinition.Level == 4)
+                {
+                    monsterKnowledgeLevel = knowledgeLevelDefinition;
+                    break;
+                }
+            }
+            if (!((BaseDefinition)service.GetCreatureKnowledgeLevel(monster) != (BaseDefinition)monsterKnowledgeLevel))
+                return;
+            service.LearnMonsterKnowledge(monsterDefinition, monsterKnowledgeLevel);
         }
 
 
@@ -843,7 +867,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 }
             }
         }
-
 
 
         [HarmonyPatch(typeof(RulesetCharacter), "TerminateAllSpellsAndEffects")]
