@@ -31,7 +31,7 @@ namespace SolastaModHelpers
 
         static void createPolymorphFeatures()
         {
-            var negate_fall_damage = Helpers.CopyFeatureBuilder<FeatureDefinitionMovementAffinity>.createFeatureCopy("Polymorph_negate_fall_damage",
+            var negate_fall_damage = Helpers.CopyFeatureBuilder<FeatureDefinitionMovementAffinity>.createFeatureCopy("PolymorphNegateFallDamage",
                                                                                                                  "a631d566-dc98-428d-8cea-801479020cb8",
                                                                                                                  Common.common_no_title,
                                                                                                                  Common.common_no_title,
@@ -39,19 +39,20 @@ namespace SolastaModHelpers
                                                                                                                  DatabaseHelper.FeatureDefinitionMovementAffinitys.MovementAffinityCatsGrace,
                                                                                                                  a =>
                                                                                                                  {
-                                                                                                                     a.additionalFallThreshold=10;
+                                                                                                                     a.additionalFallThreshold = 10;
                                                                                                                  }
                                                                                                                  );
 
             polymorph_merge_condition = Helpers.ConditionBuilder.createCondition("PolymorphRemoveFromGameCondition",
-                                                                                        "9898e483-2ab3-4044-afa3-b4d463724192",
-                                                                                        Common.common_no_title,
-                                                                                        Common.common_no_title,
-                                                                                        null,
-                                                                                        DatabaseHelper.ConditionDefinitions.ConditionDummy,
-                                                                                        DatabaseHelper.FeatureDefinitionMoveModes.MoveModeFly12,
-                                                                                        negate_fall_damage
-                                                                                        );
+                                                                                    "9898e483-2ab3-4044-afa3-b4d463724192",
+                                                                                    Common.common_no_title,
+                                                                                    Common.common_no_title,
+                                                                                    null,
+                                                                                    DatabaseHelper.ConditionDefinitions.ConditionDummy,
+                                                                                    DatabaseHelper.FeatureDefinitionMoveModes.MoveModeFly12,
+                                                                                    negate_fall_damage,
+                                                                                    DatabaseHelper.FeatureDefinitionActionAffinitys.ActionAffinityConditionLethargic
+                                                                                    );
             polymorph_merge_condition.removedFromTheGame = true;
             polymorph_merge_condition.conditionTags.Clear();
             
@@ -73,11 +74,6 @@ namespace SolastaModHelpers
             var effect = new EffectDescription();
             effect.Copy(DatabaseHelper.SpellDefinitions.Banishment.effectDescription);
             effect.effectForms.Clear();
-            var effect_form = new EffectForm();
-            effect_form.formType = EffectForm.EffectFormType.Kill;
-            effect_form.killForm = new KillForm();
-            effect_form.killForm.killCondition = KillCondition.Always;
-            //effect.effectForms.Add(effect_form);
             effect.hasSavingThrow = false;
             effect.rangeParameter = 1;
             effect.targetSide = Side.Ally;

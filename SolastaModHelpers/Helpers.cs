@@ -102,6 +102,7 @@ namespace SolastaModHelpers.Helpers
         public static string ShortSword = "ShortswordType";
         public static string Club = "ClubType";
         public static string Dagger = "DaggerType";
+        public static string Dart = "DartType";
         public static string Handaxe = "HandaxeType";
         public static string Javelin = "JavelinType";
         public static string QuarterStaff = "QuarterstaffType";
@@ -554,6 +555,22 @@ namespace SolastaModHelpers.Helpers
                                            known_spells,
                                            slots_pre_level,
                                            DatabaseHelper.FeatureDefinitionCastSpells.CastSpellWizard).AddToDB();
+        }
+
+
+        public static FeatureDefinitionCastSpell createDivinePreparedSpellcasting(string name, string guid, string title_string, string description_string,
+                                                                        SpellListDefinition spelllist, string spell_stat,
+                                                                        List<int> cantrips_per_level,
+                                                                        List<FeatureDefinitionCastSpell.SlotsByLevelDuplet> slots_pre_level)
+        {
+            Stats.assertAllStats(new string[] { spell_stat });
+            return new SpellcastingBuilder(name, guid, title_string, description_string, spelllist, spell_stat,
+                                           RuleDefinitions.SpellKnowledge.WholeList, RuleDefinitions.SpellReadyness.Prepared,
+                                           Enumerable.Repeat(0, 20).ToList(),
+                                           cantrips_per_level,
+                                           DatabaseHelper.FeatureDefinitionCastSpells.CastSpellCleric.KnownSpells,
+                                           slots_pre_level,
+                                           DatabaseHelper.FeatureDefinitionCastSpells.CastSpellCleric).AddToDB();
         }
     }
 
