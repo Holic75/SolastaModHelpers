@@ -31,12 +31,26 @@ namespace SolastaModHelpers
 
         static void createPolymorphFeatures()
         {
+            var negate_fall_damage = Helpers.CopyFeatureBuilder<FeatureDefinitionMovementAffinity>.createFeatureCopy("Polymorph_negate_fall_damage",
+                                                                                                                 "a631d566-dc98-428d-8cea-801479020cb8",
+                                                                                                                 Common.common_no_title,
+                                                                                                                 Common.common_no_title,
+                                                                                                                 null,
+                                                                                                                 DatabaseHelper.FeatureDefinitionMovementAffinitys.MovementAffinityCatsGrace,
+                                                                                                                 a =>
+                                                                                                                 {
+                                                                                                                     a.additionalFallThreshold=10;
+                                                                                                                 }
+                                                                                                                 );
+
             polymorph_merge_condition = Helpers.ConditionBuilder.createCondition("PolymorphRemoveFromGameCondition",
                                                                                         "9898e483-2ab3-4044-afa3-b4d463724192",
                                                                                         Common.common_no_title,
                                                                                         Common.common_no_title,
                                                                                         null,
-                                                                                        DatabaseHelper.ConditionDefinitions.ConditionDummy
+                                                                                        DatabaseHelper.ConditionDefinitions.ConditionDummy,
+                                                                                        DatabaseHelper.FeatureDefinitionMoveModes.MoveModeFly12,
+                                                                                        negate_fall_damage
                                                                                         );
             polymorph_merge_condition.removedFromTheGame = true;
             polymorph_merge_condition.conditionTags.Clear();
