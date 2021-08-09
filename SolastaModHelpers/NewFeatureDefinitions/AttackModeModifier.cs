@@ -268,7 +268,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
-            if (Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Contains(requiredFeature))
+            if (requiredFeature == null || Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Contains(requiredFeature))
             {
                 attack_mode.AddAttackTagAsNeeded(tag);
             }

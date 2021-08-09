@@ -140,7 +140,26 @@ namespace SolastaModHelpers.Patches
                 }
                 return true;
             }
+
+
+            internal static void Postfix(RulesetActor __instance,
+                                        string category,
+                                        RulesetCondition newCondition,
+                                        bool refresh)
+            {
+                var caster = RulesetEntity.GetEntity<RulesetCharacter>(newCondition.sourceGuid);
+                if (caster != null)
+                {
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ICasterApplyEffectOnConditionApplication>(caster);
+                    foreach (var f in features)
+                    {
+                        f.processCasterConditionApplication(__instance, newCondition);
+                    }
+                }
+            }
         }
+
+
 
         //refresh attack modes after spell cast in case some features give extra attacks after using spell/power
         [HarmonyPatch(typeof(RulesetActor), "ProcessConditionsMatchingInterruption")]

@@ -19,7 +19,7 @@ namespace SolastaModHelpers.Patches
                 {
                     return;
                 }
-                var hero_character = __instance.RulesetCharacter as RulesetCharacterHero;
+                var hero_character = __instance.RulesetCharacter as RulesetCharacter;
                 if (hero_character != null)
                 {
                     var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnTurnStart>(hero_character);
@@ -41,7 +41,7 @@ namespace SolastaModHelpers.Patches
                 {
                     return;
                 }
-                var hero_character = __instance.RulesetCharacter as RulesetCharacterHero;
+                var hero_character = __instance.RulesetCharacter as RulesetCharacter;
                 if (hero_character != null)
                 {
                     var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnTurnEnd>(hero_character);
@@ -63,7 +63,7 @@ namespace SolastaModHelpers.Patches
                 {
                     return;
                 }
-                var hero_character = __instance.RulesetCharacter as RulesetCharacterHero;
+                var hero_character = __instance.RulesetCharacter as RulesetCharacter;
                 if (hero_character != null)
                 {
                     var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnBattleEnd>(hero_character);

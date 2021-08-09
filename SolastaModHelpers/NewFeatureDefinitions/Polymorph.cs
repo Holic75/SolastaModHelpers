@@ -154,7 +154,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             dummySizesList.Add(characterMonster.SizeParams);
             placementPositions.Clear();
 
-            service3.ComputeFormationPlacementPositions(dummyCharacterList, position, orientation, emptyFormationPositions, CellHelpers.PlacementMode.Station, placementPositions, dummySizesList);
+            var rand = new Random();
+            int k = 1;
+            while (placementPositions.Empty())
+            {
+                service3.ComputeFormationPlacementPositions(dummyCharacterList, position, orientation, emptyFormationPositions, CellHelpers.PlacementMode.Station, placementPositions, dummySizesList);
+                position = position + new int3(rand.Next(-k, k), rand.Next(-k, k), rand.Next(-k, k));
+                k++;
+            }
 
             service3.PlaceCharacter(character, placementPositions[0], orientation);
             character.RefreshActionPerformances();

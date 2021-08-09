@@ -412,7 +412,6 @@ namespace SolastaModHelpers.Patches
                         yield break;
                     }
 
-                    Main.Logger.Log("Processing");
                     if (defender != null && defender.RulesetActor != null && (defender.RulesetActor is RulesetCharacterMonster || defender.RulesetActor is RulesetCharacterHero)
                         && attacker.RulesetCharacter is RulesetCharacterMonster)
                     {
@@ -420,7 +419,6 @@ namespace SolastaModHelpers.Patches
                         foreach (FeatureDefinition featureDefinition in __instance.featuresToBrowseReaction)
                         {
                             MonsterAdditionalDamageProxy provider = (featureDefinition as MonsterAdditionalDamage).provider;
-                            Main.Logger.Log("Found provider");
                             bool restrictions_ok = true;
                             foreach (var r in provider.restricitons)
                             {
@@ -451,7 +449,6 @@ namespace SolastaModHelpers.Patches
                             }
                             else if (provider.TriggerCondition == RuleDefinitions.AdditionalDamageTriggerCondition.SpendSpellSlot && attackModifier != null)
                             {
-                                Main.Logger.Log("Checking spells");
                                 RulesetSpellRepertoire selectedSpellRepertoire = null;
                                 foreach (RulesetSpellRepertoire spellRepertoire in attacker.RulesetCharacter.SpellRepertoires)
                                 {
@@ -472,7 +469,6 @@ namespace SolastaModHelpers.Patches
                                         }
                                         if (flag3)
                                         {
-                                            Main.Logger.Log("Found");
                                             reactionParams = new CharacterActionParams(attacker, ActionDefinitions.Id.SpendSpellSlot);
                                             reactionParams.IntParameter = 1;
                                             reactionParams.StringParameter = provider.NotificationTag;
@@ -490,7 +486,6 @@ namespace SolastaModHelpers.Patches
                                 }
                                 if (selectedSpellRepertoire == null)
                                 {
-                                    Main.Logger.Log("Checking spells failed");
                                     continue;
                                 }
                                 selectedSpellRepertoire = (RulesetSpellRepertoire)null;

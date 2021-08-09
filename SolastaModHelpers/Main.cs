@@ -78,8 +78,17 @@ namespace SolastaModHelpers
             ReactionRequestCastSpellInResponseToAttack.initialize();
             DatabaseHelper.SpellDefinitions.MageArmor.EffectDescription.SetTargetFilteringTag(RuleDefinitions.TargetFilteringTag.Unarmored); //fix mage armor tag to unarmored
             Fixes.fixVampiricTouch();
+            var monsters = DatabaseRepository.GetDatabase<MonsterDefinition>().GetAllElements();
+            foreach (var m in monsters)
+            {
+                if (m.defaultFaction == DatabaseHelper.FactionDefinitions.Party.Name)
+                {
+                    m.fullyControlledWhenAllied = true;
+                }
+            }
 
-         
+
+
             /*var spells = DatabaseRepository.GetDatabase<SpellDefinition>().GetAllElements();
             foreach (var s in spells)
             {

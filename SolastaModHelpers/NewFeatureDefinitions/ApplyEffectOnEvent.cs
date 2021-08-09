@@ -41,7 +41,13 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     public interface IApplyEffectOnConditionApplication
     {
-        void processConditionApplication(RulesetActor actor, ConditionDefinition Condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams);
+        void processConditionApplication(RulesetActor target, ConditionDefinition condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams);
+    }
+
+
+    public interface ICasterApplyEffectOnConditionApplication
+    {
+        void processCasterConditionApplication(RulesetActor target, RulesetCondition condition);
     }
 
 
@@ -133,6 +139,52 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+
+    public class HealAtTurnEndIfHasConditionBasedOnCasterLevel: FeatureDefinition, IApplyEffectOnTurnEnd
+    {
+        public ConditionDefinition casterCondition;
+        public List<(int, int)> levelHealing;
+        public CharacterClassDefinition characterClass;
+        public bool allowParentConditions;
+
+        public void processTurnEnd(GameLocationCharacter character)
+        {
+            var target = character.RulesetCharacter;
+            foreach (var cc in target.conditionsByCategory)
+            {
+                foreach (var c in cc.Value)
+                {
+                    if (c.conditionDefinition == casterCondition || (allowParentConditions && c.conditionDefinition.parentCondition == casterCondition))
+                    {
+                        var caster = RulesetEntity.GetEntity<RulesetCharacter>(c.sourceGuid) as RulesetCharacterHero;
+                        if (caster == null )
+                        {
+                            continue;
+                        }
+                        if (!caster.classesAndLevels.ContainsKey(characterClass))
+                        {
+                            continue;
+                        }
+                        var lvl = caster.classesAndLevels[characterClass];
+                        foreach (var lh in levelHealing)
+                        {
+                            if (lvl <= lh.Item1)
+                            {
+                                int amount = Math.Min(target.GetAttribute("HitPoints").CurrentValue - target.CurrentHitPoints, lh.Item2);
+                                if (amount != 0)
+                                {
+                                    target.ReceiveHealing(amount, true, c.sourceGuid);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
     public abstract class ApplyPowerOnTurnEndBase : FeatureDefinition, IApplyEffectOnTurnEnd
     {
         abstract protected FeatureDefinitionPower getPower(GameLocationCharacter character);
@@ -161,6 +213,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             ServiceRepository.GetService<IGameLocationActionService>().ExecuteInstantSingleAction(actionParams);
         }
     }
+
 
     public class ApplyPowerOnTurnEnd : ApplyPowerOnTurnEndBase
     {
@@ -551,14 +604,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public FeatureDefinitionPower power;
         public ConditionDefinition condition;
 
-        public void processConditionApplication(RulesetActor actor, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
+        public void processConditionApplication(RulesetActor target, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
         {
             if (applied_condition != condition)
             {
                 return;
             }
 
-            var character = actor as RulesetCharacter;
+            var character = target as RulesetCharacter;
             if (character == null)
             {
                 return;
@@ -600,23 +653,68 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public List<ConditionDefinition> appliedConditions;
         public List<ConditionDefinition> removeConditions;
 
-        public void processConditionApplication(RulesetActor actor, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
+        public void processConditionApplication(RulesetActor target, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
         {
             if (!appliedConditions.Contains(applied_condition))
             {
                 return;
             }
 
-            foreach (var conditions in actor.ConditionsByCategory.Values.ToArray())
+            foreach (var conditions in target.ConditionsByCategory.Values.ToArray())
             {
                 foreach (var c in conditions.ToArray())
                 {
                     if (removeConditions.Contains(c.conditionDefinition))
                     {
-                        actor.RemoveCondition(c, true, true);
+                        target.RemoveCondition(c, true, true);
                     }
                 }
             }
+        }
+    }
+
+
+    public class AddExtraConditionToTargetOnConditionApplication : FeatureDefinition, ICasterApplyEffectOnConditionApplication
+    {
+        public ConditionDefinition requiredCondition;
+        public ConditionDefinition extraCondition;
+
+        public void processCasterConditionApplication(RulesetActor target, RulesetCondition condition)
+        {
+            if (requiredCondition != condition?.conditionDefinition)
+            {
+                return;
+            }
+
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(target.Guid,
+                                                               this.extraCondition, RuleDefinitions.DurationType.Permanent, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
+                                                               condition.sourceGuid,
+                                                               condition.sourceFactionName);
+            target.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+    }
+
+
+    public class IncreaseMonsterHitPointsToTargetOnConditionApplication : FeatureDefinition, ICasterApplyEffectOnConditionApplication
+    {
+        public ConditionDefinition requiredCondition;
+        public int hdMultiplier = 1;
+
+        public void processCasterConditionApplication(RulesetActor target, RulesetCondition condition)
+        {
+            if (requiredCondition != condition?.conditionDefinition)
+            {
+                return;
+            }
+            var monster = target as RulesetCharacterMonster;
+            if (monster == null)
+            {
+                return;
+            }
+            int val = hdMultiplier * monster.monsterDefinition.hitDice;
+            monster.GetAttribute("HitPoints").AddModifier(RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Additive,
+                                                                                                         val, "10Combat"));
+            monster.CurrentHitPoints += hdMultiplier * monster.monsterDefinition.hitDice;
         }
     }
 

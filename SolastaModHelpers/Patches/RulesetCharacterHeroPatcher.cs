@@ -137,22 +137,6 @@ namespace SolastaModHelpers.Patches
         }
 
 
-        [HarmonyPatch(typeof(RulesetCharacterMonster), "BuildAttackMode")]
-        class RulesetCharacterMonster_BuildAttackMode
-        {
-            internal static void Postfix(RulesetCharacter __instance,
-                                        MonsterAttackDefinition monsterAttackDefinition,
-                                        ref RulesetAttackMode __result)
-            {
-                var features = Helpers.Accessors.extractFeaturesHierarchically<IAttackModeModifier>(__instance);
-                foreach (var f in features)
-                {
-                    f.apply(__instance, __result, null);
-                }
-            }
-        }
-
-
         [HarmonyPatch(typeof(RulesetCharacterHero), "PostLoad")]
         internal class RulesetCharacterHero_PostLoad
         {
