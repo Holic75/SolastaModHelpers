@@ -30,6 +30,26 @@ namespace SolastaModHelpers.Patches
             }
         }
 
+        //remove overriden powers (in case there are too many of them like for druid wildshapes)
+        [HarmonyPatch(typeof(RulesetCharacter), "GrantPowers")]
+        class RulesetCharacter_GrantPowers
+        {
+            internal static void Postfix(RulesetCharacter __instance)
+            {
+                var overriden_powers = __instance.UsablePowers.Select(p => p.powerDefinition.overriddenPower).Where(p => p != null).ToHashSet();
+
+                var powers_array = __instance.usablePowers.ToArray();
+
+                foreach (var p in powers_array)
+                {
+                    if (overriden_powers.Contains(p?.powerDefinition))
+                    {
+                        __instance.usablePowers.Remove(p);
+                    }
+                }
+            }
+        }
+
 
         [HarmonyPatch(typeof(RulesetCharacter), "GetMaxUsesOfPower")]
         class RulesetCharacter_GetMaxUsesOfPower

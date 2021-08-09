@@ -9,7 +9,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 {
     public interface IAttackModeModifier
     {
-        void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon);
+        void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon);
     }
 
 
@@ -18,7 +18,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public List<string> weaponTypes = new List<string>();
         public string tag;
 
-        public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
             var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
             if (weapon2 == null || !weapon2.isWeapon)
@@ -39,7 +39,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             attack_mode.AddAttackTagAsNeeded(tag);
-
         }
     }
 
@@ -49,7 +48,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public int value;
         public string attackStat;
 
-        public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
             var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
             if (weapon2 == null || !weapon2.isWeapon)
@@ -84,8 +83,13 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public List<string> weaponTypes = new List<string>();
         public List<IRestriction> restrictions = new List<IRestriction>();
 
-        public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
+            var hero = character as RulesetCharacterHero;
+            if (hero == null)
+            {
+                return;
+            }
             foreach (var r in restrictions)
             {
                 if (r.isForbidden(character))
@@ -113,12 +117,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
 
-            if (!character.ClassesAndLevels.ContainsKey(characterClass))
+            if (!hero.ClassesAndLevels.ContainsKey(characterClass))
             {
                 return;
             }
 
-            var lvl = character.ClassesAndLevels[characterClass];
+            var lvl = hero.ClassesAndLevels[characterClass];
 
             var damage = attack_mode?.EffectDescription?.FindFirstDamageForm();
             if (damage == null)
@@ -155,7 +159,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public List<string> weaponTypes = new List<string>();
         public List<IRestriction> restrictions = new List<IRestriction>();
 
-        public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
             if (attack_mode.ActionType != ActionDefinitions.ActionType.Main)
             {
@@ -199,7 +203,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public int numDice;
         public RuleDefinitions.DieType dieType;
 
-        public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
             var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
             if (weapon2 == null || !weapon2.isWeapon)
@@ -239,7 +243,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public FeatureDefinition weaponFeature;
         public string tag;
 
-        public void apply(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
             var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
             if (weapon2 == null || !weapon2.isWeapon)
@@ -253,6 +257,21 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             attack_mode.AddAttackTagAsNeeded(tag);
+        }
+    }
+
+
+    public class AddAttackTagIfHasFeature : FeatureDefinition, IAttackModeModifier
+    {
+        public FeatureDefinition requiredFeature;
+        public string tag;
+
+        public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        {
+            if (Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Contains(requiredFeature))
+            {
+                attack_mode.AddAttackTagAsNeeded(tag);
+            }
         }
     }
 }

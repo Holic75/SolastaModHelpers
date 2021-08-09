@@ -190,9 +190,38 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return !character.HasConditionOfType(condition.Name);
         }
 
-        public HasConditionRestriction(ConditionDefinition forbidden_condition)
+        public HasConditionRestriction(ConditionDefinition allowed_condition)
         {
-            condition = forbidden_condition;
+            condition = allowed_condition;
+        }
+    }
+
+
+    public class MinClassLevelRestriction : IRestriction
+    {
+        private CharacterClassDefinition character_class;
+        private int level;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            var hero = character as RulesetCharacterHero;
+            if (hero == null)
+            {
+                return true;
+            }
+
+            if (!hero.ClassesAndLevels.ContainsKey(character_class))
+            {
+                return true;
+            }
+
+            return hero.ClassesAndLevels[character_class] < level;
+        }
+
+        public MinClassLevelRestriction(CharacterClassDefinition required_class, int required_level)
+        {
+            character_class = required_class;
+            level = required_level;
         }
     }
 

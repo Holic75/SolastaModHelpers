@@ -27,7 +27,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void computeDefenseModifier(RulesetCharacter myself, RulesetCharacter attacker, int sustained_attacks, bool defender_already_attacked_by_attacker_this_turn, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {
-            if (attack_mode.SourceDefinition == null)
+            if (attack_mode?.SourceDefinition == null)
             {
                 return;
             }

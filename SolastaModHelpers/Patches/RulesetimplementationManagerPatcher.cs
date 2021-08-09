@@ -114,7 +114,6 @@ namespace SolastaModHelpers.Patches
         }
 
 
-
         [HarmonyPatch(typeof(RulesetImplementationManager), "ApplyEffectForms")]
         class RulesetimplementationManager_ApplyEffectForms
         {
@@ -136,7 +135,8 @@ namespace SolastaModHelpers.Patches
                 var base_definition = formsParams.activeEffect?.SourceDefinition as NewFeatureDefinitions.ICustomEffectBasedOnCaster;
                 if (base_definition != null)
                 {
-                    effectForms = base_definition.getCustomEffect(formsParams).effectForms;
+                    var effect = base_definition.getCustomEffect(formsParams);
+                    effectForms = effect.effectForms;
                 }
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ICasterApplyEffectOnEffectApplication>(caster);
                 foreach (var f in features)

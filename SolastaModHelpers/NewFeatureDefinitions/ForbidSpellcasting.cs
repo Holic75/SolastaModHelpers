@@ -17,11 +17,15 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public List<FeatureDefinition> spellcastingExceptionFeatures = new List<FeatureDefinition>();
         public List<FeatureDefinition> concentrationExceptionFeatures = new List<FeatureDefinition>();
+        public List<SpellDefinition> exceptionSpells = new List<SpellDefinition>();
         public bool forbidConcentration = true;
 
         public bool isSpellcastingForbidden(RulesetActor character, SpellDefinition spellDefinition)
         {
-
+            if (exceptionSpells.Contains(spellDefinition))
+            {
+                return false;
+            }
             return spellcastingExceptionFeatures.Empty() || !Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(character).Any(f => spellcastingExceptionFeatures.Contains(f));
         }
 

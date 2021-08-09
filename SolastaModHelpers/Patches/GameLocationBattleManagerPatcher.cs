@@ -405,11 +405,125 @@ namespace SolastaModHelpers.Patches
                                                                         List<EffectForm> actualEffectForms,
                                                                         RulesetEffect rulesetEffect,
                                                                         bool criticalHit,
-                                                                        bool firstTarge)
+                                                                        bool firstTarget)
                 {
                     if (__instance.battle == null)
                     {
                         yield break;
+                    }
+
+                    Main.Logger.Log("Processing");
+                    if (defender != null && defender.RulesetActor != null && (defender.RulesetActor is RulesetCharacterMonster || defender.RulesetActor is RulesetCharacterHero)
+                        && attacker.RulesetCharacter is RulesetCharacterMonster)
+                    {
+                        attacker.RulesetCharacter.EnumerateFeaturesToBrowse<MonsterAdditionalDamage>(__instance.featuresToBrowseReaction);
+                        foreach (FeatureDefinition featureDefinition in __instance.featuresToBrowseReaction)
+                        {
+                            MonsterAdditionalDamageProxy provider = (featureDefinition as MonsterAdditionalDamage).provider;
+                            Main.Logger.Log("Found provider");
+                            bool restrictions_ok = true;
+                            foreach (var r in provider.restricitons)
+                            {
+                                if (r.isForbidden(attacker.RulesetCharacter))
+                                {
+                                    restrictions_ok = false;
+                                    break;
+                                }
+                            }
+                            if (!restrictions_ok)
+                            {
+                                continue;
+                            }
+
+                            if (provider.LimitedUsage != RuleDefinitions.FeatureLimitedUsage.None)
+                            {
+                                if (provider.LimitedUsage == RuleDefinitions.FeatureLimitedUsage.OnceInMyturn && (attacker.UsedSpecialFeatures.ContainsKey(featureDefinition.Name) || __instance.Battle != null && __instance.Battle.ActiveContender != attacker))
+                                    continue;
+                                else if (provider.LimitedUsage == RuleDefinitions.FeatureLimitedUsage.OncePerTurn && attacker.UsedSpecialFeatures.ContainsKey(featureDefinition.Name))
+                                    continue;
+                            }
+                            CharacterActionParams reactionParams = (CharacterActionParams)null;
+ 
+                            if (provider.TriggerCondition == RuleDefinitions.AdditionalDamageTriggerCondition.AdvantageOrNearbyAlly && attackMode != null)
+                            {
+                                if (!(advantageType == RuleDefinitions.AdvantageType.Advantage || advantageType != RuleDefinitions.AdvantageType.Disadvantage && __instance.IsConsciousCharacterOfSideNextToCharacter(defender, attacker.Side, attacker)))
+                                    continue;
+                            }
+                            else if (provider.TriggerCondition == RuleDefinitions.AdditionalDamageTriggerCondition.SpendSpellSlot && attackModifier != null)
+                            {
+                                Main.Logger.Log("Checking spells");
+                                RulesetSpellRepertoire selectedSpellRepertoire = null;
+                                foreach (RulesetSpellRepertoire spellRepertoire in attacker.RulesetCharacter.SpellRepertoires)
+                                {
+                                    if ((BaseDefinition)spellRepertoire.SpellCastingFeature == provider.spellcastingFeature)
+                                    {
+                                        bool flag3 = false;
+                                        for (int spellLevel = 1; spellLevel <= spellRepertoire.MaxSpellLevelOfSpellCastingLevel; ++spellLevel)
+                                        {
+                                            int remaining = 0;
+                                            int max = 0;
+                                            spellRepertoire.GetSlotsNumber(spellLevel, out remaining, out max);
+                                            if (remaining > 0)
+                                            {
+                                                selectedSpellRepertoire = spellRepertoire;
+                                                flag3 = true;
+                                                break;
+                                            }
+                                        }
+                                        if (flag3)
+                                        {
+                                            Main.Logger.Log("Found");
+                                            reactionParams = new CharacterActionParams(attacker, ActionDefinitions.Id.SpendSpellSlot);
+                                            reactionParams.IntParameter = 1;
+                                            reactionParams.StringParameter = provider.NotificationTag;
+                                            reactionParams.SpellRepertoire = selectedSpellRepertoire;
+                                            IGameLocationActionService service = ServiceRepository.GetService<IGameLocationActionService>();
+                                            int count = service.PendingReactionRequestGroups.Count;
+                                            service.ReactToSpendSpellSlot(reactionParams);
+                                            yield return __instance.WaitForReactions(attacker, service, count);
+                                            if (!reactionParams.ReactionValidated)
+                                            {
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (selectedSpellRepertoire == null)
+                                {
+                                    Main.Logger.Log("Checking spells failed");
+                                    continue;
+                                }
+                                selectedSpellRepertoire = (RulesetSpellRepertoire)null;
+                            }
+                            else if (provider.TriggerCondition == RuleDefinitions.AdditionalDamageTriggerCondition.TargetHasConditionCreatedByMe)
+                            {
+                            if (!defender.RulesetActor.HasConditionOfTypeAndSource(provider.RequiredTargetCondition, attacker.Guid))
+                                continue;
+                            }
+                            else if (provider.TriggerCondition == RuleDefinitions.AdditionalDamageTriggerCondition.TargetHasCondition)
+                            {
+                                if (!defender.RulesetActor.HasConditionOfType(provider.RequiredTargetCondition.Name))
+                                    continue;
+                            }
+                            else if (provider.TriggerCondition == RuleDefinitions.AdditionalDamageTriggerCondition.TargetDoesNotHaveCondition)
+                            {
+                                if (defender.RulesetActor.HasConditionOfType(provider.RequiredTargetCondition.Name))
+                                    continue;
+                            }
+                            else if (provider.TriggerCondition == RuleDefinitions.AdditionalDamageTriggerCondition.TargetIsWounded)
+                            {
+                                if (defender.RulesetCharacter != null && defender.RulesetCharacter.CurrentHitPoints >= defender.RulesetCharacter.GetAttribute("HitPoints").CurrentValue)
+                                    continue;
+                            }
+                            __instance.ComputeAndNotifyAdditionalDamage(attacker, defender, provider, actualEffectForms, reactionParams);
+                            if (!attacker.UsedSpecialFeatures.ContainsKey(featureDefinition.Name))
+                            {
+                                attacker.UsedSpecialFeatures[featureDefinition.Name] = 0;
+                            }
+                            attacker.UsedSpecialFeatures[featureDefinition.Name]++;
+                            provider = null;
+                            reactionParams = null;
+                        }
                     }
 
 

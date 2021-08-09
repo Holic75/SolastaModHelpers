@@ -198,7 +198,4 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return checkReaction ? isForbidden(character) : false;
         }
     }
-
-
-
 }

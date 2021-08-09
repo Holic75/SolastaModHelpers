@@ -20,6 +20,11 @@ namespace SolastaModHelpers.Helpers
         public static string Psychic = "DamagePsychic";
         public static string Necrotic = "DamageNecrotic";
         public static string Lightning = "DamageLightning";
+        public static string Thundering = "DamageThunder";
+        public static string Poison = "DamagePoison";
+
+        public static string Piercing = "DamagePiercing";
+        public static string Bludgeoning = "DamageBludgeoning";
     }
 
 
@@ -72,6 +77,7 @@ namespace SolastaModHelpers.Helpers
         public static string MediumArmor = "MediumArmorCategory";
         public static string HeavyArmor = "HeavyArmorCategory";
         public static string Shield = "ShieldCategory";
+        public static string HideArmor = "HideArmorType";
 
         public static string[] getAllArmorProficiencies()
         {
@@ -1085,14 +1091,11 @@ namespace SolastaModHelpers.Helpers
                                           params SpellDefinition[] cantrips)
                 : base(DatabaseHelper.FeatureDefinitionBonusCantripss.BonusCantripsDomainSun, name, guid)
         {
-
             Definition.GuiPresentation.Title = title_string;
             Definition.GuiPresentation.Description = description_string;
 
-
             Definition.BonusCantrips.Clear();
             Definition.BonusCantrips.AddRange(cantrips);
-
         }
 
 
