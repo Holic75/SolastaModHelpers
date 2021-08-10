@@ -165,7 +165,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
             service3.PlaceCharacter(character, placementPositions[0], orientation);
             character.RefreshActionPerformances();
-
+            
             identifyMonster(characterMonster);
             service1.RevealCharacter(character);
 
@@ -532,7 +532,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         {
             static bool Prefix(RulesetCharacter __instance, RulesetSpellRepertoire spellRepertoire, ref int __result)
             {
-                
                 var original = Polymorph.extractOriginalFromWildshaped(__instance);
                 if (original != null)
                 {
@@ -595,6 +594,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                             || local.conditionDefinition == Common.wildshaped_unit_condition)
                         {
                             Gui.GuiService.GetScreen<GameLocationScreenExploration>()?.partyControlPanel?.Refresh();
+                            Polymorph.extractWildshapedFromOriginal(__instance)?.RefreshAll();
                             return;
                         }
                     }
@@ -617,6 +617,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                             || local.conditionDefinition == Common.wildshaped_unit_condition)
                         {
                             Gui.GuiService.GetScreen<GameLocationScreenExploration>()?.partyControlPanel?.Refresh();
+                            Polymorph.extractWildshapedFromOriginal(__instance)?.RefreshAll();
                             return;
                         }
                     }
