@@ -36,6 +36,22 @@ namespace SolastaModHelpers.Patches
         {
             internal static void Postfix(RulesetCharacter __instance)
             {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IPowerNumberOfUsesIncrease>(__instance);
+
+                var usable_powers = __instance.usablePowers;
+                foreach (var p in usable_powers)
+                {
+                    if (p?.powerDefinition == null)
+                    {
+                        continue;
+                    }
+
+                    p.maxUses = p.PowerDefinition.fixedUsesPerRecharge;
+                    foreach (var f in features)
+                    {
+                        f.apply(__instance, p);
+                    }
+                }
                 var overriden_powers = __instance.UsablePowers.Select(p => p.powerDefinition.overriddenPower).Where(p => p != null).ToHashSet();
 
                 var powers_array = __instance.usablePowers.ToArray();
@@ -134,7 +150,7 @@ namespace SolastaModHelpers.Patches
         }
 
 
-        [HarmonyPatch(typeof(RulesetCharacter), "ApplyRest")]
+        /*[HarmonyPatch(typeof(RulesetCharacter), "ApplyRest")]
         class RulesetCharacter_ApplyRest
         {
             internal static bool Prefix(RulesetCharacter __instance,
@@ -145,7 +161,7 @@ namespace SolastaModHelpers.Patches
                 RulesetCharacterHeroPatcher.RulesetCharacterHero_PostLoad.refreshMaxPowerUses(__instance as RulesetCharacterHero);
                 return true;
             }
-        }
+        }*/
 
 
         [HarmonyPatch(typeof(RulesetCharacter), "CanUseAttackOutcomeAlterationPower")]

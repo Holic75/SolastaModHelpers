@@ -88,6 +88,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public bool worksOnMelee;
         public bool worksOnRanged;
+        public bool worksOnMagic;
         public List<ConditionDefinition> checkImmunityToCondtions = new List<ConditionDefinition>();
 
         bool IReactionPowerOnAttackAttempt.canBeUsed(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode)
@@ -107,14 +108,22 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
             bool works_on_caster = effect.TargetFilteringTag != (RuleDefinitions.TargetFilteringTag)ExtendedEnums.ExtraTargetFilteringTag.NonCaster;
 
-            if (attack_mode.Ranged && !worksOnRanged)
+            if (attack_mode == null && !worksOnMagic)
             {
                 return false;
             }
 
-            if (!attack_mode.Ranged && !worksOnMelee)
+            if (attack_mode != null)
             {
-                return false;
+                if (attack_mode.Ranged && !worksOnRanged)
+                {
+                    return false;
+                }
+
+                if (!attack_mode.Ranged && !worksOnMelee)
+                {
+                    return false;
+                }
             }
 
             if (attacker.Side != effect.TargetSide && effect.TargetSide != RuleDefinitions.Side.All)

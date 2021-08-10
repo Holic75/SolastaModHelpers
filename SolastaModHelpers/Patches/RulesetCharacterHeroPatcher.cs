@@ -137,7 +137,7 @@ namespace SolastaModHelpers.Patches
         }
 
 
-        [HarmonyPatch(typeof(RulesetCharacterHero), "PostLoad")]
+        /*[HarmonyPatch(typeof(RulesetCharacterHero), "PostLoad")]
         internal class RulesetCharacterHero_PostLoad
         {
             internal static void Postfix(RulesetCharacterHero __instance)
@@ -169,7 +169,7 @@ namespace SolastaModHelpers.Patches
                     }
                 }
             }
-        }
+        }*/
 
 
         [HarmonyPatch(typeof(RulesetCharacterHero), "RefreshAttackModes")]

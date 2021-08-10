@@ -8,7 +8,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 {
     interface IPowerNumberOfUsesIncrease
     {
-        void apply(RulesetCharacterHero hero, RulesetUsablePower usable_power);
+        void apply(RulesetCharacter character, RulesetUsablePower usable_power);
     }
 
 
@@ -18,8 +18,15 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public CharacterClassDefinition characterClass;
         public List<(int, int)> levelIncreaseList = new List<(int, int)>();
 
-        public void apply(RulesetCharacterHero hero, RulesetUsablePower usable_power)
+        public void apply(RulesetCharacter character, RulesetUsablePower usable_power)
         {
+            var hero = character as RulesetCharacterHero;
+
+            if (hero == null)
+            {
+                return;
+            }
+
             if (!powers.Contains(usable_power.PowerDefinition))
             {
                 return;
@@ -42,6 +49,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                         }
                                                         );
             usable_power.maxUses += bonus_uses;
+            usable_power.Recharge();
         }
     }
 
@@ -51,13 +59,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public List<FeatureDefinitionPower> powers = new List<FeatureDefinitionPower>();
         public int value;
 
-        public void apply(RulesetCharacterHero hero, RulesetUsablePower usable_power)
+        public void apply(RulesetCharacter character, RulesetUsablePower usable_power)
         {
             int bonus_uses = value;
 
             if (powers.Contains(usable_power.PowerDefinition))
             {
                 usable_power.maxUses += bonus_uses;
+                usable_power.Recharge();
             }
         }
 

@@ -93,6 +93,47 @@ namespace SolastaModHelpers.Patches
             }
         }
 
+
+        /*class CharacterActionMagicEffectExecuteMagicAttackPatcher
+        {
+            [HarmonyPatch(typeof(CharacterActionMagicEffect), "ExecuteMagicAttack")]
+            internal static class CharacterActionMagicEffect_ExecuteMagicAttack_Patch
+            {
+                internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result,
+                                                                       CharacterActionMagicEffect __instance,
+                                                                        RulesetEffect activeEffect,
+                                                                        GameLocationCharacter target,
+                                                                        ActionModifier attackModifier,
+                                                                        List<EffectForm> actualEffectForms,
+                                                                        bool firstTarget,
+                                                                        bool checkMagicalAttackDamage
+                                                                        )
+                {
+                    var battleService = ServiceRepository.GetService<IGameLocationBattleService>() as GameLocationBattleManager;
+                    EffectDescription effectDescription = activeEffect.EffectDescription;
+                    bool needToRollDie = effectDescription.RangeType == RuleDefinitions.RangeType.MeleeHit || effectDescription.RangeType == RuleDefinitions.RangeType.RangeHit;
+
+                    if (battleService != null && needToRollDie)
+                    {
+                        var extra_events = GameLocationBattleManagerHandleCharacterAttackPatcher.GameLocationBattleManager_HandleCharacterAttack_Patch
+                                    .Process(battleService, __instance?.ActingCharacter, target, attackModifier, null);
+
+                        while (extra_events.MoveNext())
+                        {
+                            yield return extra_events.Current;
+                        }
+                    }
+
+                    while (__result.MoveNext())
+                    {
+                        yield return __result.Current;
+                    }
+
+                }
+            }
+        }*/
+
+
         class GameLocationBattleManagerHandleCharacterAttackPatcher
         {
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterAttack")]
