@@ -26,19 +26,33 @@ namespace SolastaModHelpers.Patches
                                             string spellTag,
                                             bool canAcquireSpells,
                                             bool unlearn)
-                { 
+                {
+                    var hero = characterBuildingService.HeroCharacter;
+                    if (hero == null)
+                    {
+                        return true;
+                    }
+
                     if (unlearn)
                     {
                         var restricted_schools = restrictedSchools;
-                        var spell_set = spellListDefinition.SpellsByLevel.Aggregate(new HashSet<SpellDefinition>(), (old, next) => 
+
+                        var spell_lists = Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinitionMagicAffinity>(hero).Where(f => f.extendedSpellList != null)
+                                                                                            .Select(f => f.extendedSpellList).ToList();
+                        spell_lists.Add(spellListDefinition);
+
+                        var spell_set = spell_lists.Aggregate(new HashSet<SpellDefinition>(), (old, next) => 
                         {
-                           foreach (var ss in next.spells)
-                           {
-                                if (restricted_schools.Count == 0 || restricted_schools.Contains(ss.SchoolOfMagic))
+                            foreach (var sl in next.spellsByLevel)
+                            {
+                                foreach (var ss in sl.spells)
                                 {
-                                    old.Add(ss);
+                                    if (restricted_schools.Count == 0 || restricted_schools.Contains(ss.SchoolOfMagic))
+                                    {
+                                        old.Add(ss);
+                                    }
                                 }
-                           }
+                            }
                            return old;
                         }
                         );
@@ -47,12 +61,6 @@ namespace SolastaModHelpers.Patches
                     }
 
                     
-                    var hero = characterBuildingService.HeroCharacter;
-                    if (hero == null)
-                    {
-                        return true;
-                    }
-
                     var extra_spell_list = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IReplaceSpellList>(hero)
                                                                     .Select(rs => rs.getSpelllist(characterBuildingService, spellLevel == 0)).FirstOrDefault(s => s != null);
 
