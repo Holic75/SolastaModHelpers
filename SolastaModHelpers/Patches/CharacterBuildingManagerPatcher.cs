@@ -58,6 +58,24 @@ namespace SolastaModHelpers.Patches
         }
 
 
+        class CharacterBuildingManagerGrantFeaturesPatcher
+        {
+            [HarmonyPatch(typeof(CharacterBuildingManager), "UnassignLastSubclass")]
+            internal static class CharacterBuildingManager_UnassignLastSubclass_Patch
+            {
+                internal static bool Prefix(CharacterBuildingManager __instance)
+                {
+                    CharacterBuildingManagerBrowseGrantedFeaturesHierarchicallyPatcher
+                        .CharacterBuildingManager_BrowseGrantedFeaturesHierarchically_Patch.
+                            correctNumberOfSpellsKnown(__instance, 
+                                                        Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.heroCharacter).OfType<FeatureDefinition>().ToList(),
+                                                        -1);
+                    return true;
+                }
+            }
+        }
+
+
         class CharacterBuildingManagerBrowseGrantedFeaturesHierarchicallyPatcher
         {
             [HarmonyPatch(typeof(CharacterBuildingManager), "BrowseGrantedFeaturesHierarchically")]
@@ -75,7 +93,7 @@ namespace SolastaModHelpers.Patches
 
                 //correct bonus number of spells  known for the features granted by subclass at level 1 
                 //Since at this time spell repertoires are not yet created, so they will not be applied until next lvl up
-                static void correctNumberOfSpellsKnown(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)
+                internal static void correctNumberOfSpellsKnown(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures, int multiplier = 1)
                 {
                     var cantrip_pools = __instance.pointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip];
                     var spell_pools = __instance.pointPoolStacks[HeroDefinitions.PointsPoolType.Spell];
@@ -88,11 +106,10 @@ namespace SolastaModHelpers.Patches
                             var sp_features = __instance.heroCharacter.activeFeatures[cp.Key].OfType<FeatureDefinitionCastSpell>().Where(sp => !__instance.heroCharacter.spellRepertoires.Any(sr => sr.SpellCastingFeature == sp));
                             foreach (var sp_f in sp_features)
                             {
-                                var bonus = f.getKnownCantripsBonus(__instance, __instance.heroCharacter, sp_f);
+                                var bonus = f.getKnownCantripsBonus(__instance, __instance.heroCharacter, sp_f) * multiplier;
                                 cp.Value.RemainingPoints += bonus;
                                 cp.Value.MaxPoints += bonus;
                             }
-
                         }
 
                         foreach (var cp in spell_pools.activePools)
@@ -100,7 +117,7 @@ namespace SolastaModHelpers.Patches
                             var sp_features = __instance.heroCharacter.activeFeatures[cp.Key].OfType<FeatureDefinitionCastSpell>().Where(sp => !__instance.heroCharacter.spellRepertoires.Any(sr => sr.SpellCastingFeature == sp));
                             foreach (var sp_f in sp_features)
                             {
-                                var bonus = f.getKnownSpellsBonus(__instance, __instance.heroCharacter, sp_f);
+                                var bonus = f.getKnownSpellsBonus(__instance, __instance.heroCharacter, sp_f) * multiplier;
                                 cp.Value.RemainingPoints += bonus;
                                 cp.Value.MaxPoints += bonus;
                             }
@@ -121,7 +138,6 @@ namespace SolastaModHelpers.Patches
                     foreach (var f in features)
                     {
                         f.maybeGrantSpellsOnLevelUp(__instance);
-
                     }
 
                     return;
