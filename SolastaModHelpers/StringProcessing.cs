@@ -142,7 +142,6 @@ namespace SolastaModHelpers.Helpers
 
                 foreach (var tt in tag_terms)
                 {
-
                     s = s.Replace(tt.Item1, tt.Item2.Languages[i]);
                 }
                 new_term.Languages[i] = s;
@@ -178,7 +177,54 @@ namespace SolastaModHelpers.Helpers
 
             for (int i = 0; i < new_term.Languages.Count(); i++)
             {
-                new_term.Languages[i] = new_term.Languages[i] + text_in_between + term2.Languages[i];
+                if (new_term.Languages[i] == null)
+                {
+                    continue;
+                }
+                if (term2.Languages.Count() > i)
+                {
+                    new_term.Languages[i] = new_term.Languages[i] + text_in_between + term2.Languages[i];
+                }
+            }
+            return new_string_id;
+        }
+
+
+
+        public static string insertStrings(string old_string_id1, string old_string_id2, string new_string_id, string insert_tag)
+        {
+            var languageSourceData = LocalizationManager.Sources[0];
+            if (!languageSourceData.mDictionary.ContainsKey(old_string_id1))
+            {
+                throw new SystemException($"String: {old_string_id1} is not present in LanguageSourceData");
+            }
+
+            if (!languageSourceData.mDictionary.ContainsKey(old_string_id2))
+            {
+                throw new SystemException($"String: {old_string_id2} is not present in LanguageSourceData");
+            }
+
+            if (languageSourceData.mDictionary.ContainsKey(new_string_id))
+            {
+                throw new SystemException($"String: {new_string_id} is already present in LanguageSourceData");
+            }
+
+            var term1 = languageSourceData.mDictionary[old_string_id1];
+            var term2 = languageSourceData.mDictionary[old_string_id2];
+
+            var new_term = languageSourceData.AddTerm(new_string_id);
+            new_term.Languages = term1.Languages.ToArray();
+
+            for (int i = 0; i < new_term.Languages.Count(); i++)
+            {
+                if (new_term.Languages[i] == null)
+                {
+                    continue;
+                }
+                if (term2.Languages.Count() > i)
+                {
+                    new_term.Languages[i] = new_term.Languages[i].Replace(insert_tag, term2.Languages[i]);
+                }
             }
             return new_string_id;
         }
