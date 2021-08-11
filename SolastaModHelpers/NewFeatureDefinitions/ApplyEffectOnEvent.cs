@@ -348,7 +348,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                condition, durationType, durationValue, turnOccurence,
                                                                character.Guid,
                                                                character.CurrentFaction.Name);
-            character.AddConditionOfCategory("10Combat", active_condition, true);
+            character.AddConditionOfCategory("CustomCondition", active_condition, true);
         }
     }
 
@@ -391,7 +391,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                                        condition, durationType, durationValue, turnOccurence,
                                                                                        caster.Guid,
                                                                                        caster.CurrentFaction.Name);
-            target.AddConditionOfCategory("10Combat", active_condition, true);
+            target.AddConditionOfCategory("CustomCondition", active_condition, true);
         }
     }
 
@@ -690,7 +690,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                this.extraCondition, RuleDefinitions.DurationType.Permanent, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
                                                                condition.sourceGuid,
                                                                condition.sourceFactionName);
-            target.AddConditionOfCategory("10Combat", active_condition, true);
+            target.AddConditionOfCategory("CustomCondition", active_condition, true);
         }
     }
 
@@ -713,7 +713,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
             int val = hdMultiplier * monster.monsterDefinition.hitDice;
             monster.GetAttribute("HitPoints").AddModifier(RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Additive,
-                                                                                                         val, "10Combat"));
+                                                                                                         val, "CustomCondition"));
             monster.CurrentHitPoints += hdMultiplier * monster.monsterDefinition.hitDice;
         }
     }

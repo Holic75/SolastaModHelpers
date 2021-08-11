@@ -377,6 +377,14 @@ namespace SolastaModHelpers.Helpers
             return new PoolBuilder(name, guid, new_title_string, new_description_string, DatabaseHelper.FeatureDefinitionPointPools.PointPoolRogueSkillPoints,
                                       HeroDefinitions.PointsPoolType.Skill, num_skills, skills).AddToDB();
         }
+
+
+        public static FeatureDefinitionPointPool createToolProficiency(string name, string guid, string new_title_string, string new_description_string, int num_tools, params string[] tools)
+        {
+            Tools.assertAllTools(tools);
+            return new PoolBuilder(name, guid, new_title_string, new_description_string, DatabaseHelper.FeatureDefinitionPointPools.PointPoolRogueSkillPoints,
+                                      HeroDefinitions.PointsPoolType.Tool, num_tools, tools).AddToDB();
+        }
     }
 
 
