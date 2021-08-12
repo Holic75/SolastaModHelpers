@@ -13,7 +13,7 @@ namespace SolastaModHelpers.Patches
         [HarmonyPatch(typeof(RulesetCharacterMonster), "BuildAttackMode")]
         class RulesetCharacterMonster_BuildAttackMode
         {
-            internal static void Postfix(RulesetCharacter __instance,
+            internal static void Postfix(RulesetCharacterMonster __instance,
                                         MonsterAttackDefinition monsterAttackDefinition,
                                         ref RulesetAttackMode __result)
             {
@@ -31,7 +31,53 @@ namespace SolastaModHelpers.Patches
                     DamageForm firstDamageForm = __result.EffectDescription.FindFirstDamageForm();
                     firstDamageForm.BonusDamage += f.DamageRollModifier;
                 }
+            }
+        }
 
+
+        [HarmonyPatch(typeof(RulesetCharacterMonster), "RefreshAttackModes")]
+        class RulesetCharacterMonster_RefreshAttackModes
+        {
+            internal static void Postfix(RulesetCharacterMonster __instance)
+            {
+
+                var game_location_character = Helpers.Misc.findGameLocationCharacter(__instance);
+
+                if (__instance.monsterDefinition.GroupAttacks || __instance.AttackModes.Count() <= 2
+                    || __instance.AttackModes[0].actionType != __instance.AttackModes[2].actionType
+                    || __instance.AttackModes[0].ranged == __instance.AttackModes[2].ranged
+                    || __instance.side == RuleDefinitions.Side.Enemy
+                    || !__instance.ConditionsByCategory.ContainsKey(NewFeatureDefinitions.Polymorph.tagWildshapePolymorphed)
+                    || game_location_character == null)
+                {
+                    return;
+                }
+
+                IGameLocationBattleService battle_service = ServiceRepository.GetService<IGameLocationBattleService>();
+                if (battle_service?.Battle == null || battle_service.Battle.activeContender != game_location_character)
+                {
+                    return;
+                }
+             
+                var enemies = battle_service.Battle.enemyContenders;
+                if (enemies.Count() == 0)
+                {
+                    return;
+                }
+
+                foreach (var e in enemies)
+                {
+                    if (battle_service.IsWithinXCells(game_location_character, e, __instance.AttackModes[0].ReachRange))
+                    {
+                        return;
+                    }
+
+                }
+                                
+                var attack0 = __instance.AttackModes[0];
+                var attack1 = __instance.AttackModes[2];
+                __instance.AttackModes[0] = attack1;
+                __instance.AttackModes[2] = attack0;
             }
         }
     }

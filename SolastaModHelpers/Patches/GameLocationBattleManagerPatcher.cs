@@ -10,6 +10,31 @@ namespace SolastaModHelpers.Patches
 {
     class GameLocationBattleManagerPatcher
     {
+
+        class GameLocationBattleManagerHandleCharacterMoveEndPatcher
+        {
+            [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterMoveEnd")]
+            internal static class GameLocationBattleManager_HandleReactionToDamage_Patch
+            {
+                internal static void Postfix(GameLocationBattleManager __instance,
+                                             GameLocationCharacter mover)
+                {
+                    if (__instance.Battle == null)
+                    {
+                        return;
+                    }
+
+                    var monster = mover.RulesetCharacter as RulesetCharacterMonster;
+                    if (monster != null && !monster.monsterDefinition.groupAttacks && monster.monsterDefinition.AttackIterations.Count() > 1
+                        && monster.ConditionsByCategory.ContainsKey(NewFeatureDefinitions.Polymorph.tagWildshapePolymorphed))
+                    {
+                        monster.RefreshAttackModes(false);
+                    }
+                }
+            }
+        }
+
+
         class GameLocationBattleManagerHandleReactionToDamagePatcher
         {
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleReactionToDamage")]

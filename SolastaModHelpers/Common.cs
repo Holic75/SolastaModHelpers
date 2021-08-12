@@ -23,11 +23,14 @@ namespace SolastaModHelpers
         public static NewFeatureDefinitions.CancelPolymorphFeature cancel_polymorph_feature;
         public static NewFeatureDefinitions.SpellcastingForbidden polymorph_spellcasting_forbidden;
 
+        public static FeatureDefinitionPower switch_attack;
+
         static public void initialize()
         {
             fillRitualSpellcastingMap();
             createPolymorphFeatures();
         }
+
 
         static void createPolymorphFeatures()
         {

@@ -11,3 +11,4 @@ Feature/&CancelPolymorphSelfPowerTitle	Return to Natural Form
 Feature/&CancelPolymorphSelfPowerDescription	You return back to your natural form.
 Rules/&WildshapedConditionTitle	Transformed
 Rules/&WildshapedConditionDescription	The character is transformed into another creature.
+Rules/&SwitchAttackTitle Switch Attack Type
