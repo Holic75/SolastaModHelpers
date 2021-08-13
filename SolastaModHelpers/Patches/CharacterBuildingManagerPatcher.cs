@@ -9,7 +9,7 @@ namespace SolastaModHelpers.Patches
 {
     class CharacterBuildingManagerPatcher
     {
-        class CharacterBuildingManagerSetPointPoolPatcher
+        /*class CharacterBuildingManagerSetPointPoolPatcher
         {
             [HarmonyPatch(typeof(CharacterBuildingManager), "SetPointPool")]
             internal static class CharacterBuildingManager_SetPointPool_Patch
@@ -25,7 +25,7 @@ namespace SolastaModHelpers.Patches
                     return true;
                 }
             }
-        }
+        }*/
 
 
         class CharacterBuildingManagerApplyFeatureCastSpellPatcher
@@ -42,13 +42,24 @@ namespace SolastaModHelpers.Patches
                         return;
                     }
 
+                    CharacterClassDefinition class_origin;
+                    CharacterRaceDefinition race_origin;
+                    FeatDefinition feat_origin;
+                    hero.LookForFeatureOrigin(feature_cast_spell, out race_origin, out class_origin, out feat_origin);
+                    CharacterClassDefinition current_class;
+                    int current_level;
+                    __instance.GetLastAssignedClassAndLevel(out current_class, out current_level);
+
                     int bonus_known_spells = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
                                                                          .Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(__instance, hero, feature_cast_spell));
                     int bonus_known_cantrips = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
                                                      .Aggregate(0, (old, next) => old += next.getKnownCantripsBonus(__instance, hero, feature_cast_spell));
 
-                    bonus_known_cantrips += Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinitionBonusCantrips>(__instance.HeroCharacter)
-                                                     .Aggregate(0, (old, next) => old += next.bonusCantrips.Count()) - __instance.bonusCantrips.Count;
+                    if (current_class == class_origin)
+                    {
+                        bonus_known_cantrips += Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinitionBonusCantrips>(__instance.HeroCharacter)
+                                                         .Aggregate(0, (old, next) => old += next.bonusCantrips.Count()) - __instance.bonusCantrips.Count;
+                    }
 
                     __instance.tempAcquiredSpellsNumber = __instance.tempAcquiredSpellsNumber + bonus_known_spells;
                     __instance.tempAcquiredCantripsNumber = __instance.tempAcquiredCantripsNumber + bonus_known_cantrips;
