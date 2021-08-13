@@ -1,4 +1,5 @@
 Reaction/&CommonUsePowerReactTitle	React
+Reaction/&CommonUsePowerSpendTitle	Spend
 Rules/&CommonConditioUnderEffectOfPrefix	Effect of 
 Reaction/&DeflectMissileDescriptionCustom	{0} is attacking {1}, who can react to reduce the incoming damage by 1D10 + {2} modifier + his/her {3} class level.
 Failure/&FailureFlagTargetIncorrectWeapon	Your current weapon can not be used.
@@ -11,4 +12,4 @@ Feature/&CancelPolymorphSelfPowerTitle	Return to Natural Form
 Feature/&CancelPolymorphSelfPowerDescription	You return back to your natural form.
 Rules/&WildshapedConditionTitle	Transformed
 Rules/&WildshapedConditionDescription	The character is transformed into another creature.
-Rules/&SwitchAttackTitle Switch Attack Type
+Feedback/&RollResultModifiedTitle {0}'s roll result was modified: {1} -> {2}

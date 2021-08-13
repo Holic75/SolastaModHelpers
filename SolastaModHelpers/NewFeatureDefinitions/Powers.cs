@@ -181,8 +181,18 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class HiddenPower: PowerWithRestrictions
-    { 
+    public interface IHiddenAbility
+    {
+        bool isHidden();
+    }
+
+
+    public class HiddenPower : PowerWithRestrictions, IHiddenAbility
+    {
+        public bool isHidden()
+        {
+            return true;
+        }
     }
 
     public class RerollFailedSavePower : HiddenPower

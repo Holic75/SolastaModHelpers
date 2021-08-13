@@ -42,7 +42,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 }
             }
 
-            return Math.Max(0, res);
+            return res;
         }
     }
 }

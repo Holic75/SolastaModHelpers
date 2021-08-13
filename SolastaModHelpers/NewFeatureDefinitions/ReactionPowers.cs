@@ -8,24 +8,98 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 {
     public interface IReactionPowerOnAttackAttempt
     {
-        bool canBeUsed(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode);
+        bool canBeUsedOnAttackAttempt(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode);
+    }
+
+
+    public interface IModifyFailedSavePower
+    {
+        bool canBeUsedOnFailedSave(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier save_modifier, RulesetEffect rulesetEffect);
+        int getSavingThrowBonus(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier save_modifier, RulesetEffect rulesetEffect);
     }
 
 
     public interface IReactionPowerOnDamage
     {
-        bool canBeUsed(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode, bool is_magic);
+        bool canBeUsedOnDamage(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode, bool is_magic);
     }
 
 
-    public class FeatureDefinitionReactionPowerOnDamage: NewFeatureDefinitions.LinkedPower, IReactionPowerOnDamage
+    public class FeatureDefinitionAddRandomBonusOnFailedSavePower : NewFeatureDefinitions.LinkedPower, IModifyFailedSavePower, IHiddenAbility
+    {
+        public int diceNumber = 1;
+        public RuleDefinitions.DieType dieType = RuleDefinitions.DieType.D1;
+
+
+        public bool canBeUsedOnFailedSave(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier save_modifier, RulesetEffect rulesetEffect)
+        {
+            var effect = this.EffectDescription;
+            if (effect == null || caster == null || attacker == null)
+            {
+                return false;
+            }
+
+            int max_distance = this.EffectDescription.RangeParameter;
+
+            if ((caster.LocationPosition - defender.LocationPosition).magnitude > max_distance)
+            {
+                return false;
+            }
+
+            bool works_on_caster = effect.TargetFilteringTag != (RuleDefinitions.TargetFilteringTag)ExtendedEnums.ExtraTargetFilteringTag.NonCaster;
+
+            if (defender.Side != effect.TargetSide && effect.TargetSide != RuleDefinitions.Side.All)
+            {
+                return false;
+            }
+
+
+            if (!works_on_caster && defender == caster)
+            {
+                return false;
+            }
+
+            if (effect.targetType == RuleDefinitions.TargetType.Self && defender != caster)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public int getSavingThrowBonus(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier save_modifier, RulesetEffect rulesetEffect)
+        {
+            int first_roll, second_roll;
+            int bonus = 0;
+            for (int i = 0; i < diceNumber; i++)
+            {
+                bonus += RuleDefinitions.RollDie(dieType, RuleDefinitions.AdvantageType.None, out first_roll, out second_roll, 0.0f);
+            }
+            return bonus;
+        }
+
+        public bool isHidden()
+        {
+            return true;
+        }
+
+
+    }
+
+
+    public class FeatureDefinitionReactionPowerOnDamage: NewFeatureDefinitions.LinkedPower, IReactionPowerOnDamage, IHiddenAbility
     {
         public bool worksOnMelee;
         public bool worksOnRanged;
         public bool worksOnMagic;
         public List<ConditionDefinition> checkImmunityToCondtions = new List<ConditionDefinition>();
 
-        bool IReactionPowerOnDamage.canBeUsed(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode, bool is_magic)
+        public bool isHidden()
+        {
+            return true;
+        }
+
+        bool IReactionPowerOnDamage.canBeUsedOnDamage(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode, bool is_magic)
         {
             var effect = this.EffectDescription;
             if (effect == null || caster == null || attacker == null)
@@ -74,6 +148,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return false;
             }
 
+            if (effect.targetType == RuleDefinitions.TargetType.Self && attacker != caster)
+            {
+                return false;
+            }
+
             if (checkImmunityToCondtions.Any(c => attacker.rulesetActor.IsImmuneToCondition(c.name)))
             {
                 return false;
@@ -84,15 +163,37 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class FeatureDefinitionReactionPowerOnAttackAttempt : NewFeatureDefinitions.LinkedPower, IReactionPowerOnAttackAttempt
+
+
+    public class FeatureDefinitionReactionPowerOnAttackAttempt : NewFeatureDefinitions.LinkedPower, IReactionPowerOnAttackAttempt, IHiddenAbility
     {
         public bool worksOnMelee;
         public bool worksOnRanged;
         public bool worksOnMagic;
+        public bool onlyOnFailure;
+        public bool onlyOnSuccess;
+
         public List<ConditionDefinition> checkImmunityToCondtions = new List<ConditionDefinition>();
 
-        bool IReactionPowerOnAttackAttempt.canBeUsed(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode)
+        public bool isHidden()
         {
+            return true;
+        }
+
+        bool IReactionPowerOnAttackAttempt.canBeUsedOnAttackAttempt(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
+        {
+            var prerolled_data = AttackRollsData.getPrerolledData(attacker);
+
+            if (onlyOnSuccess && prerolled_data.outcome != RuleDefinitions.RollOutcome.Success)
+            {
+                return false;
+            }
+
+            if (onlyOnFailure && prerolled_data.outcome != RuleDefinitions.RollOutcome.Failure)
+            {
+                return false;
+            }
+
             var effect = this.EffectDescription;
             if (effect == null)
             {
@@ -132,6 +233,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             if (!works_on_caster && attacker == caster)
+            {
+                return false;
+            }
+
+            if (effect.targetType == RuleDefinitions.TargetType.Self && attacker != caster)
             {
                 return false;
             }

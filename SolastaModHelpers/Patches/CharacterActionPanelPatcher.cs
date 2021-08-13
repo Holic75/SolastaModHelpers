@@ -32,7 +32,7 @@ namespace SolastaModHelpers.Patches
                 {
                     //Main.Logger.Log("Processing Power: " + p.PowerDefinition.name);
                     if (((p.PowerDefinition as NewFeatureDefinitions.IPowerRestriction)?.isForbidden(character)).GetValueOrDefault()
-                        || (p.PowerDefinition is NewFeatureDefinitions.HiddenPower))
+                        || ((p.PowerDefinition as NewFeatureDefinitions.IHiddenAbility)?.isHidden()).GetValueOrDefault())
                     {
                         panel.relevantPowers.Remove(p);
                         //Main.Logger.Log("Removing Power: " + p.PowerDefinition.name);

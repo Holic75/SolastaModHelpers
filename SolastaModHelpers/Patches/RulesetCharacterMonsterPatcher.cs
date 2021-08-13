@@ -71,7 +71,6 @@ namespace SolastaModHelpers.Patches
                     {
                         return;
                     }
-
                 }
                                 
                 var attack0 = __instance.AttackModes[0];

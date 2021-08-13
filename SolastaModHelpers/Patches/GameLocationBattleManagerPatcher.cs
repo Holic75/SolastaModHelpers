@@ -176,12 +176,26 @@ namespace SolastaModHelpers.Patches
                     {
                         yield return __result.Current;
                     }
+
+                    if (!attackerAttackMode.AutomaticHit)
+                    {
+                        RuleDefinitions.RollOutcome outcome;
+                        int delta = 0;
+                        int attackRoll = attacker.RulesetCharacter.RollAttackMode(attackerAttackMode, defender.RulesetActor, attackerAttackMode.SourceDefinition,
+                                                                                  attackModifier.AttacktoHitTrends, attackModifier.IgnoreAdvantage, attackModifier.AttackAdvantageTrends,
+                                                                                  false, attackModifier.AttackRollModifier, out outcome, out delta, -1, true);
+                        AttackRollsData.storePrerolledData(attacker, new AttackRollInfo(attackRoll, outcome));
+                        //Main.Logger.Log($"Prerolling an attack for {attacker.Name}: {attackRoll} -> {outcome}");
+                    }
+
                     var extra_events = Process(__instance, attacker, defender, attackModifier, attackerAttackMode);
 
                     while (extra_events.MoveNext())
                     {
                         yield return extra_events.Current;
                     }
+
+                    
                 }
 
 
@@ -211,7 +225,7 @@ namespace SolastaModHelpers.Patches
                             var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnAttackAttempt
                                                                                   && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
                                                                                   && (u.PowerDefinition as NewFeatureDefinitions.IReactionPowerOnAttackAttempt)
-                                                                                    .canBeUsed(unit, attacker, defender, attackerAttackMode)
+                                                                                    .canBeUsedOnAttackAttempt(unit, attacker, defender, attackModifier, attackerAttackMode)
                                                                                  ).ToArray();
                             var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
                             {
@@ -225,9 +239,10 @@ namespace SolastaModHelpers.Patches
 
                             foreach (var p in powers)
                             {
-                                if (unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) != ActionDefinitions.ActionStatus.Available)
+                                if (p.powerDefinition.activationTime == RuleDefinitions.ActivationTime.Reaction &&
+                                    unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) != ActionDefinitions.ActionStatus.Available)
                                 {
-                                    break;
+                                    continue;
                                 }
                                 CharacterActionParams reactionParams = new CharacterActionParams(unit, (ActionDefinitions.Id)ExtendedActionId.ModifyAttackRollViaPower);
                                 reactionParams.TargetCharacters.Add(attacker);
@@ -236,7 +251,7 @@ namespace SolastaModHelpers.Patches
                                 reactionParams.AttackMode = attackerAttackMode;
                                 reactionParams.UsablePower = p;
                                 IRulesetImplementationService service1 = ServiceRepository.GetService<IRulesetImplementationService>();
-                                reactionParams.RulesetEffect = (RulesetEffect)service1.InstantiateEffectPower(attacker.RulesetCharacter, p, false);
+                                reactionParams.RulesetEffect = (RulesetEffect)service1.InstantiateEffectPower(unit.RulesetCharacter, p, false);
                                 reactionParams.StringParameter = p.PowerDefinition.Name;
                                 reactionParams.IsReactionEffect = true;
                                 IGameLocationActionService service2 = ServiceRepository.GetService<IGameLocationActionService>();
@@ -385,7 +400,7 @@ namespace SolastaModHelpers.Patches
                             var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnDamage
                                                                                   && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
                                                                                   && (u.PowerDefinition as NewFeatureDefinitions.IReactionPowerOnDamage)
-                                                                                    .canBeUsed(unit, attacker, defender, null, true)
+                                                                                    .canBeUsedOnDamage(unit, attacker, defender, null, true)
                                                                                  ).ToArray();
 
                             var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
@@ -400,15 +415,16 @@ namespace SolastaModHelpers.Patches
 
                             foreach (var p in powers)
                             {
-                                if (unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) != ActionDefinitions.ActionStatus.Available)
+                                if (p.powerDefinition.activationTime == RuleDefinitions.ActivationTime.Reaction
+                                    && unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) != ActionDefinitions.ActionStatus.Available)
                                 {
-                                    break;
+                                    continue;
                                 }
                                 CharacterActionParams reactionParams = new CharacterActionParams(unit, ActionDefinitions.Id.PowerReaction);
                                 reactionParams.TargetCharacters.Add(attacker);
                                 reactionParams.ActionModifiers.Add(new ActionModifier());
                                 IRulesetImplementationService service1 = ServiceRepository.GetService<IRulesetImplementationService>();
-                                reactionParams.RulesetEffect = (RulesetEffect)service1.InstantiateEffectPower(defender.RulesetCharacter, p, false);
+                                reactionParams.RulesetEffect = (RulesetEffect)service1.InstantiateEffectPower(unit.RulesetCharacter, p, false);
                                 reactionParams.StringParameter = p.PowerDefinition.Name;
                                 reactionParams.IsReactionEffect = true;
                                 IGameLocationActionService service2 = ServiceRepository.GetService<IGameLocationActionService>();
@@ -610,7 +626,7 @@ namespace SolastaModHelpers.Patches
                             var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnDamage
                                                                                   && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
                                                                                   && (u.PowerDefinition as NewFeatureDefinitions.IReactionPowerOnDamage)
-                                                                                    .canBeUsed(unit, attacker, defender, attackMode, false)
+                                                                                    .canBeUsedOnDamage(unit, attacker, defender, attackMode, false)
                                                                                  ).ToArray();
 
                             var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
@@ -633,7 +649,7 @@ namespace SolastaModHelpers.Patches
                                 reactionParams.TargetCharacters.Add(attacker);
                                 reactionParams.ActionModifiers.Add(new ActionModifier());
                                 IRulesetImplementationService service1 = ServiceRepository.GetService<IRulesetImplementationService>();
-                                reactionParams.RulesetEffect = (RulesetEffect)service1.InstantiateEffectPower(defender.RulesetCharacter, p, false);
+                                reactionParams.RulesetEffect = (RulesetEffect)service1.InstantiateEffectPower(unit.RulesetCharacter, p, false);
                                 reactionParams.StringParameter = p.PowerDefinition.Name;
                                 reactionParams.IsReactionEffect = true;
                                 IGameLocationActionService service2 = ServiceRepository.GetService<IGameLocationActionService>();
@@ -667,6 +683,8 @@ namespace SolastaModHelpers.Patches
                     {
                         yield return __result.Current;
                     }
+
+
                     if (action.SaveOutcome != RuleDefinitions.RollOutcome.CriticalFailure || action.SaveOutcome != RuleDefinitions.RollOutcome.Failure)
                     {
                         yield return null;
@@ -689,8 +707,82 @@ namespace SolastaModHelpers.Patches
                                                                         ActionModifier saveModifier,
                                                                         bool hasHitVisual)
                 {
+                    var units = __instance.Battle?.AllContenders;
+                    if (units == null)
+                    {
+                        units = new List<GameLocationCharacter>() {caster, defender};
+                    }
 
-                    var power = defender.RulesetCharacter?.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.RerollFailedSavePower
+                    var save_data = NewFeatureDefinitions.SavingthrowRollsData.getPrerolledData(defender);
+                    
+                    
+                    foreach (GameLocationCharacter unit in units)
+                    {
+                        if (save_data.outcome != RuleDefinitions.RollOutcome.Failure)
+                        {
+                            break;
+                        }
+                        if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious)
+                        {
+                            var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IModifyFailedSavePower
+                                                                                  && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
+                                                                                  && (u.PowerDefinition as NewFeatureDefinitions.IModifyFailedSavePower)
+                                                                                    .canBeUsedOnFailedSave(unit, caster, defender, saveModifier, rulesetEffect)
+                                                                                 ).ToArray();
+                            var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
+                            {
+                                if (next.PowerDefinition?.overriddenPower != null)
+                                {
+                                    old.Add(next.PowerDefinition?.overriddenPower);
+                                }
+                                return old;
+                            });
+                            powers = powers.Where(pp => !overriden_powers.Contains(pp.powerDefinition)).ToArray();
+
+                            foreach (var p in powers)
+                            {
+                                if (p.powerDefinition.activationTime == RuleDefinitions.ActivationTime.Reaction &&
+                                    unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) != ActionDefinitions.ActionStatus.Available)
+                                {
+                                    continue;
+                                }
+                                CharacterActionParams reactionParams = new CharacterActionParams(unit, (ActionDefinitions.Id)ExtendedActionId.ConsumePowerUse);
+                                reactionParams.ActionModifiers.Add(saveModifier);
+                                reactionParams.UsablePower = p;
+                                reactionParams.isReactionEffect = p.powerDefinition.ActivationTime == RuleDefinitions.ActivationTime.Reaction;
+                                reactionParams.RulesetEffect = rulesetEffect;
+                                GameLocationActionManager service = ServiceRepository.GetService<IGameLocationActionService>() as GameLocationActionManager;
+                                if (service == null)
+                                {
+                                    yield return null;
+                                }
+                                int count = service.PendingReactionRequestGroups.Count;
+                                service.AddInterruptRequest(new ReactionRequestConsumePowerUse(reactionParams));
+                                yield return __instance.WaitForReactions(defender, service, count);
+                                if (reactionParams.ReactionValidated)
+                                {
+                                    int old_value = save_data.total_roll_value;
+                                    save_data.total_roll_value += (p.powerDefinition as IModifyFailedSavePower).getSavingThrowBonus(unit, caster, defender, saveModifier, rulesetEffect);
+                                    save_data.outcome = save_data.total_roll_value < save_data.dc_value ? RuleDefinitions.RollOutcome.Failure : RuleDefinitions.RollOutcome.Success;                                  
+                                    action.SaveOutcome = save_data.outcome;
+                                    //Main.Logger.Log("New Roll Value: " + save_data.total_roll_value.ToString());
+                                    
+                                    var game_console = ServiceRepository.GetService<IGameService>()?.Game?.GameConsole;
+                                    if (game_console != null)
+                                    {
+                                        GameConsoleEntry entry = new GameConsoleEntry("Feedback/&RollResultModifiedTitle", game_console.consoleTableDefinition);
+                                        game_console.AddCharacterEntry(defender.RulesetActor, entry);
+                                        entry.AddParameter(ConsoleStyleDuplet.ParameterType.AbilityInfo, old_value.ToString());
+                                        entry.AddParameter(ConsoleStyleDuplet.ParameterType.AbilityInfo, save_data.total_roll_value.ToString());
+                                        game_console.AddEntry(entry);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    NewFeatureDefinitions.SavingthrowRollsData.removePrerolledData(defender);
+
+                   var power = defender.RulesetCharacter?.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.RerollFailedSavePower
                                                       && defender.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
                                                      ).FirstOrDefault();
                     if (power != null)

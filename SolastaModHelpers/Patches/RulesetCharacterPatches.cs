@@ -150,18 +150,41 @@ namespace SolastaModHelpers.Patches
         }
 
 
-        /*[HarmonyPatch(typeof(RulesetCharacter), "ApplyRest")]
-        class RulesetCharacter_ApplyRest
+
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "RollAttackMode")]
+        class RulesetCharacter_RollAttackMode
         {
             internal static bool Prefix(RulesetCharacter __instance,
-                                        RuleDefinitions.RestType restType,
-                                        bool simulate,
-                                        TimeInfo restStartTime)
+                                        RulesetAttackMode attackMode,
+                                        RulesetActor target,
+                                        BaseDefinition attackMethod,
+                                        List<RuleDefinitions.TrendInfo> toHitTrends,
+                                        bool ignoreAdvantage,
+                                        List<RuleDefinitions.TrendInfo> advantageTrends,
+                                        bool opportunity,
+                                        int rollModifier,
+                                        ref RuleDefinitions.RollOutcome outcome,
+                                        ref int successDelta,
+                                        ref int predefinedRoll,
+                                        bool testMode)
             {
-                RulesetCharacterHeroPatcher.RulesetCharacterHero_PostLoad.refreshMaxPowerUses(__instance as RulesetCharacterHero);
+                var game_location_character = Helpers.Misc.findGameLocationCharacter(__instance);
+                if (predefinedRoll != -1 || game_location_character == null)
+                {
+                    if (game_location_character != null)
+                    {
+                        NewFeatureDefinitions.AttackRollsData.removePrerolledData(game_location_character);
+                    }
+                    return true;
+                }
+
+                predefinedRoll = NewFeatureDefinitions.AttackRollsData.getPrerolledData(game_location_character).roll_value;
                 return true;
+
             }
-        }*/
+        }
 
 
         [HarmonyPatch(typeof(RulesetCharacter), "CanUseAttackOutcomeAlterationPower")]

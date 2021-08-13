@@ -599,10 +599,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class GrantPowerOnConditionApplication : FeatureDefinition, IApplyEffectOnConditionApplication, IApplyEffectOnConditionRemoval
+    public class GrantPowerOnConditionApplication : FeatureDefinition, IApplyEffectOnConditionApplication, IApplyEffectOnConditionRemoval, IApplyEffectOnPowerUse
     {
         public FeatureDefinitionPower power;
         public ConditionDefinition condition;
+        public bool removAfterUse;
 
         public void processConditionApplication(RulesetActor target, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
         {
@@ -640,9 +641,29 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return;
             }
-
             character.UsablePowers.RemoveAll(p => p.powerDefinition == power);
+        }
 
+        public void processPowerUse(RulesetCharacter character, RulesetUsablePower used_power)
+        {
+            if (!removAfterUse)
+            {
+                return;
+            }
+            if (used_power.powerDefinition == power)
+            {
+                foreach (var conditions in character.ConditionsByCategory.Values.ToArray())
+                {
+                    foreach (var c in conditions.ToArray())
+                    {
+                        if (c.conditionDefinition == condition)
+                        {
+                            character.RemoveCondition(c, false, false);
+                        }
+                    }
+                }
+
+            }
         }
     }
 
