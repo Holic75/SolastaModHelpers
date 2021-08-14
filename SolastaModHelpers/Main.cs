@@ -123,6 +123,18 @@ namespace SolastaModHelpers
                     CustomIcons.Tools.saveSpriteFromAssetReferenceAsPNG(c.GuiPresentation.SpriteReference, $@"{UnityModManager.modsPath}/SolastaModHelpers/Conditions/{c.name}.png");
                 }
             }*/
+
+
+            /*var races = DatabaseRepository.GetDatabase<CharacterRaceDefinition>().GetAllElements();
+            foreach (var r in races)
+            {
+                var sprite_reference = r.GuiPresentation.SpriteReference;
+
+                if (sprite_reference != null)
+                {
+                    CustomIcons.Tools.saveSpriteFromAssetReferenceAsPNG(r.GuiPresentation.SpriteReference, $@"{UnityModManager.modsPath}/SolastaModHelpers/Races/{r.name}.png");
+                }
+            }*/
         }
     }
 }

@@ -58,6 +58,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
     }
 
+
     public class SavingthrowAffinityUnderRestriction : FeatureDefinition, ISavingThrowAffinityProvider
     {
         public List<IRestriction> restrictions = new List<IRestriction>();

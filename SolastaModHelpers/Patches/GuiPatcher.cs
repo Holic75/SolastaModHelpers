@@ -54,6 +54,35 @@ namespace SolastaModHelpers.Patches
         }
 
 
+        [HarmonyPatch(typeof(RaceSelectionSlot), "Refresh")]
+        class RaceSelectionSlot_Refresh
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var load_asset_sync = codes.FindLastIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Call && x.operand.ToString().Contains("LoadAssetSync"));
+
+                codes[load_asset_sync] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                 new Func<AssetReferenceSprite, UnityEngine.Sprite>(loadIcon).Method
+                                                                 );
+
+                load_asset_sync = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Call && x.operand.ToString().Contains("LoadAssetSync"));
+
+                codes[load_asset_sync] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                 new Func<AssetReferenceSprite, UnityEngine.Sprite>(loadIcon).Method
+                                                                 );
+
+                return codes.AsEnumerable();
+            }
+
+            static UnityEngine.Sprite loadIcon(AssetReferenceSprite sprite_reference)
+            {
+                var custom_sprite = CustomIcons.Tools.loadStoredCustomIcon(sprite_reference.AssetGUID);
+                return custom_sprite ?? Gui.LoadAssetSync<UnityEngine.Sprite>(sprite_reference);
+            }
+        }
+
+
         [HarmonyPatch(typeof(GuiBaseDefinitionWrapper), "SetupSprite")]
         class GuiBaseDefinitionWrapper_SetupSprite
         {
@@ -78,6 +107,28 @@ namespace SolastaModHelpers.Patches
 
         [HarmonyPatch(typeof(GuiCharacter), "AssignClassImage")]
         class GuiCharacter_AssignClassImage
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var load_asset_sync = codes.FindLastIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Call && x.operand.ToString().Contains("LoadAssetSync"));
+
+                codes[load_asset_sync] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                 new Func<AssetReferenceSprite, UnityEngine.Sprite>(loadClassIcon).Method
+                                                                 );
+                return codes.AsEnumerable();
+            }
+
+            static UnityEngine.Sprite loadClassIcon(AssetReferenceSprite sprite_reference)
+            {
+                var custom_sprite = CustomIcons.Tools.loadStoredCustomIcon(sprite_reference.AssetGUID);
+                return custom_sprite ?? Gui.LoadAssetSync<UnityEngine.Sprite>(sprite_reference);
+            }
+        }
+
+
+        [HarmonyPatch(typeof(GuiCharacter), "AssignRaceImage")]
+        class GuiCharacter_AssignRaceImage
         {
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {

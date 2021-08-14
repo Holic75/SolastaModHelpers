@@ -34,7 +34,15 @@ namespace SolastaModHelpers.Helpers
         public static string Conjuration = "SchoolConjuration";
         public static string Evocation = "SchoolEvocation";
         public static string Enchantment = "SchoolEnchantment";
+        public static string Divination = "SchoolDivination";
         public static string Transmutation = "SchoolTransmutation";
+        public static string Necromancy = "SchoolNecromancy";
+        public static string Illusion = "SchoolIllusion";
+
+        public static string[] getAllSchools()
+        {
+            return typeof(SpellSchools).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f => f.GetValue(null)).Cast<string>().ToArray();
+        }
     }
 
 
@@ -650,6 +658,7 @@ namespace SolastaModHelpers.Helpers
                                              RuleDefinitions.CharacterSavingThrowAffinity affinity,
                                              int dice_number,
                                              RuleDefinitions.DieType die_type,
+                                             List<string> restricted_schools,
                                              params string[] stats) : base(DatabaseHelper.FeatureDefinitionSavingThrowAffinitys.SavingThrowAffinityCreedOfSolasta, name, guid)
         {
             if (title_string != "")
@@ -673,6 +682,7 @@ namespace SolastaModHelpers.Helpers
                 group.savingThrowModifierDiceNumber = dice_number;
                 group.affinity = affinity;
                 group.abilityScoreName = s;
+                group.restrictedSchools = restricted_schools;
                 Definition.AffinityGroups.Add(group);
             }
         }
@@ -686,7 +696,21 @@ namespace SolastaModHelpers.Helpers
                                                                                      params string[] stats)
         {
             Stats.assertAllStats(stats);
-            return new SavingThrowAffinityBuilder(name, guid, title_string, description_string, sprite, affinity, dice_number, die_type, stats).AddToDB();
+            return new SavingThrowAffinityBuilder(name, guid, title_string, description_string, sprite, affinity, dice_number, die_type, new List<string>(), stats).AddToDB();
+        }
+
+
+        public static FeatureDefinitionSavingThrowAffinity createSavingthrowAffinityAgainstSchools(string name, string guid,
+                                                                             string title_string, string description_string,
+                                                                             AssetReferenceSprite sprite,
+                                                                             RuleDefinitions.CharacterSavingThrowAffinity affinity,
+                                                                             int dice_number,
+                                                                             RuleDefinitions.DieType die_type,
+                                                                             List<string> schools,
+                                                                             params string[] stats)
+        {
+            Stats.assertAllStats(stats);
+            return new SavingThrowAffinityBuilder(name, guid, title_string, description_string, sprite, affinity, dice_number, die_type, schools, stats).AddToDB();
         }
     }
 
