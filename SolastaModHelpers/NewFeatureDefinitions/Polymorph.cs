@@ -23,7 +23,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     removing = true;
                     Polymorph.maybeProcessPolymorphedDeath(actor as RulesetCharacter);
                     removing = false;
-
                 }
             }
         }
@@ -489,7 +488,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             if (!RulesetEntity.TryGetEntity<RulesetCharacter>(original_condition.targetGuid, out original)
                 || !RulesetEntity.TryGetEntity<RulesetCharacter>(wildshaped_condition.targetGuid, out wildshaped))
             {
-
                 return false;
             }
             return true;
@@ -926,6 +924,28 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             static bool Prefix(RulesetCharacter __instance)
             {
                 Polymorph.maybeProcessPolymorphedDeath(__instance);
+                return true;
+            }
+        }
+
+        //remove wildshape units when entering new location, since game seem to just silently terminate all effects without proceeding to removing summoned unt
+        [HarmonyPatch(typeof(GameLocationManager), "StopCharacterEffectsIfRelevant")]
+        internal class GameLocationManager_StopCharacterEffectsIfRelevant
+        {
+            static bool Prefix(GameLocationManager __instance, bool willEnterChainedLocation)
+            {
+                IGameLocationCharacterService service1 = ServiceRepository.GetService<IGameLocationCharacterService>() as GameLocationCharacterManager;
+                if (true)
+                {
+                    foreach (var gc in service1.GuestCharacters.ToArray())
+                    {
+                        if (Polymorph.extractOriginalFromWildshaped(gc.RulesetCharacter) != null)
+                        {
+                            Main.Logger.Log("Removed Wildshaped unit on lcoation leave: " + gc.Name);
+                            service1.DestroyCharacterBody(gc);
+                        }
+                    }
+                }
                 return true;
             }
         }
