@@ -153,7 +153,7 @@ namespace SolastaModHelpers.Patches
                     var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ICasterApplyEffectOnConditionApplication>(caster);
                     foreach (var f in features)
                     {
-                        f.processCasterConditionApplication(__instance, newCondition);
+                        f.processCasterConditionApplication(caster, __instance, newCondition);
                     }
                 }
             }

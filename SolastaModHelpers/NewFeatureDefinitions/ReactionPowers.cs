@@ -24,6 +24,57 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         bool canBeUsedOnDamage(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, RulesetAttackMode attack_mode, bool is_magic);
     }
 
+    public class FeatureDefinitionAddAbilityBonusOnFailedSavePower : NewFeatureDefinitions.LinkedPower, IModifyFailedSavePower, IHiddenAbility
+    {
+        public string ability;
+
+        public bool canBeUsedOnFailedSave(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier save_modifier, RulesetEffect rulesetEffect)
+        {
+            var effect = this.EffectDescription;
+            if (effect == null || caster == null || attacker == null)
+            {
+                return false;
+            }
+
+            int max_distance = this.EffectDescription.RangeParameter;
+
+            if ((caster.LocationPosition - defender.LocationPosition).magnitude > max_distance)
+            {
+                return false;
+            }
+
+            bool works_on_caster = effect.TargetFilteringTag != (RuleDefinitions.TargetFilteringTag)ExtendedEnums.ExtraTargetFilteringTag.NonCaster;
+
+            if (defender.Side != effect.TargetSide && effect.TargetSide != RuleDefinitions.Side.All)
+            {
+                return false;
+            }
+
+
+            if (!works_on_caster && defender == caster)
+            {
+                return false;
+            }
+
+            if (effect.targetType == RuleDefinitions.TargetType.Self && defender != caster)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public int getSavingThrowBonus(GameLocationCharacter caster, GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier save_modifier, RulesetEffect rulesetEffect)
+        {
+            return Math.Max(1, AttributeDefinitions.ComputeAbilityScoreModifier(caster.RulesetCharacter.GetAttribute(ability).currentValue));
+        }
+
+        public bool isHidden()
+        {
+            return false;
+        }
+    }
+
 
     public class FeatureDefinitionAddRandomBonusOnFailedSavePower : NewFeatureDefinitions.LinkedPower, IModifyFailedSavePower, IHiddenAbility
     {

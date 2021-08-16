@@ -69,7 +69,8 @@ namespace SolastaModHelpers.Patches
 
                 if (formsParams.targetItem == null && formsParams.activeEffect?.EffectDescription.itemSelectionType == ActionDefinitions.ItemSelectionType.Weapon)
                 {
-                    formsParams.targetItem = formsParams.sourceCharacter?.CharacterInventory?.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0]?.equipedItem;
+                    var character = (formsParams.targetCharacter as RulesetCharacter) ?? formsParams.sourceCharacter;
+                    formsParams.targetItem = character.CharacterInventory?.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0]?.equipedItem;
                 }
 
                 return true;

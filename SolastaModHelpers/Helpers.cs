@@ -544,6 +544,7 @@ namespace SolastaModHelpers.Helpers
         protected SpellcastingBuilder(string name, string guid, string title_string, string description_string, SpellListDefinition spelllist,
                                       string spell_stat, RuleDefinitions.SpellKnowledge spell_knowledge, RuleDefinitions.SpellReadyness spell_readyness,
                                       List<int> scribed_spells, List<int> cantrips_per_level, List<int> known_spells,
+                                      RuleDefinitions.SpellPreparationCount spell_preparation_count,
                                       List<FeatureDefinitionCastSpell.SlotsByLevelDuplet> slots_pre_level,
                                       FeatureDefinitionCastSpell base_feature) : base(base_feature, name, guid)
         {
@@ -575,6 +576,25 @@ namespace SolastaModHelpers.Helpers
                                            Enumerable.Repeat(0, 20).ToList(),
                                            cantrips_per_level,
                                            known_spells,
+                                           RuleDefinitions.SpellPreparationCount.AbilityBonusPlusLevel,
+                                           slots_pre_level,
+                                           DatabaseHelper.FeatureDefinitionCastSpells.CastSpellWizard).AddToDB();
+        }
+
+
+        public static FeatureDefinitionCastSpell createPreparedArcaneSpellcasting(string name, string guid, string title_string, string description_string,
+                                                                        SpellListDefinition spelllist, string spell_stat,
+                                                                        List<int> cantrips_per_level, List<int> scribed_spells,
+                                                                        RuleDefinitions.SpellPreparationCount spell_preparation_count,
+                                                                        List<FeatureDefinitionCastSpell.SlotsByLevelDuplet> slots_pre_level)
+        {
+            Stats.assertAllStats(new string[] { spell_stat });
+            return new SpellcastingBuilder(name, guid, title_string, description_string, spelllist, spell_stat,
+                                           RuleDefinitions.SpellKnowledge.Spellbook, RuleDefinitions.SpellReadyness.Prepared,
+                                           scribed_spells,
+                                           cantrips_per_level,
+                                           DatabaseHelper.FeatureDefinitionCastSpells.CastSpellWizard.knownSpells,
+                                           spell_preparation_count,
                                            slots_pre_level,
                                            DatabaseHelper.FeatureDefinitionCastSpells.CastSpellWizard).AddToDB();
         }
@@ -583,6 +603,7 @@ namespace SolastaModHelpers.Helpers
         public static FeatureDefinitionCastSpell createDivinePreparedSpellcasting(string name, string guid, string title_string, string description_string,
                                                                         SpellListDefinition spelllist, string spell_stat,
                                                                         List<int> cantrips_per_level,
+                                                                        RuleDefinitions.SpellPreparationCount spell_preparation_count,
                                                                         List<FeatureDefinitionCastSpell.SlotsByLevelDuplet> slots_pre_level)
         {
             Stats.assertAllStats(new string[] { spell_stat });
@@ -591,6 +612,7 @@ namespace SolastaModHelpers.Helpers
                                            Enumerable.Repeat(0, 20).ToList(),
                                            cantrips_per_level,
                                            DatabaseHelper.FeatureDefinitionCastSpells.CastSpellCleric.KnownSpells,
+                                           spell_preparation_count,
                                            slots_pre_level,
                                            DatabaseHelper.FeatureDefinitionCastSpells.CastSpellCleric).AddToDB();
         }
@@ -1317,6 +1339,17 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        static public FeatureDefinitionAutoPreparedSpells.AutoPreparedSpellsGroup createAutopreparedSpellsGroup(int level, params SpellDefinition[] spells)
+        {
+            var group = new FeatureDefinitionAutoPreparedSpells.AutoPreparedSpellsGroup()
+            {
+                classLevel = level,
+                spellsList = spells.ToList()
+            };
+            return group;
+        }
+
+
         static public RulesetEffect findConditionParentEffect(RulesetCondition condition)
         {
             RulesetCharacter caster = (RulesetCharacter)null;

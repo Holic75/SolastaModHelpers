@@ -274,4 +274,39 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
         }
     }
+
+
+    public class AttackDamageBonusBasedOnCasterStat : FeatureDefinition, IAttackModeModifier
+    {
+        public string abilityScore;
+        
+        public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        {
+            var condition = character.FindFirstConditionHoldingFeature(this);
+            if (condition == null)
+            {
+                return;
+            }
+
+            var caster = RulesetEntity.GetEntity<RulesetCharacter>(condition.sourceGuid);
+            if (caster == null)
+            {
+                return;
+            }
+
+            var value =  AttributeDefinitions.ComputeAbilityScoreModifier(caster.GetAttribute(abilityScore).CurrentValue);
+
+            attack_mode.ToHitBonus += value;
+            attack_mode.ToHitBonusTrends.Add(new RuleDefinitions.TrendInfo(value, RuleDefinitions.FeatureSourceType.MonsterFeature, this.Name, this));
+
+            DamageForm first_Damage_form = attack_mode.EffectDescription.FindFirstDamageForm();
+            if (first_Damage_form != null)
+            {
+                first_Damage_form.BonusDamage += value;
+                first_Damage_form.DamageBonusTrends.Add(new RuleDefinitions.TrendInfo(value, RuleDefinitions.FeatureSourceType.CharacterFeature,
+                                                                                      this.Name,
+                                                                                      this));
+            }
+        }
+    }
 }

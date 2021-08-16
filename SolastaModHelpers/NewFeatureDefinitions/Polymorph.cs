@@ -59,7 +59,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionHeavyArmorOverload,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionHeavilyObscured,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionDead,
-                                                                                                           DatabaseHelper.ConditionDefinitions.ConditionSeverelyWounded
+                                                                                                           DatabaseHelper.ConditionDefinitions.ConditionSeverelyWounded,
+                                                                                                           DatabaseHelper.ConditionDefinitions.ConditionBanished
                                                                                                           };
 
         static public HashSet<FeatureDefinitionPower> transferablePowers = new HashSet<FeatureDefinitionPower>();

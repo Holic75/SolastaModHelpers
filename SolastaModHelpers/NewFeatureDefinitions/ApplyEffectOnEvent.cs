@@ -47,7 +47,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     public interface ICasterApplyEffectOnConditionApplication
     {
-        void processCasterConditionApplication(RulesetActor target, RulesetCondition condition);
+        void processCasterConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition condition);
     }
 
 
@@ -700,7 +700,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public ConditionDefinition requiredCondition;
         public ConditionDefinition extraCondition;
 
-        public void processCasterConditionApplication(RulesetActor target, RulesetCondition condition)
+        public void processCasterConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition condition)
         {
             if (requiredCondition != condition?.conditionDefinition)
             {
@@ -721,7 +721,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public ConditionDefinition requiredCondition;
         public int hdMultiplier = 1;
 
-        public void processCasterConditionApplication(RulesetActor target, RulesetCondition condition)
+        public void processCasterConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition condition)
         {
             if (requiredCondition != condition?.conditionDefinition)
             {
@@ -735,7 +735,40 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             int val = hdMultiplier * monster.monsterDefinition.hitDice;
             monster.GetAttribute("HitPoints").AddModifier(RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Additive,
                                                                                                          val, "CustomCondition"));
-            monster.CurrentHitPoints += hdMultiplier * monster.monsterDefinition.hitDice;
+            monster.CurrentHitPoints += val;
+            
+        }
+    }
+
+
+    public class IncreaseMonsterHitPointsOnConditionApplicationBasedOnCasterAbilityScore : FeatureDefinition, IApplyEffectOnConditionApplication
+    {
+        public ConditionDefinition requiredCondition;
+        public int multiplier = 1;
+        public string abilityScore;
+
+        public void processConditionApplication(RulesetActor target, ConditionDefinition condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
+        {
+            if (requiredCondition != condition)
+            {
+                return;
+            }
+            var monster = target as RulesetCharacterMonster;
+            if (monster == null)
+            {
+                return;
+            }
+
+            var caster = fromParams.sourceCharacter;
+            if (caster == null)
+            {
+                return;
+            }
+
+            int val = multiplier * AttributeDefinitions.ComputeAbilityScoreModifier(caster.GetAttribute(abilityScore).CurrentValue);
+            monster.GetAttribute("HitPoints").AddModifier(RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Additive,
+                                                                                                         val, "CustomCondition"));
+            monster.CurrentHitPoints += val;
         }
     }
 
@@ -780,6 +813,67 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                            actor.Guid,
                                                                            actor.CurrentFaction.Name);
             actor.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+    }
+
+
+    public class ApplyConditionOnTurnStartIfCasterHasNoCondition : FeatureDefinition, IApplyEffectOnTurnStart
+    {
+        public ConditionDefinition conditionToApply;
+        public ConditionDefinition casterCondition;
+        public bool ignoreIfCasterUnconcious;
+
+        public void processTurnStart(GameLocationCharacter character)
+        {
+            bool found = false;
+            var condition = character.RulesetCharacter.FindFirstConditionHoldingFeature(this);
+            var caster = RulesetEntity.GetEntity<RulesetCharacter>(condition.SourceGuid) as RulesetCharacter;
+            if (caster == null)
+            {
+                return;
+            }
+
+            if (ignoreIfCasterUnconcious && !caster.IsDeadOrDyingOrUnconscious)
+            {
+                foreach (var cc in caster.conditionsByCategory)
+                {
+                    foreach (var c in cc.Value)
+                    {
+                        if (c.conditionDefinition == casterCondition)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                found = true;
+            }
+
+            if (found)
+            {
+                foreach (var cc in character.RulesetCharacter.conditionsByCategory.ToArray())
+                {
+                    foreach (var c in cc.Value.ToArray())
+                    {
+                        if (c.conditionDefinition == conditionToApply)
+                        {
+                            character.RulesetCharacter.RemoveCondition(c, false, true);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(character.RulesetCharacter.Guid,
+                                                                               this.conditionToApply, RuleDefinitions.DurationType.Round, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
+                                                                               caster.Guid,
+                                                                               caster.CurrentFaction.Name);
+                character.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+            }
+            character.RefreshActionPerformances();
         }
     }
 }
