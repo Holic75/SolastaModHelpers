@@ -199,6 +199,11 @@ public class CharacterActionConsumePowerUse : CharacterAction
     public override IEnumerator ExecuteImpl()
     {
         actionParams.ActingCharacter?.RulesetCharacter?.UsePower(actionParams.usablePower);
+
+        if (actionParams.usablePower.PowerDefinition.ActivationTime == RuleDefinitions.ActivationTime.Reaction)
+        {
+            actionParams.ActingCharacter.currentActionRankByType[ActionDefinitions.ActionType.Reaction]++;
+        }
         yield return null;
     }
 }
@@ -216,6 +221,7 @@ public class ReactionRequestConsumePowerUse : ReactionRequest
     public override string FormatDescription()
     {
         GuiCharacter guiCharacter = new GuiCharacter(this.ReactionParams.ActingCharacter);
+        GuiCharacter guiTarget = this.ReactionParams.TargetCharacters.Count == 1 ? new GuiCharacter(this.ReactionParams.TargetCharacters[0]) : null;
         string empty = string.Empty;
         RulesetEffect rulesetEffect = this.ReactionParams.RulesetEffect;
         string effect_name = !(rulesetEffect is RulesetEffectSpell) ? Gui.Localize((rulesetEffect as RulesetEffectPower).PowerDefinition.GuiPresentation.Title) : Gui.Localize((rulesetEffect as RulesetEffectSpell).SpellDefinition.GuiPresentation.Title);
@@ -223,7 +229,7 @@ public class ReactionRequestConsumePowerUse : ReactionRequest
         var tr_string =  string.Format(DatabaseRepository.GetDatabase<ReactionDefinition>().GetElement(this.DefinitionName).GuiPresentation.Description, 
                              this.ReactionParams.UsablePower.PowerDefinition.name
                              );
-        return string.Format(Gui.Localize(tr_string), effect_name);
+        return string.Format(Gui.Localize(tr_string), effect_name, guiCharacter.Name, guiTarget.Name);
     }
 
 

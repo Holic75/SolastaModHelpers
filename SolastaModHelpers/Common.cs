@@ -135,6 +135,8 @@ namespace SolastaModHelpers
                                                                                            a.features.AddRange(base_unit.features);
                                                                                            a.features.Add(cancel_polymorph_power);
                                                                                            a.features.Add(cancel_polymorph_feature);
+                                                                                           a.droppedLootDefinition = null;
+                                                                                           a.bestiaryEntry = BestiaryDefinitions.BestiaryEntry.None;
                                                                                        });
             return unit;
         }

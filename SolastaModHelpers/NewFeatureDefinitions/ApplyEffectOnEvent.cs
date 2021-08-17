@@ -741,15 +741,16 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class IncreaseMonsterHitPointsOnConditionApplicationBasedOnCasterAbilityScore : FeatureDefinition, IApplyEffectOnConditionApplication
+    public class IncreaseMonsterHitPointsOnConditionApplicationBasedOnCasterAbilityScore : FeatureDefinition, ICasterApplyEffectOnConditionApplication
     {
         public ConditionDefinition requiredCondition;
         public int multiplier = 1;
         public string abilityScore;
 
-        public void processConditionApplication(RulesetActor target, ConditionDefinition condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
-        {
-            if (requiredCondition != condition)
+
+        public void processCasterConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition condition)
+        { 
+            if (requiredCondition != condition.conditionDefinition)
             {
                 return;
             }
@@ -759,7 +760,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return;
             }
 
-            var caster = fromParams.sourceCharacter;
             if (caster == null)
             {
                 return;

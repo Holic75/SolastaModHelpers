@@ -166,7 +166,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             service3.PlaceCharacter(character, placementPositions[0], orientation);
             character.RefreshActionPerformances();
             
-            identifyMonster(characterMonster);
+            //identifyMonster(characterMonster);
             service1.RevealCharacter(character);
 
             fixSelectedCharacters(target_character, character);
@@ -177,7 +177,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
 
 
-        static void identifyMonster(RulesetCharacterMonster monster)
+        /*static void identifyMonster(RulesetCharacterMonster monster)
         {
             IGameLoreService service = ServiceRepository.GetService<IGameLoreService>();
             if (!service.HasBestiaryEntry(monster))
@@ -195,7 +195,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             if (!((BaseDefinition)service.GetCreatureKnowledgeLevel(monster) != (BaseDefinition)monsterKnowledgeLevel))
                 return;
             service.LearnMonsterKnowledge(monsterDefinition, monsterKnowledgeLevel);
-        }
+        }*/
 
 
         static void fixSelectedCharacters(GameLocationCharacter original, GameLocationCharacter wildshaped)
