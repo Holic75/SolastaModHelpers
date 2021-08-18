@@ -190,6 +190,50 @@ namespace SolastaModHelpers.Helpers
         }
 
 
+        public static string concatenateStrings(string new_string_id, params (string, string)[] string_separator_list)
+        {
+            var languageSourceData = LocalizationManager.Sources[0];
+            var terms = new List<TermData>();
+
+            foreach (var s in string_separator_list)
+            {
+                if (!languageSourceData.mDictionary.ContainsKey(s.Item1))
+                {
+                    throw new SystemException($"String: {s.Item1} is not present in LanguageSourceData");
+                }
+                terms.Add(languageSourceData.mDictionary[s.Item1]);
+            }
+
+
+            if (languageSourceData.mDictionary.ContainsKey(new_string_id))
+            {
+                throw new SystemException($"String: {new_string_id} is already present in LanguageSourceData");
+            }
+
+                     
+            var new_term = languageSourceData.AddTerm(new_string_id);
+            new_term.Languages = terms[0].Languages.ToArray();
+
+            for (int i = 0; i < new_term.Languages.Count(); i++)
+            {
+                if (new_term.Languages[i] == null)
+                {
+                    continue;
+                }
+
+                for (int j = 1; j < terms.Count; j++)
+                {
+                    if (terms[j].Languages.Count() > i)
+                    {
+                        new_term.Languages[i] = new_term.Languages[i] + string_separator_list[j - 1].Item2 + terms[j].Languages[i];
+                    }
+                    new_term.Languages[i] += string_separator_list.Last().Item2;
+                }
+            }
+            return new_string_id;
+        }
+
+
 
         public static string insertStrings(string old_string_id1, string old_string_id2, string new_string_id, string insert_tag)
         {

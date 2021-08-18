@@ -40,21 +40,24 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return;
             }
 
-            if (rulesetInventorySlot1.EquipedItem != null && rulesetInventorySlot1.EquipedItem.ItemDefinition.IsWeapon)
+            if (!allowedWeaponTypes.Empty())
             {
-                RulesetItem equipedItem = rulesetInventorySlot1.EquipedItem;
-                ItemDefinition itemDefinition = rulesetInventorySlot1.EquipedItem.ItemDefinition;
-                WeaponDescription weaponDescription = itemDefinition.WeaponDescription;
+                if (rulesetInventorySlot1.EquipedItem != null && rulesetInventorySlot1.EquipedItem.ItemDefinition.IsWeapon)
+                {
+                    RulesetItem equipedItem = rulesetInventorySlot1.EquipedItem;
+                    ItemDefinition itemDefinition = rulesetInventorySlot1.EquipedItem.ItemDefinition;
+                    WeaponDescription weaponDescription = itemDefinition.WeaponDescription;
 
-                if (!allowedWeaponTypes.Contains(weaponDescription.weaponType))
+                    if (!allowedWeaponTypes.Contains(weaponDescription.weaponType))
+                    {
+                        return;
+                    }
+                }
+
+                if (rulesetInventorySlot1.EquipedItem == null && !allowedWeaponTypes.Contains(Helpers.WeaponProficiencies.Unarmed))
                 {
                     return;
                 }
-            }
-
-            if (rulesetInventorySlot1.EquipedItem == null && !allowedWeaponTypes.Contains(Helpers.WeaponProficiencies.Unarmed))
-            {
-                return;
             }
 
             ItemDefinition strikeDefinition = character.UnarmedStrikeDefinition;

@@ -809,7 +809,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(actor.Guid,
-                                                                           this.afterCondition, RuleDefinitions.DurationType.UntilShortRest, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
+                                                                           this.afterCondition, RuleDefinitions.DurationType.UntilAnyRest, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
                                                                            actor.Guid,
                                                                            actor.CurrentFaction.Name);
             actor.AddConditionOfCategory("10Combat", active_condition, true);

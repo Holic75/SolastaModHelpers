@@ -563,6 +563,7 @@ namespace SolastaModHelpers.Helpers
             Definition.KnownCantrips.AddRange(cantrips_per_level);
             Definition.SlotsPerLevels.Clear();
             Definition.SlotsPerLevels.AddRange(slots_pre_level);
+            Definition.SetSpellPreparationCount(spell_preparation_count);
         }
 
         public static FeatureDefinitionCastSpell createSpontaneousSpellcasting(string name, string guid, string title_string, string description_string,
