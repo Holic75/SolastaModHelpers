@@ -77,6 +77,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                         bool ranged);
     }
 
+
     public interface ITargetApplyEffectOnDamageTaken
     {
         void processDamageTarget(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms);
@@ -392,6 +393,57 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                                        caster.Guid,
                                                                                        caster.CurrentFaction.Name);
             target.AddConditionOfCategory("CustomCondition", active_condition, true);
+        }
+    }
+
+
+    public class InitiatorApplyConditionOnAttackHitToTargetIfWeaponHasFeature : FeatureDefinition, IInitiatorApplyEffectOnDamageDone
+    {
+        public ConditionDefinition condition;
+        public int durationValue;
+        public RuleDefinitions.DurationType durationType;
+        public RuleDefinitions.TurnOccurenceType turnOccurence;
+        public FeatureDefinition weaponFeature;
+
+        public void processDamageInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, RulesetAttackMode attackMode, bool rangedAttack, bool isSpell)
+        {
+            var item = (attackMode?.SourceObject as RulesetItem);
+            if (item == null || !(item.itemDefinition?.isWeapon).GetValueOrDefault() || !Helpers.Misc.itemHasFeature(item, weaponFeature))
+            {
+                return;
+            }
+
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
+                                                                                       condition, durationType, durationValue, turnOccurence,
+                                                                                       attacker.RulesetCharacter.Guid,
+                                                                                       attacker.RulesetCharacter.CurrentFaction.Name);
+            defender.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+    }
+
+
+    public class InitiatorApplyConditionOnAttackToAttackerIfWeaponHasFeature : FeatureDefinition, IInitiatorApplyEffectOnAttack
+    {
+        public ConditionDefinition condition;
+        public int durationValue;
+        public RuleDefinitions.DurationType durationType;
+        public RuleDefinitions.TurnOccurenceType turnOccurence;
+        public FeatureDefinition weaponFeature;
+
+        public void processAttackInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
+        {
+            var item = (attack_mode?.SourceObject as RulesetItem);
+            if (item == null || !(item.itemDefinition?.isWeapon).GetValueOrDefault() || !Helpers.Misc.itemHasFeature(item, weaponFeature))
+            {
+                return;
+            }
+
+
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid,
+                                                                                       condition, durationType, durationValue, turnOccurence,
+                                                                                       attacker.RulesetCharacter.Guid,
+                                                                                       attacker.RulesetCharacter.CurrentFaction.Name);
+            attacker.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
         }
     }
 
@@ -812,7 +864,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                            this.afterCondition, RuleDefinitions.DurationType.UntilAnyRest, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
                                                                            actor.Guid,
                                                                            actor.CurrentFaction.Name);
-            actor.AddConditionOfCategory("10Combat", active_condition, true);
+            actor.AddConditionOfCategory("CustomCondition", active_condition, true);
         }
     }
 

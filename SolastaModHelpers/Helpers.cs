@@ -1340,6 +1340,14 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        static public bool itemHasFeature(RulesetItem item, FeatureDefinition feature)
+        {
+            List<FeatureDefinition> features = new List<FeatureDefinition>();
+            item?.EnumerateFeaturesToBrowse<FeatureDefinition>(features);
+
+            return features.Contains(feature);
+        }
+
         static public FeatureDefinitionAutoPreparedSpells.AutoPreparedSpellsGroup createAutopreparedSpellsGroup(int level, params SpellDefinition[] spells)
         {
             var group = new FeatureDefinitionAutoPreparedSpells.AutoPreparedSpellsGroup()

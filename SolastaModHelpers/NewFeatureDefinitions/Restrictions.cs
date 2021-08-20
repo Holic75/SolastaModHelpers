@@ -156,6 +156,32 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class HasWeaponInMainHandWithoutFeature : IRestriction
+    {
+        FeatureDefinition weaponFeature;
+        public bool isForbidden(RulesetActor character)
+        {
+            var hero = character as RulesetCharacterHero;
+            if (hero == null)
+            {
+                return true;
+            }
+            RulesetItem equipedItem = hero?.characterInventory?.InventorySlotsByName[EquipmentDefinitions.SlotTypeMainHand]?.EquipedItem;
+            if (equipedItem?.itemDefinition == null || !equipedItem.ItemDefinition.IsWeapon)
+            {
+                return true;
+            }
+            return Helpers.Misc.itemHasFeature(equipedItem, weaponFeature);
+        }
+
+
+        public HasWeaponInMainHandWithoutFeature(FeatureDefinition weapon_feature)
+        {
+            weaponFeature = weapon_feature;
+        }
+    }
+
+
     public class InBattleRestriction : IRestriction
     {
         public bool isForbidden(RulesetActor character)

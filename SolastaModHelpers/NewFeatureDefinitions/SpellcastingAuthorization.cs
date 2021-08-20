@@ -13,6 +13,31 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface ISomaticComponentIgnore
+    {
+        bool canIgnoreSomaticComponent(RulesetCharacter character, SpellDefinition spellDefinition);
+    }
+
+
+    public class AllowToUseWeaponWithFeatureAsSpellFocus : FeatureDefinition, ISomaticComponentIgnore
+    {
+        public FeatureDefinition weaponFeature;
+
+        public bool canIgnoreSomaticComponent(RulesetCharacter character, SpellDefinition spellDefinition)
+        {
+            if (spellDefinition.MaterialComponentType != RuleDefinitions.MaterialComponentType.Mundane)
+            {
+                return false;
+            }
+            RulesetItem equipedItem1 = character.CharacterInventory.InventorySlotsByName[EquipmentDefinitions.SlotTypeMainHand].EquipedItem;
+            RulesetItem equipedItem2 = character.CharacterInventory.InventorySlotsByName[EquipmentDefinitions.SlotTypeOffHand].EquipedItem;
+
+            return (equipedItem1 != null && Helpers.Misc.itemHasFeature(equipedItem1, weaponFeature))
+                    || (equipedItem2 != null && Helpers.Misc.itemHasFeature(equipedItem2, weaponFeature));
+        }
+    }
+
+
     public class SpellcastingForbidden : FeatureDefinition, IForbidSpellcasting
     {
         public List<FeatureDefinition> spellcastingExceptionFeatures = new List<FeatureDefinition>();
