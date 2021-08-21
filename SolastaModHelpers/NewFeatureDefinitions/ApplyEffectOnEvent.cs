@@ -468,13 +468,13 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 }
             }
 
-            var item = (attack_mode?.SourceObject as RulesetItem);
-            if (item == null || !(item.itemDefinition?.isWeapon).GetValueOrDefault() || item?.itemDefinition.WeaponDescription == null)
+            var item = (attack_mode?.SourceDefinition as ItemDefinition);
+            if (item == null || !(item.isWeapon) || item.WeaponDescription == null)
             {
                 return;
             }
 
-            if (!allowedWeaponTypes.Contains(item.itemDefinition.WeaponDescription.weaponType))
+            if (!allowedWeaponTypes.Contains(item.WeaponDescription.weaponType))
             {
                 return;
             }
