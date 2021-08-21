@@ -54,7 +54,7 @@ public class CharacterActionModifyAttackRollViaPower : CharacterActionUsePower
                 continue;
             }
 
-            foreach (var f in condition.Features.OfType<FeatureDefinitionCombatAffinity>())
+            foreach (var f in condition.Features.OfType<ICombatAffinityProvider>())
             {
                 f.ComputeAttackModifier(attacker.RulesetCharacter, defender.RulesetCharacter, actionModifyAttackRoll.actionParams.AttackMode,
                                         actionModifyAttackRoll.ActionParams.ActionModifiers[0],
