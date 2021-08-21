@@ -72,6 +72,11 @@ namespace SolastaModHelpers.Patches
                     var character = (formsParams.targetCharacter as RulesetCharacter) ?? formsParams.sourceCharacter;
                     formsParams.targetItem = character.CharacterInventory?.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0]?.equipedItem;
                 }
+                else if (formsParams.targetItem == null && formsParams.activeEffect?.EffectDescription.itemSelectionType == ActionDefinitions.ItemSelectionType.Equiped)
+                {
+                    var character = (formsParams.targetCharacter as RulesetCharacter) ?? formsParams.sourceCharacter;
+                    formsParams.targetItem = character.CharacterInventory?.InventorySlotsByType[EquipmentDefinitions.SlotTypeTorso][0]?.equipedItem;
+                }
 
                 return true;
             }

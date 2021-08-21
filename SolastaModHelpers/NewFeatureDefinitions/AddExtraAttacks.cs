@@ -22,6 +22,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void tryAddExtraAttack(RulesetCharacterHero character)
         {
+            if (clearAllAttacks)
+            {
+                character.AttackModes.Clear();
+            }
+
             foreach (var r in restrictions)
             {
                 if (r.isForbidden(character))
@@ -61,10 +66,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             ItemDefinition strikeDefinition = character.UnarmedStrikeDefinition;
-            if (clearAllAttacks)
-            {
-                character.AttackModes.Clear();
-            }
+
             character.AttackModes.Add(character.RefreshAttackMode(actionType, strikeDefinition,
                                                                   strikeDefinition.WeaponDescription, false, true,
                                                                   character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,

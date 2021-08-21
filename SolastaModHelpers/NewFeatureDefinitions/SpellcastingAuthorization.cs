@@ -19,9 +19,20 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class AllowToUseWeaponWithFeatureAsSpellFocus : FeatureDefinition, ISomaticComponentIgnore
+    public interface IMaterialComponentIgnore
+    {
+        bool canIgnoreMaterialComponent(RulesetCharacter character, SpellDefinition spellDefinition);
+    }
+
+
+    public class AllowToUseWeaponWithFeatureAsSpellFocus : FeatureDefinition, ISomaticComponentIgnore, IMaterialComponentIgnore
     {
         public FeatureDefinition weaponFeature;
+
+        public bool canIgnoreMaterialComponent(RulesetCharacter character, SpellDefinition spellDefinition)
+        {
+            return canIgnoreSomaticComponent(character, spellDefinition);
+        }
 
         public bool canIgnoreSomaticComponent(RulesetCharacter character, SpellDefinition spellDefinition)
         {

@@ -438,6 +438,47 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return;
             }
 
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid,
+                                                                                       condition, durationType, durationValue, turnOccurence,
+                                                                                       attacker.RulesetCharacter.Guid,
+                                                                                       attacker.RulesetCharacter.CurrentFaction.Name);
+            attacker.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+    }
+
+
+    public class InitiatorApplyConditionOnAttackToAttackerOnlyWithWeaponCategory : FeatureDefinition, IInitiatorApplyEffectOnAttack
+    {
+        public ConditionDefinition condition;
+        public int durationValue;
+        public RuleDefinitions.DurationType durationType;
+        public RuleDefinitions.TurnOccurenceType turnOccurence;
+        public List<string> allowedWeaponTypes;
+
+        public void processAttackInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
+        {
+            foreach (var conditions in attacker.RulesetCharacter.ConditionsByCategory.Values.ToArray())
+            {
+                foreach (var c in conditions.ToArray())
+                {
+                    if (c.ConditionDefinition == condition)
+                    {
+                        attacker.RulesetCharacter.RemoveCondition(c, false, false);
+                    }
+                }
+            }
+
+            var item = (attack_mode?.SourceObject as RulesetItem);
+            if (item == null || !(item.itemDefinition?.isWeapon).GetValueOrDefault() || item?.itemDefinition.WeaponDescription == null)
+            {
+                return;
+            }
+
+            if (!allowedWeaponTypes.Contains(item.itemDefinition.WeaponDescription.weaponType))
+            {
+                return;
+            }
+
 
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid,
                                                                                        condition, durationType, durationValue, turnOccurence,

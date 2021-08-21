@@ -17,8 +17,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public List<IRestriction> restrictions = new List<IRestriction>();
 
-        public List<FeatureDefinition> modifiers;
-        public CharacterAction characterClass;
+        public List<FeatureDefinition> modifiers = new List<FeatureDefinition>();
 
         public void tryAddConditionalMovementModfiers(RulesetCharacter character, List<FeatureDefinition> existingModifiers)
         {

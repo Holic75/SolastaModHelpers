@@ -63,7 +63,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void ComputeAttackModifier(RulesetCharacter myself, RulesetCharacter defender, RulesetAttackMode attackMode, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
         {
-            if (!myself.ConditionsByCategory.Any(kv => kv.Value != null && kv.Value.Any(c => c.conditionDefinition == condition && c.SourceGuid == defender.guid)))
+            if (myself.ConditionsByCategory.Any(kv => kv.Value != null && kv.Value.Any(c => c.conditionDefinition == condition && c.SourceGuid != defender.guid)))
             {
                 attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(-1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
             }

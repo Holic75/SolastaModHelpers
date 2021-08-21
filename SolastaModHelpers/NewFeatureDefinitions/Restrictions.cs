@@ -182,6 +182,64 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class WearingArmorWithoutFeature: IRestriction
+    {
+        FeatureDefinition armorFeature;
+        public bool isForbidden(RulesetActor character)
+        {
+            var hero = character as RulesetCharacterHero;
+            if (hero == null)
+            {
+                return true;
+            }
+
+            if (!hero.IsWearingArmor())
+            {
+                return true;
+            }
+
+            RulesetItem equipedItem = hero?.characterInventory?.InventorySlotsByName[EquipmentDefinitions.SlotTypeTorso]?.EquipedItem;
+
+            return Helpers.Misc.itemHasFeature(equipedItem, armorFeature);
+        }
+
+
+        public WearingArmorWithoutFeature(FeatureDefinition armor_feature)
+        {
+            armorFeature = armor_feature;
+        }
+    }
+
+
+    public class WearingArmorWithFeature : IRestriction
+    {
+        FeatureDefinition armorFeature;
+        public bool isForbidden(RulesetActor character)
+        {
+            var hero = character as RulesetCharacterHero;
+            if (hero == null)
+            {
+                return true;
+            }
+
+            if (!hero.IsWearingArmor())
+            {
+                return true;
+            }
+
+            RulesetItem equipedItem = hero?.characterInventory?.InventorySlotsByName[EquipmentDefinitions.SlotTypeTorso]?.EquipedItem;
+
+            return !Helpers.Misc.itemHasFeature(equipedItem, armorFeature);
+        }
+
+
+        public WearingArmorWithFeature(FeatureDefinition armor_feature)
+        {
+            armorFeature = armor_feature;
+        }
+    }
+
+
     public class InBattleRestriction : IRestriction
     {
         public bool isForbidden(RulesetActor character)
@@ -318,7 +376,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     public class HasAtLeastOneConditionFromListRestriction : IRestriction
     {
-        private List<ConditionDefinition> conditions;
+        public List<ConditionDefinition> conditions;
 
         public bool isForbidden(RulesetActor character)
         {

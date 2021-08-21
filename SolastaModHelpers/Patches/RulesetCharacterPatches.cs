@@ -247,6 +247,31 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
 
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IMaterialComponentIgnore>(__instance);
+                foreach (var f in features)
+                {
+                    if (f.canIgnoreMaterialComponent(__instance, spellDefinition))
+                    {
+                        __result = true;
+                        return;
+                    }
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "IsComponentSomaticValid")]
+        class RulesetCharacter_IsComponentSomaticValid
+        {
+            internal static void Postfix(RulesetCharacter __instance,
+                                        SpellDefinition spellDefinition,
+                                        ref bool __result)
+            {
+                if (__result)
+                {
+                    return;
+                }
+
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ISomaticComponentIgnore>(__instance);
                 foreach (var f in features)
                 {

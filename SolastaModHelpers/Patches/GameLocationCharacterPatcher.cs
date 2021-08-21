@@ -74,5 +74,30 @@ namespace SolastaModHelpers.Patches
                 }
             }
         }
+
+
+        [HarmonyPatch(typeof(GameLocationCharacter), "ComputeAbilityCheckActionModifier")]
+        internal static class GameLocationCharacter_ComputeAbilityCheckActionModifier_Patch
+        {
+            internal static bool Prefix(GameLocationCharacter __instance,
+                                        string abilityScoreName,
+                                        string proficiencyName,
+                                        ActionModifier actionModifier,
+                                        RuleDefinitions.AbilityCheckContext context)
+            {
+                __instance.RulesetCharacter.EnumerateFeaturesToBrowse<NewFeatureDefinitions.AbilityCheckAffinityUnderRestriction>(__instance.RulesetCharacter.FeaturesToBrowse, __instance.RulesetCharacter.FeaturesOrigin);
+                foreach (NewFeatureDefinitions.AbilityCheckAffinityUnderRestriction key in __instance.RulesetCharacter.FeaturesToBrowse)
+                {
+                    if (key.canBeUsed(__instance.RulesetCharacter))
+                    {
+                        key.feature.ComputeAbilityCheckModifier(abilityScoreName, proficiencyName, actionModifier, __instance.RulesetCharacter.FeaturesOrigin[key], context, __instance.lightingState);
+                    }
+                }
+                return true;
+            }
+        }
+
+
+
     }
 }
