@@ -24,7 +24,32 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class SpellWithCasterLevelDependentEffects : SpellDefinition, ICustomEffectBasedOnCaster
+    public class SpellWithSlotLevelDependentEffects : SpellWithRestrictions, ICustomEffectBasedOnCaster
+    {
+        public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
+        public int minCustomEffectLevel = 100;
+
+        public EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        {
+            int slot_level = formsParams.effectLevel;
+            if (slot_level < minCustomEffectLevel)
+            {
+                return this.effectDescription;
+            }
+
+            foreach (var e in levelEffectList)
+            {
+                if (slot_level <= e.Item1)
+                {
+                    return e.Item2;
+                }
+            }
+
+            return this.effectDescription;
+        }
+    }
+
+    public class SpellWithCasterLevelDependentEffects : SpellWithRestrictions, ICustomEffectBasedOnCaster
     {
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
         public int minCustomEffectLevel = 100;

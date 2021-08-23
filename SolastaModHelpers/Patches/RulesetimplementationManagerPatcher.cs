@@ -80,7 +80,40 @@ namespace SolastaModHelpers.Patches
 
                 return true;
             }
+        }
 
+
+        [HarmonyPatch(typeof(RulesetImplementationManagerLocation), "ApplyLightSourceForm")]
+        class RulesetImplementationManager_ApplyLightSourceForm
+        {
+            static bool Prefix(RulesetImplementationManagerLocation __instance,
+                               EffectForm effectForm,
+                               ref RulesetImplementationDefinitions.ApplyFormsParams formsParams
+                              )
+            {
+                if (formsParams.activeEffect?.EffectDescription == null)
+                {
+                    return true;
+                }
+
+                if (!formsParams.activeEffect.EffectDescription.effectForms.Any(f => f.formType == EffectForm.EffectFormType.ItemProperty))
+                {
+                    return true;
+                }
+
+                if (formsParams.targetItem == null && formsParams.activeEffect?.EffectDescription.itemSelectionType == ActionDefinitions.ItemSelectionType.Weapon)
+                {
+                    var character = (formsParams.targetCharacter as RulesetCharacter) ?? formsParams.sourceCharacter;
+                    formsParams.targetItem = character.CharacterInventory?.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0]?.equipedItem;
+                }
+                else if (formsParams.targetItem == null && formsParams.activeEffect?.EffectDescription.itemSelectionType == ActionDefinitions.ItemSelectionType.Equiped)
+                {
+                    var character = (formsParams.targetCharacter as RulesetCharacter) ?? formsParams.sourceCharacter;
+                    formsParams.targetItem = character.CharacterInventory?.InventorySlotsByType[EquipmentDefinitions.SlotTypeTorso][0]?.equipedItem;
+                }
+
+                return true;
+            }
         }
 
 

@@ -202,6 +202,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public FeatureDefinition weaponFeature;
         public int numDice;
         public RuleDefinitions.DieType dieType;
+        public string ovewriteDamageType = string.Empty;
 
         public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
@@ -229,6 +230,10 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 damage.DieType = dieType;
                 damage.DiceNumber = numDice;
+                if (ovewriteDamageType != string.Empty)
+                {
+                    damage.damageType = ovewriteDamageType;
+                }
             }
             if (new_damage > old_damage_versatile)
             {
