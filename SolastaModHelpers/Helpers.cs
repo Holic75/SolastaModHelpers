@@ -86,6 +86,8 @@ namespace SolastaModHelpers.Helpers
         public static string HeavyArmor = "HeavyArmorCategory";
         public static string Shield = "ShieldCategory";
         public static string HideArmor = "HideArmorType";
+        public static string PaddedArmor = "PaddedLeatherType";
+        public static string LeatherArmor = "LeatherType";
 
         public static string[] getAllArmorProficiencies()
         {

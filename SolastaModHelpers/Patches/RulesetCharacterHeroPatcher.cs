@@ -137,39 +137,17 @@ namespace SolastaModHelpers.Patches
         }
 
 
-        /*[HarmonyPatch(typeof(RulesetCharacterHero), "PostLoad")]
+        [HarmonyPatch(typeof(RulesetCharacterHero), "PostLoad")]
         internal class RulesetCharacterHero_PostLoad
         {
             internal static void Postfix(RulesetCharacterHero __instance)
             {
-                refreshMaxPowerUses(__instance);
-            }
-
-
-            internal static void refreshMaxPowerUses(RulesetCharacterHero hero)
-            {
-                if (hero == null)
+                foreach (var a in Common.postload_actions)
                 {
-                    return;
-                }
-                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IPowerNumberOfUsesIncrease>(hero);
-
-                var usable_powers = hero.usablePowers;
-                foreach (var p in usable_powers)
-                {
-                    if (p?.powerDefinition == null)
-                    {
-                        continue;
-                    }
-
-                    p.maxUses = p.PowerDefinition.fixedUsesPerRecharge;
-                    foreach (var f in features)
-                    {
-                        f.apply(hero, p);
-                    }
+                    a(__instance);
                 }
             }
-        }*/
+        }
 
 
         [HarmonyPatch(typeof(RulesetCharacterHero), "RefreshAttackModes")]

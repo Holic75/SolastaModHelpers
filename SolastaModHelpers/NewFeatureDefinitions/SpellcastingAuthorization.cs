@@ -49,6 +49,30 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class AllowToUseWeaponCategoryAsSpellFocus : FeatureDefinition, ISomaticComponentIgnore, IMaterialComponentIgnore
+    {
+        public List<string> weaponTypes;
+
+        public bool canIgnoreMaterialComponent(RulesetCharacter character, SpellDefinition spellDefinition)
+        {
+            return canIgnoreSomaticComponent(character, spellDefinition);
+        }
+
+        public bool canIgnoreSomaticComponent(RulesetCharacter character, SpellDefinition spellDefinition)
+        {
+            if (spellDefinition.MaterialComponentType != RuleDefinitions.MaterialComponentType.Mundane)
+            {
+                return false;
+            }
+            var equipedItem1 = character.CharacterInventory.InventorySlotsByName[EquipmentDefinitions.SlotTypeMainHand].EquipedItem;
+            var equipedItem2 = character.CharacterInventory.InventorySlotsByName[EquipmentDefinitions.SlotTypeOffHand].EquipedItem;
+
+            return (equipedItem1?.itemDefinition?.WeaponDescription != null && equipedItem1.itemDefinition.IsWeapon && weaponTypes.Contains(equipedItem1.itemDefinition?.WeaponDescription.weaponType))
+                    || (equipedItem2?.itemDefinition?.WeaponDescription != null && equipedItem2.itemDefinition.IsWeapon && weaponTypes.Contains(equipedItem2.itemDefinition.WeaponDescription.weaponType));
+        }
+    }
+
+
     public class SpellcastingForbidden : FeatureDefinition, IForbidSpellcasting
     {
         public List<FeatureDefinition> spellcastingExceptionFeatures = new List<FeatureDefinition>();
