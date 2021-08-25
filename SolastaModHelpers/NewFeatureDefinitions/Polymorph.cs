@@ -57,8 +57,9 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionEncumbered,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionHeavilyEncumbered,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionHeavyArmorOverload,
-                                                                                                           DatabaseHelper.ConditionDefinitions.ConditionHeavilyObscured,
+                                                                                                           //DatabaseHelper.ConditionDefinitions.ConditionHeavilyObscured,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionDead,
+                                                                                                           DatabaseHelper.ConditionDefinitions.ConditionWounded,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionSeverelyWounded,
                                                                                                            DatabaseHelper.ConditionDefinitions.ConditionBanished
                                                                                                           };
@@ -294,8 +295,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
             foreach (var p in character.controlledEffectProxies.ToArray())
             {
-                character.UnbindEffectProxy(p);
+                
                 monster.BindEffectProxy(p);
+                p.controllerGuid = monster.guid;
+                character.UnbindEffectProxy(p);
+                Main.Logger.Log("Transferred Proxy: " + p.Name);
             }
 
             foreach (var ff in features_to_add)
@@ -324,8 +328,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     {
                         local.sourceGuid = wildshaped.Guid;
                     }
-                    character.spellsCastByMe.Remove(s);
                 }
+                character.spellsCastByMe.Remove(s);
             }
 
             foreach (var s in character.PowersUsedByMe.ToArray())
@@ -409,6 +413,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             var battle = ServiceRepository.GetService<IGameLocationBattleService>()?.Battle;
             battle?.IntroduceNewContender(original);
             makeReadyForBattle(wildshaped, original, null);
+            original.RulesetCharacter.RefreshSpellRepertoires();
             Gui.GuiService.GetScreen<GameLocationScreenExploration>()?.Refresh();
         }
 
@@ -516,7 +521,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     var eff = caster.EnumerateActiveEffectsActivatedByMe().Where(e => e.TrackedConditionGuids.Contains(condition.guid)).FirstOrDefault();
                     if (eff != null)
                     {
-                        Main.Logger.Log("Terminating Polymorph");
                         if (eff is RulesetEffectPower)
                         {
                             caster.TerminatePower(eff as RulesetEffectPower);
@@ -938,7 +942,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
         }
 
-        //remove wildshape units when entering new location, since game seem to just silently terminate all effects without proceeding to removing summoned unt
+        //remove wildshape units when entering new location, since game seem to just silently terminate all effects without proceeding to removing summoned unit
         [HarmonyPatch(typeof(GameLocationManager), "StopCharacterEffectsIfRelevant")]
         internal class GameLocationManager_StopCharacterEffectsIfRelevant
         {
