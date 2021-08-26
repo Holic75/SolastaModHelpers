@@ -293,18 +293,28 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return;
             }
 
-            foreach (var p in character.controlledEffectProxies.ToArray())
+            if (character.controlledEffectProxies != null)
             {
-                
-                monster.BindEffectProxy(p);
-                p.controllerGuid = monster.guid;
-                character.UnbindEffectProxy(p);
-                Main.Logger.Log("Transferred Proxy: " + p.Name);
+                foreach (var p in character.controlledEffectProxies.ToArray())
+                {
+                    if (p == null)
+                    {
+                        continue;
+                    }
+                    monster.BindEffectProxy(p);
+                    p.controllerGuid = monster.guid;
+                    character.UnbindEffectProxy(p);
+                    Main.Logger.Log("Transferred Proxy: " + p.Name);
+                }
             }
 
             foreach (var ff in features_to_add)
             {
-                (monster as RulesetCharacterMonster)?.activeFeatures.Add(ff);
+                if (ff == null)
+                {
+                    continue;
+                }
+                (monster as RulesetCharacterMonster)?.activeFeatures?.Add(ff);
                 Main.Logger.Log("Transferred Feature: " + ff.name);
             }
 
