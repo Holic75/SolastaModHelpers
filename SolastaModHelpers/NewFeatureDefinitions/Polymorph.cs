@@ -965,12 +965,66 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     {
                         if (Polymorph.extractOriginalFromWildshaped(gc.RulesetCharacter) != null)
                         {
-                            Main.Logger.Log("Removed Wildshaped unit on lcoation leave: " + gc.Name);
+                            Main.Logger.Log("Removed Wildshaped unit on location leave: " + gc.Name);
                             service1.DestroyCharacterBody(gc);
                         }
+                        else if (gc.RulesetCharacter.conditionsByCategory.Any(c => c.Value.Any(cc => cc.conditionDefinition == DatabaseHelper.ConditionDefinitions.ConditionConjuredCreature)))
+                        {
+                            Main.Logger.Log("Removed Summoned unit on location leave: " + gc.Name);
+                            service1.DestroyCharacterBody(gc);
+                        }
+
                     }
                 }
                 return true;
+            }
+        }
+
+
+        //aslo select polymorphed party members and summoned units created by them if all party is required (for example to teleport ot another lcoation)
+        [HarmonyPatch(typeof(Functor), "SelectCharacters")]
+        internal class Functor_SelectCharacters
+        {
+            static void Postfix(Functor __instance, FunctorParametersDescription functorParameters,
+                                List<GameLocationCharacter> selectedCharacters,
+                                List<GameLocationCharacter> exclusionList,
+                                bool keepNullValues)
+            {
+                int index = 0;
+                int max_index = functorParameters.playerPlacementMarkers.Length;
+                if (functorParameters.characterLookUpMethod == FunctorDefinitions.CharacterLookUpMethod.AllPartyMembers)
+                {
+                    IGameLocationCharacterService service2 = ServiceRepository.GetService<IGameLocationCharacterService>();
+                    foreach (var gc in service2.GuestCharacters)
+                    {
+                        var ruleset_character = gc.RulesetCharacter;
+                        if (ruleset_character == null)
+                        {
+                            continue;
+                        }
+                        bool found = false;
+                        foreach (var cc in ruleset_character.conditionsByCategory)
+                        {
+                            foreach (var c in cc.Value)
+                            {
+                                if ((c.conditionDefinition == DatabaseHelper.ConditionDefinitions.ConditionConjuredCreature 
+                                    || c.conditionDefinition == Common.wildshaped_unit_condition)
+                                    && service2.PartyCharacters.Any(p => p.RulesetCharacter.guid == c.sourceGuid))
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (found)
+                            {
+                                selectedCharacters.Add(gc);
+                                functorParameters.playerPlacementMarkers = functorParameters.playerPlacementMarkers.AddToArray(functorParameters.playerPlacementMarkers[index % max_index]);
+                                index++;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
 
