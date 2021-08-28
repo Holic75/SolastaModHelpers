@@ -22,6 +22,7 @@ namespace SolastaModHelpers.Helpers
         public static string Lightning = "DamageLightning";
         public static string Thundering = "DamageThunder";
         public static string Poison = "DamagePoison";
+        public static string Acid = "DamageAcid";
 
         public static string Piercing = "DamagePiercing";
         public static string Bludgeoning = "DamageBludgeoning";
