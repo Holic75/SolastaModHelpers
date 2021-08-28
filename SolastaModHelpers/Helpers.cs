@@ -1583,7 +1583,7 @@ namespace SolastaModHelpers.Helpers
             {
                 return string.Empty;
             }
-
+            
             var condition_name = s.Replace("CONTEXT_DETERMINED_ATTRIBUTE_", "");
             RulesetEffectSpell spell_effect = null;
             foreach (var cc in character.ConditionsByCategory)

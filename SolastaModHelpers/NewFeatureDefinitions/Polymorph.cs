@@ -293,6 +293,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return;
             }
 
+            monster.temporaryHitPoints = character.temporaryHitPoints;
             if (character.controlledEffectProxies != null)
             {
                 foreach (var p in character.controlledEffectProxies.ToArray())

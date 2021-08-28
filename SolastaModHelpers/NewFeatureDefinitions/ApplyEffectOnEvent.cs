@@ -692,15 +692,15 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class GrantPowerOnConditionApplication : FeatureDefinition, IApplyEffectOnConditionApplication, IApplyEffectOnConditionRemoval, IApplyEffectOnPowerUse
+    public class GrantPowerOnConditionApplication : FeatureDefinition, ICasterApplyEffectOnConditionApplication, IApplyEffectOnConditionRemoval, IApplyEffectOnPowerUse
     {
         public FeatureDefinitionPower power;
         public ConditionDefinition condition;
         public bool removAfterUse;
 
-        public void processConditionApplication(RulesetActor target, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
+        public void processCasterConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition applied_condition)
         {
-            if (applied_condition != condition)
+            if (applied_condition.conditionDefinition != condition)
             {
                 return;
             }
@@ -719,6 +719,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             var usable_power = new RulesetUsablePower(power, null, null);
             character.UsablePowers.Add(usable_power);
             usable_power.Recharge();
+            character.RefreshPowers();
         }
 
 

@@ -284,6 +284,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public class AttackDamageBonusBasedOnCasterStat : FeatureDefinition, IAttackModeModifier
     {
         public string abilityScore;
+        public bool doNotApplyToDamage;
         
         public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
@@ -305,13 +306,45 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             attack_mode.ToHitBonusTrends.Add(new RuleDefinitions.TrendInfo(value, RuleDefinitions.FeatureSourceType.MonsterFeature, this.Name, this));
 
             DamageForm first_Damage_form = attack_mode.EffectDescription.FindFirstDamageForm();
-            if (first_Damage_form != null)
+            if (first_Damage_form != null && !doNotApplyToDamage)
             {
                 first_Damage_form.BonusDamage += value;
                 first_Damage_form.DamageBonusTrends.Add(new RuleDefinitions.TrendInfo(value, RuleDefinitions.FeatureSourceType.CharacterFeature,
                                                                                       this.Name,
                                                                                       this));
             }
+        }
+    }
+
+
+    public class AttackBonusEqualToCasterSpellcastingBonus : FeatureDefinition, IAttackModeModifier
+    {
+        public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        {
+
+            var condition = character.FindFirstConditionHoldingFeature(this);
+            if (condition == null)
+            {
+                return;
+            }
+
+            var caster = RulesetEntity.GetEntity<RulesetCharacter>(condition.sourceGuid);
+            if (caster == null)
+            {
+                return;
+            }
+
+            var spell_effect = Helpers.Misc.findConditionParentEffect(condition) as RulesetEffectSpell;
+            if (spell_effect == null)
+            {
+                return;
+            }
+
+            var value = spell_effect.spellRepertoire.spellAttackBonus;
+
+
+            attack_mode.ToHitBonus += value;
+            attack_mode.ToHitBonusTrends.Add(new RuleDefinitions.TrendInfo(value, RuleDefinitions.FeatureSourceType.MonsterFeature, this.Name, this));
         }
     }
 }
