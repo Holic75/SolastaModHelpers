@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TA;
 
 namespace SolastaModHelpers.Patches
 {
@@ -98,6 +99,29 @@ namespace SolastaModHelpers.Patches
         }
 
 
+        [HarmonyPatch(typeof(GameLocationCharacter), "FinishMoveTo")]
+        class GameLocationCharacter_FinishMoveTo
+        {
+            internal static bool Prefix(GameLocationCharacter __instance, int3 destination)
+            {
+                if (__instance.locationPosition == destination)
+                {
+                    return true;
+                }
+                var hero_character = __instance.RulesetCharacter as RulesetCharacter;
+                if (hero_character != null)
+                {
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<IApplyEffectOnTargetMoved>(hero_character);
+                    foreach (var f in features)
+                    {
+                        f.processTargetMoved(hero_character);
+                    }
+                }
+
+                return true;
+            }
+
+        }
 
     }
 }

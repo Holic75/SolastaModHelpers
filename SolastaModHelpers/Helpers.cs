@@ -914,7 +914,7 @@ namespace SolastaModHelpers.Helpers
             }
             if (description_string != "")
             {
-                Definition.GuiPresentation.Description = title_string;
+                Definition.GuiPresentation.Description = description_string;
             }
             if (sprite != null)
             {

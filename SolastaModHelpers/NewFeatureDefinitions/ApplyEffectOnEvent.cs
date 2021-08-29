@@ -21,6 +21,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface IApplyEffectOnTargetMoved
+    {
+        void processTargetMoved(RulesetCharacter target);
+    }
+
+
     public interface IInitiatorApplyEffectOnCharacterDeath
     {
         void processDeath(RulesetCharacter attacker, RulesetCharacter target);
@@ -71,7 +77,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     public interface IInitiatorApplyEffectOnAttackHit
     {
-        void processAttackHitInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, 
+        void processAttackHitInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier,
                                         int attackRoll,
                                         int successDelta,
                                         bool ranged);
@@ -141,7 +147,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
 
 
-    public class HealAtTurnEndIfHasConditionBasedOnCasterLevel: FeatureDefinition, IApplyEffectOnTurnEnd
+    public class HealAtTurnEndIfHasConditionBasedOnCasterLevel : FeatureDefinition, IApplyEffectOnTurnEnd
     {
         public ConditionDefinition casterCondition;
         public List<(int, int)> levelHealing;
@@ -158,7 +164,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     if (c.conditionDefinition == casterCondition || (allowParentConditions && c.conditionDefinition.parentCondition == casterCondition))
                     {
                         var caster = RulesetEntity.GetEntity<RulesetCharacter>(c.sourceGuid) as RulesetCharacterHero;
-                        if (caster == null )
+                        if (caster == null)
                         {
                             continue;
                         }
@@ -226,7 +232,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class InitiatorApplyPowerToSelfOnTargetSlain: FeatureDefinition, IInitiatorApplyEffectOnTargetKill
+    public class InitiatorApplyPowerToSelfOnTargetSlain : FeatureDefinition, IInitiatorApplyEffectOnTargetKill
     {
         public FeatureDefinitionPower power;
         public CharacterClassDefinition scaleClass;
@@ -252,7 +258,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class ProvideConditionForTurnDuration: FeatureDefinition, IApplyEffectOnTurnStart, IApplyEffectOnTurnEnd
+    public class ProvideConditionForTurnDuration : FeatureDefinition, IApplyEffectOnTurnStart, IApplyEffectOnTurnEnd
     {
         public ConditionDefinition condition;
         public List<IRestriction> restrictions = new List<IRestriction>();
@@ -315,7 +321,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return null;
             }
-            
+
             var level = hero.ClassesAndLevels[characterClass];
 
             foreach (var l in powerLevelList)
@@ -498,7 +504,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void processAttackInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {
-            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid, 
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid,
                                                                                        condition, durationType, durationValue, turnOccurence,
                                                                                        attacker.RulesetCharacter.Guid,
                                                                                        attacker.RulesetCharacter.CurrentFaction.Name);
@@ -763,7 +769,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
 
 
-    public class RemoveConditionsOnConditionApplication: FeatureDefinition, IApplyEffectOnConditionApplication
+    public class RemoveConditionsOnConditionApplication : FeatureDefinition, IApplyEffectOnConditionApplication
     {
         public List<ConditionDefinition> appliedConditions;
         public List<ConditionDefinition> removeConditions;
@@ -830,7 +836,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             monster.GetAttribute("HitPoints").AddModifier(RulesetAttributeModifier.BuildAttributeModifier(FeatureDefinitionAttributeModifier.AttributeModifierOperation.Additive,
                                                                                                          val, "CustomCondition"));
             monster.CurrentHitPoints += val;
-            
+
         }
     }
 
@@ -843,7 +849,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
 
         public void processCasterConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition condition)
-        { 
+        {
             if (requiredCondition != condition.conditionDefinition)
             {
                 return;
@@ -968,6 +974,52 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 character.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
             }
             character.RefreshActionPerformances();
+        }
+    }
+
+    public class ApplyEffectFormsOnTargetMoved : FeatureDefinition, IApplyEffectOnTargetMoved
+    {
+        public List<EffectForm> effectForms;
+
+        public void processTargetMoved(RulesetCharacter target)
+        {
+            Main.Logger.Log("Trigger");
+            var condition = target.FindFirstConditionHoldingFeature(this);
+            if (condition == null)
+            {
+                return;
+            }
+
+            var effect = ServiceRepository.GetService<IGameLocationEnvironmentService>().GlobalActiveEffects.Find(a => a.TrackedConditionGuids.Contains(condition.guid));
+            if (effect == null)
+            {
+                return;
+            }
+
+            var caster = RulesetEntity.GetEntity<RulesetCharacter>(condition.sourceGuid) as RulesetCharacter;
+            if (caster == null)
+            {
+                return;
+            }
+
+            RuleDefinitions.RollOutcome saveOutcome = RuleDefinitions.RollOutcome.Neutral;
+            ActionModifier actionModifier = new ActionModifier();
+            RulesetImplementationDefinitions.ApplyFormsParams formsParams = new RulesetImplementationDefinitions.ApplyFormsParams();
+            formsParams.FillSourceAndTarget(caster, target);
+            formsParams.FillFromActiveEffect(effect);
+            bool rolledSaveThrow = effect.TryRollSavingThrow((RulesetCharacter)null, RuleDefinitions.Side.Neutral, target, actionModifier, true, out saveOutcome);
+            formsParams.FillSpecialParameters(rolledSaveThrow, 0, 0, 0, 0, actionModifier, saveOutcome, false, 0, 1, null);
+            formsParams.effectSourceType = effect.EffectSourceType;
+            IRulesetImplementationService service = ServiceRepository.GetService<IRulesetImplementationService>();
+
+            var forms_copy = new List<EffectForm>();
+            foreach (var f in effectForms)
+            {
+                var form = new EffectForm();
+                form.Copy(f);
+                forms_copy.Add(form);
+            }
+            service.ApplyEffectForms(forms_copy, formsParams);
         }
     }
 }
