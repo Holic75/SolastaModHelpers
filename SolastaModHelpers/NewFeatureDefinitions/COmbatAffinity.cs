@@ -6,6 +6,44 @@ using System.Threading.Tasks;
 
 namespace SolastaModHelpers.NewFeatureDefinitions
 {
+    public class DisadvantageOnWeaponAttack : FeatureDefinition, ICombatAffinityProvider
+    {
+        public RuleDefinitions.SituationalContext SituationalContext => RuleDefinitions.SituationalContext.None;
+
+        public bool AutoCritical => false;
+
+        public bool CriticalHitImmunity => false;
+
+        public ConditionDefinition RequiredTargetCondition => null;
+
+        public bool IgnoreCover => false;
+
+        public void ComputeAttackModifier(RulesetCharacter myself, RulesetCharacter defender, RulesetAttackMode attackMode, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
+        {
+            if ((attackMode?.sourceDefinition as MonsterAttackDefinition)?.itemDefinitionMainHand != null
+                || (attackMode?.sourceDefinition as MonsterAttackDefinition)?.ItemDefinitionOffHand != null
+                || ((attackMode.sourceDefinition as ItemDefinition)?.IsWeapon).GetValueOrDefault())
+            {
+                attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(-1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
+            }
+        }
+
+        public void ComputeDefenseModifier(RulesetCharacter myself, RulesetCharacter attacker, int sustainedAttacks, bool defenderAlreadyAttackedByAttackerThisTurn, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
+        {
+           
+        }
+
+        public RuleDefinitions.AdvantageType GetAdvantageOnOpportunityAttackOnMe(RulesetCharacter myself, RulesetCharacter attacker)
+        {
+            return RuleDefinitions.AdvantageType.None;
+        }
+
+        public bool IsImmuneToOpportunityAttack(RulesetCharacter myself, RulesetCharacter attacker)
+        {
+            return false;
+        }
+    }
+
     public class RecklessAttack : FeatureDefinition, ICombatAffinityProvider
     {
         public string attackStat;

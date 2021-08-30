@@ -1,5 +1,0 @@
-Reaction/&CommonUsePowerReactTitle	Reagieren
-Rules/&CommonConditioUnderEffectOfPrefix	Wirkung von
-Reaction/&DeflectMissileDescriptionCustom	{0} greift {1} an, der reagieren kann, um den eingehenden Schaden um 1W10 + {2} Modifikator + seine {3} Klassenstufe zu reduzieren.
-Failure/&FailureFlagTargetIncorrectWeapon	Ihre aktuelle Waffe kann nicht verwendet werden.
-Failure/&FailureFlagTargetIncorrectArmor	Ziel trägt falsche Rüstung.

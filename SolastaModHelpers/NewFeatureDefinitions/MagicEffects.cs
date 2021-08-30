@@ -12,9 +12,10 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public interface ICustomEffectBasedOnCaster
+    public interface ICustomMagicEffectBasedOnCaster
     {
-        EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams);
+        //EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams);
+        EffectDescription getCustomEffect(RulesetEffectSpell spell_effect);
     }
 
     public interface IPerformAttackAfterMagicEffectUse
@@ -24,14 +25,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class SpellWithSlotLevelDependentEffects : SpellWithRestrictions, ICustomEffectBasedOnCaster
+    public class SpellWithSlotLevelDependentEffects : SpellWithRestrictions, ICustomMagicEffectBasedOnCaster
     {
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
         public int minCustomEffectLevel = 100;
 
-        public EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        public EffectDescription getCustomEffect(RulesetEffectSpell spell_effect)
         {
-            int slot_level = formsParams.effectLevel;
+            int slot_level = spell_effect.SlotLevel;
             if (slot_level < minCustomEffectLevel)
             {
                 return this.effectDescription;
@@ -49,14 +50,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
     }
 
-    public class SpellWithCasterLevelDependentEffects : SpellWithRestrictions, ICustomEffectBasedOnCaster
+    public class SpellWithCasterLevelDependentEffects : SpellWithRestrictions, ICustomMagicEffectBasedOnCaster
     {
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
         public int minCustomEffectLevel = 100;
 
-        public EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        public EffectDescription getCustomEffect(RulesetEffectSpell spell_effect)
         {
-            int caster_level = formsParams.classLevel;
+            int caster_level = spell_effect.GetClassLevel(spell_effect.caster);
             if (caster_level < minCustomEffectLevel)
             {
                 return this.effectDescription;
@@ -75,13 +76,13 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class SpellWithCasterFeatureDependentEffects : SpellDefinition, ICustomEffectBasedOnCaster
+    public class SpellWithCasterFeatureDependentEffects : SpellDefinition, ICustomMagicEffectBasedOnCaster
     {
         public List<(List<FeatureDefinition>, EffectDescription)> featuresEffectList = new List<(List<FeatureDefinition>, EffectDescription)>();
 
-        public EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        public EffectDescription getCustomEffect(RulesetEffectSpell spell_effect)
         {
-            var caster = formsParams.sourceCharacter;
+            var caster = spell_effect.caster;
 
             var caster_features = Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(caster).ToHashSet();
 

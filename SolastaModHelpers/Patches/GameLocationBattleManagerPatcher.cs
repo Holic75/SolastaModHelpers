@@ -351,18 +351,26 @@ namespace SolastaModHelpers.Patches
                         }
                         if (validUses)
                         {
+                            EffectDescription effectDescription = activeEffect.EffectDescription;
                             if (provider.TriggerCondition == (RuleDefinitions.AdditionalDamageTriggerCondition)ExtendedEnums.AdditionalDamageTriggerCondition.RadiantOrFireSpellDamage 
                                 && activeEffect is RulesetEffectSpell
-                                && Helpers.Misc.hasDamageType(activeEffect.EffectDescription.effectForms, Helpers.DamageTypes.Fire, Helpers.DamageTypes.Radiant)
+                                && Helpers.Misc.hasDamageType(actualEffectForms, Helpers.DamageTypes.Fire, Helpers.DamageTypes.Radiant)
                                 )
                             {
-                                if (((activeEffect.EffectDescription.RangeType != RuleDefinitions.RangeType.Distance ? 0 : (!activeEffect.EffectDescription.IsAoE ? 1 : 0)) & (firstTarget ? 1 : 0)) != 0)
-                                    validTrigger = true;
-                                else if (activeEffect.EffectDescription.RangeType != RuleDefinitions.RangeType.Distance || activeEffect.EffectDescription.IsAoE)
-                                    validTrigger = true;
+                                validTrigger = true;   
+                            }    
+                            else if ((effectDescription.RangeType == RuleDefinitions.RangeType.MeleeHit || effectDescription.RangeType == RuleDefinitions.RangeType.RangeHit)
+                                      && provider.TriggerCondition == (RuleDefinitions.AdditionalDamageTriggerCondition)ExtendedEnums.AdditionalDamageTriggerCondition.MagicalAttacksOnTargetWithConditionFromMe
+                                      && defender.RulesetActor.HasConditionOfTypeAndSource(provider.RequiredTargetCondition, attacker.Guid)
+                                      )
+                            {
+                                validTrigger = true;
                             }
+
                             if (validTrigger)
-                                __instance.ComputeAndNotifyAdditionalDamage(attacker, defender, provider, actualEffectForms, (CharacterActionParams)null);
+                            {
+                                __instance.ComputeAndNotifyAdditionalDamage(attacker, defender, provider, actualEffectForms, null);
+                            }
                         }
                         provider = (IAdditionalDamageProvider)null;
                         featureDefinition = (FeatureDefinition)null;

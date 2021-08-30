@@ -34,6 +34,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         string getPowerAbilityScore(RulesetCharacter character);
     }
 
+    public interface ICustomPowerEffectBasedOnCaster
+    {
+        EffectDescription getCustomEffect(RulesetEffectPower power_effect);
+    }
+
 
     public class HighestAbilityScorePower: FeatureDefinitionPower, ICustomPowerAbilityScore
     {
@@ -59,15 +64,15 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class PowerWithContextFromCondition : PowerWithRestrictions, ICustomPowerAbilityScore, ICustomEffectBasedOnCaster
+    public class PowerWithContextFromCondition : PowerWithRestrictions, ICustomPowerAbilityScore, ICustomPowerEffectBasedOnCaster
     {
         public ConditionDefinition condition;
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
         public int minCustomEffectLevel = 100;
 
-        public EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        public EffectDescription getCustomEffect(RulesetEffectPower power_effect)
         {
-            RulesetEffectSpell spell_effect = getParentSpellEffect(formsParams.sourceCharacter);
+            RulesetEffectSpell spell_effect = getParentSpellEffect(power_effect.user);
 
             if (spell_effect == null)
             {
@@ -155,14 +160,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class PowerWithRestrictionsAndCasterLevelDependentEffect : PowerWithRestrictions, ICustomEffectBasedOnCaster
+    public class PowerWithRestrictionsAndCasterLevelDependentEffect : PowerWithRestrictions, ICustomPowerEffectBasedOnCaster
     {
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();
         public int minCustomEffectLevel = 100;
 
-        public EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams)
+        public EffectDescription getCustomEffect(RulesetEffectPower power_effect)
         {
-            int caster_level = formsParams.classLevel;
+            int caster_level = power_effect.GetClassLevel(power_effect.user);
             if (caster_level < minCustomEffectLevel)
             {
                 return this.effectDescription;

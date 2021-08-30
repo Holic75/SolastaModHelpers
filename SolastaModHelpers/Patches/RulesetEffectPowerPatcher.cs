@@ -9,6 +9,19 @@ namespace SolastaModHelpers.Patches
 {
     class RulesetEffectPowerPatcher
     {
+        [HarmonyPatch(typeof(RulesetEffectPower), "EffectDescription", MethodType.Getter)]
+        class RulesetEffectPower_EffectDescription
+        {
+            static void Postfix(ref EffectDescription __result, RulesetEffectPower __instance)
+            {
+                var base_definition = __instance.PowerDefinition as NewFeatureDefinitions.ICustomPowerEffectBasedOnCaster;
+                if (base_definition != null && __instance.user != null)
+                {
+                    __result = base_definition.getCustomEffect(__instance);
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(RulesetEffectPower), "SourceAbility", MethodType.Getter)]
         class RulesetEffectPower_SourceAbility
         {
