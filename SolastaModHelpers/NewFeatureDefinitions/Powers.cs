@@ -72,7 +72,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public EffectDescription getCustomEffect(RulesetEffectPower power_effect)
         {
-            RulesetEffectSpell spell_effect = getParentSpellEffect(power_effect.user);
+            RulesetEffectSpell spell_effect = getParentSpellEffect(power_effect.User);
 
             if (spell_effect == null)
             {
@@ -167,7 +167,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public EffectDescription getCustomEffect(RulesetEffectPower power_effect)
         {
-            int caster_level = power_effect.GetClassLevel(power_effect.user);
+            int caster_level = power_effect.GetClassLevel(power_effect.User);
+            Main.Logger.Log($"caster_level: {caster_level}");
             if (caster_level < minCustomEffectLevel)
             {
                 return this.effectDescription;

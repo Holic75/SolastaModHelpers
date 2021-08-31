@@ -12,10 +12,10 @@ namespace SolastaModHelpers.Patches
         [HarmonyPatch(typeof(RulesetEffectPower), "EffectDescription", MethodType.Getter)]
         class RulesetEffectPower_EffectDescription
         {
-            static void Postfix(ref EffectDescription __result, RulesetEffectPower __instance)
+            static void Postfix(RulesetEffectPower __instance, ref EffectDescription __result)
             {
                 var base_definition = __instance.PowerDefinition as NewFeatureDefinitions.ICustomPowerEffectBasedOnCaster;
-                if (base_definition != null && __instance.user != null)
+                if (base_definition != null && __instance.User != null)
                 {
                     __result = base_definition.getCustomEffect(__instance);
                 }

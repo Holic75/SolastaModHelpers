@@ -15,7 +15,7 @@ namespace SolastaModHelpers.Patches
             static void Postfix(ref EffectDescription __result, RulesetEffectSpell __instance)
             {
                 var base_definition = __instance.spellDefinition as NewFeatureDefinitions.ICustomMagicEffectBasedOnCaster;
-                if (base_definition != null && __instance.caster != null)
+                if (base_definition != null && __instance.Caster != null)
                 {
                     __result = base_definition.getCustomEffect(__instance);
                 }

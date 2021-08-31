@@ -57,7 +57,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public EffectDescription getCustomEffect(RulesetEffectSpell spell_effect)
         {
-            int caster_level = spell_effect.GetClassLevel(spell_effect.caster);
+            int caster_level = spell_effect.GetClassLevel(spell_effect.Caster);
             if (caster_level < minCustomEffectLevel)
             {
                 return this.effectDescription;
@@ -82,7 +82,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public EffectDescription getCustomEffect(RulesetEffectSpell spell_effect)
         {
-            var caster = spell_effect.caster;
+            var caster = spell_effect.Caster;
 
             var caster_features = Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinition>(caster).ToHashSet();
 
