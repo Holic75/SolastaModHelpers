@@ -168,7 +168,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public EffectDescription getCustomEffect(RulesetEffectPower power_effect)
         {
             int caster_level = power_effect.GetClassLevel(power_effect.User);
-            Main.Logger.Log($"caster_level: {caster_level}");
             if (caster_level < minCustomEffectLevel)
             {
                 return this.effectDescription;

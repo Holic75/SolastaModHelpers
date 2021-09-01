@@ -989,7 +989,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void processTargetMoved(RulesetCharacter target)
         {
-            Main.Logger.Log("Trigger");
             var condition = target.FindFirstConditionHoldingFeature(this);
             if (condition == null)
             {
