@@ -155,6 +155,12 @@ namespace SolastaModHelpers.Patches
                     {
                         f.processCasterConditionApplication(caster, __instance, newCondition);
                     }
+
+                    var features2 = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ITargetApplyEffectOnConditionApplication>(__instance);
+                    foreach (var f in features2)
+                    {
+                        f.processTargetConditionApplication(caster, __instance, newCondition);
+                    }
                 }
             }
         }

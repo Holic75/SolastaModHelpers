@@ -57,6 +57,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface ITargetApplyEffectOnConditionApplication
+    {
+        void processTargetConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition condition);
+    }
+
+
     public interface IApplyEffectOnPowerUse
     {
         void processPowerUse(RulesetCharacter character, RulesetUsablePower power);
@@ -698,13 +704,13 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class GrantPowerOnConditionApplication : FeatureDefinition, ICasterApplyEffectOnConditionApplication, IApplyEffectOnConditionRemoval, IApplyEffectOnPowerUse
+    public class GrantPowerOnConditionApplication : FeatureDefinition, ITargetApplyEffectOnConditionApplication, IApplyEffectOnConditionRemoval, IApplyEffectOnPowerUse
     {
         public FeatureDefinitionPower power;
         public ConditionDefinition condition;
         public bool removAfterUse;
 
-        public void processCasterConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition applied_condition)
+        public void processTargetConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition applied_condition)
         {
             if (applied_condition.conditionDefinition != condition)
             {
