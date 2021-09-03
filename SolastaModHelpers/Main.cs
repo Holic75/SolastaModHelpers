@@ -78,6 +78,7 @@ namespace SolastaModHelpers
             ReactionRequestCastSpellInResponseToAttack.initialize();
             DatabaseHelper.SpellDefinitions.MageArmor.EffectDescription.SetTargetFilteringTag(RuleDefinitions.TargetFilteringTag.Unarmored); //fix mage armor tag to unarmored
             Fixes.fixVampiricTouch();
+            Fixes.fixConjureAnimalDuration();
             var monsters = DatabaseRepository.GetDatabase<MonsterDefinition>().GetAllElements();
             foreach (var m in monsters)
             {

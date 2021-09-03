@@ -9,6 +9,15 @@ namespace SolastaModHelpers
 {
     public class Fixes
     {
+        static internal void fixConjureAnimalDuration()
+        {
+            foreach (var s in DatabaseHelper.SpellDefinitions.ConjureAnimals.subspellsList)
+            {
+                s.effectDescription.durationType = RuleDefinitions.DurationType.Hour;
+            }
+        }
+
+
         static internal void fixVampiricTouch()
         {
             //fix vampiric touch to work indpendently of specificed attribute 
