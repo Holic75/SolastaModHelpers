@@ -88,6 +88,17 @@ namespace SolastaModHelpers
                 }
             }
 
+            var summon_elemental_spells = new List<SpellDefinition> { DatabaseHelper.SpellDefinitions.ConjureMinorElementals, DatabaseHelper.SpellDefinitions.ConjureElemental };
+            foreach (var s in summon_elemental_spells)
+            {
+                foreach (var ss in s.subspellsList)
+                {
+                    var monster_name = ss.effectDescription.effectForms.Find(f => f.formType == EffectForm.EffectFormType.Summon).summonForm.monsterDefinitionName;
+                    var monster = DatabaseRepository.GetDatabase<MonsterDefinition>().GetElement(monster_name);
+                    monster.fullyControlledWhenAllied = true;
+                }
+            }
+
 
 
             /*var spells = DatabaseRepository.GetDatabase<SpellDefinition>().GetAllElements();

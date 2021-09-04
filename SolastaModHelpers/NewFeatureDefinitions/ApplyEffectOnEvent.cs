@@ -366,6 +366,46 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class TerminateEffectsOnPowerUse : FeatureDefinition, IApplyEffectOnPowerUse
+    {
+        public List<FeatureDefinition> effectsToTerminate;
+
+        public List<FeatureDefinitionPower> powers;
+
+        public void processPowerUse(RulesetCharacter character, RulesetUsablePower usablePower)
+        {
+            if (!powers.Contains(usablePower?.PowerDefinition))
+            {
+                return;
+            }
+            List<RulesetEffect> effects = new List<RulesetEffect>();
+            if (character is RulesetCharacterHero)
+            {
+                effects = (character as RulesetCharacterHero).EnumerateActiveEffectsActivatedByMe().ToList();
+            }
+            else if (character is RulesetCharacterMonster)
+            {
+                effects = (character as RulesetCharacterMonster).EnumerateActiveEffectsActivatedByMe().ToList();
+            }
+
+            foreach (var eff in effects)
+            {
+                if (effectsToTerminate.Contains(eff.SourceDefinition))
+                {
+                    if (eff is RulesetEffectPower)
+                    {
+                        character.TerminatePower(eff as RulesetEffectPower);
+                    }
+                    else if (eff is RulesetEffectSpell)
+                    {
+                        character.TerminateSpell(eff as RulesetEffectSpell);
+                    }
+                }
+            }
+        }
+    }
+
+
     public class ApplyConditionOnPowerUseToTarget : FeatureDefinition, IApplyEffectOnTargetSavingthrowRoll
     {
         public ConditionDefinition condition;

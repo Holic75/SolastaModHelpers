@@ -40,14 +40,13 @@ namespace SolastaModHelpers.Patches
         {
             internal static void Postfix(RulesetCharacterMonster __instance)
             {
-
                 var game_location_character = Helpers.Misc.findGameLocationCharacter(__instance);
 
                 if (__instance.monsterDefinition.GroupAttacks || __instance.AttackModes.Count() <= 2
                     || __instance.AttackModes[0].actionType != __instance.AttackModes[2].actionType
                     || __instance.AttackModes[0].ranged == __instance.AttackModes[2].ranged
                     || __instance.side == RuleDefinitions.Side.Enemy
-                    || !__instance.ConditionsByCategory.ContainsKey(NewFeatureDefinitions.Polymorph.tagWildshapePolymorphed)
+                    //|| !__instance.ConditionsByCategory.ContainsKey(NewFeatureDefinitions.Polymorph.tagWildshapePolymorphed)
                     || game_location_character == null)
                 {
                     return;

@@ -150,6 +150,25 @@ namespace SolastaModHelpers.Patches
         }
 
 
+        [HarmonyPatch(typeof(RulesetCharacter), "ApplyRest")]
+        class RulesetCharacter_ApplyRest
+        {
+            internal static void Postfix(RulesetCharacter __instance,
+                                        RuleDefinitions.RestType restType,
+                                        bool simulate,
+                                        TimeInfo restStartTime)
+            {
+                foreach (var f in __instance.recoveredFeatures.ToArray())
+                {
+                    if ((f as NewFeatureDefinitions.LinkedPower)?.linkedPower != null)
+                    {
+                        __instance.recoveredFeatures.Remove(f);
+                    }
+                }
+            }
+        }
+
+
 
 
 
