@@ -100,7 +100,6 @@ namespace SolastaModHelpers
             }
 
 
-
             /*var spells = DatabaseRepository.GetDatabase<SpellDefinition>().GetAllElements();
             foreach (var s in spells)
             {

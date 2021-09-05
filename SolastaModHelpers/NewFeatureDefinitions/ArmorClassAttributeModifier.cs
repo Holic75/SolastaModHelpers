@@ -38,7 +38,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public int precomputeBonusValue(RulesetCharacter character)
         {
-            if (!armorAllowed && character.IsWearingArmor())
+            if (!armorAllowed 
+                && Helpers.Misc.isWearingArmorWithNonZeroProtection(character))
             {
                 return 0;
             }

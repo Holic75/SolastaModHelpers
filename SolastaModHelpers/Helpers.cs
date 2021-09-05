@@ -1343,6 +1343,25 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        static public bool isWearingArmorWithNonZeroProtection(RulesetCharacter character)
+        {
+            if (character.IsWearingArmor())
+            {
+                return true;
+            }
+
+
+            var hero = character as RulesetCharacterHero;
+            RulesetItem equipedItem = hero.characterInventory.InventorySlotsByName[EquipmentDefinitions.SlotTypeTorso].EquipedItem;
+            if (equipedItem != null && equipedItem.ItemDefinition.IsArmor 
+                && equipedItem.ItemDefinition.armorDefinition.isBaseArmorClass && equipedItem.ItemDefinition.armorDefinition.armorClassValue > 10)
+            {
+                return true;
+            }
+            return false;
+        }
+
+
         static public bool itemHasFeature(RulesetItem item, FeatureDefinition feature)
         {
             List<FeatureDefinition> features = new List<FeatureDefinition>();
