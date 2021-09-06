@@ -33,7 +33,8 @@ namespace SolastaModHelpers.ExtendedEnums
 
     public enum AdditionalDamageTriggerCondition
     {
-        RadiantOrFireSpellDamage = 128,
-        MagicalAttacksOnTargetWithConditionFromMe = 127
+        CantripDamage = 126,
+        MagicalAttacksOnTargetWithConditionFromMe = 127,
+        RadiantOrFireSpellDamage = 128,      
     }
 }

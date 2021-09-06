@@ -27,6 +27,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface IApplyEffectOnProxySummon
+    {
+        void processProxySummon(RulesetActor caster, RulesetEffect rulesetEffect, int3 position, EffectProxyDefinition effectProxyDefinition);
+    }
+
+
     public interface IInitiatorApplyEffectOnCharacterDeath
     {
         void processDeath(RulesetCharacter attacker, RulesetCharacter target);
@@ -1065,6 +1071,25 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 forms_copy.Add(form);
             }
             service.ApplyEffectForms(forms_copy, formsParams);
+        }
+    }
+
+
+    public class ApplyPowerOnProxySummon : FeatureDefinition, IApplyEffectOnProxySummon
+    {
+        public FeatureDefinitionPower power;
+
+        public void processProxySummon(RulesetActor caster, RulesetEffect rulesetEffect, int3 position, EffectProxyDefinition effectProxyDefinition)
+        {
+            CharacterActionParams actionParams;
+            var character = Helpers.Misc.findGameLocationCharacter(caster as RulesetCharacter);
+            actionParams = new CharacterActionParams(character, ActionDefinitions.Id.PowerNoCost, position);
+
+            RulesetUsablePower usablePower = (caster as RulesetCharacter)?.UsablePowers?.Find(p => p.powerDefinition == power) ?? new RulesetUsablePower(power, (CharacterRaceDefinition)null, (CharacterClassDefinition)null);
+            IRulesetImplementationService service = ServiceRepository.GetService<IRulesetImplementationService>();
+            actionParams.RulesetEffect = (RulesetEffect)service.InstantiateEffectPower(character.RulesetCharacter, usablePower, false);
+            actionParams.StringParameter = power.Name;
+            ServiceRepository.GetService<IGameLocationActionService>().ExecuteInstantSingleAction(actionParams);
         }
     }
 }

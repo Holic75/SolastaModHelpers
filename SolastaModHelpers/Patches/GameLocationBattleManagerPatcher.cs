@@ -358,7 +358,14 @@ namespace SolastaModHelpers.Patches
                                 )
                             {
                                 validTrigger = true;   
-                            }    
+                            }
+                            if (provider.TriggerCondition == (RuleDefinitions.AdditionalDamageTriggerCondition)ExtendedEnums.AdditionalDamageTriggerCondition.CantripDamage
+                                && activeEffect is RulesetEffectSpell
+                                && (activeEffect as RulesetEffectSpell).spellDefinition != null && (activeEffect as RulesetEffectSpell).spellDefinition.spellLevel == 0
+                                )
+                            {
+                                validTrigger = true;
+                            }
                             else if ((effectDescription.RangeType == RuleDefinitions.RangeType.MeleeHit || effectDescription.RangeType == RuleDefinitions.RangeType.RangeHit)
                                       && provider.TriggerCondition == (RuleDefinitions.AdditionalDamageTriggerCondition)ExtendedEnums.AdditionalDamageTriggerCondition.MagicalAttacksOnTargetWithConditionFromMe
                                       && defender.RulesetActor.HasConditionOfTypeAndSource(provider.RequiredTargetCondition, attacker.Guid)
