@@ -19,6 +19,14 @@ namespace SolastaModHelpers.Patches
                 {
                     __result = base_definition.getCustomEffect(__instance);
                 }
+
+                var caster = __instance.Caster;
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IModifySpellEffect>(caster);
+                foreach (var f in features)
+                {
+                    __result = f.modifyEffect(__instance, __result);
+                }
+                
             }
         }
     }

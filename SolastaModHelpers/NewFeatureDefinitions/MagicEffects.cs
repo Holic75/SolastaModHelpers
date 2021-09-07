@@ -12,9 +12,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface IModifySpellEffect
+    {
+        EffectDescription modifyEffect(RulesetEffectSpell spell_effect, EffectDescription current_effect);
+    }
+
+
     public interface ICustomMagicEffectBasedOnCaster
     {
-        //EffectDescription getCustomEffect(RulesetImplementationDefinitions.ApplyFormsParams formsParams);
         EffectDescription getCustomEffect(RulesetEffectSpell spell_effect);
     }
 
@@ -222,6 +227,34 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public bool isReactionForbidden(RulesetActor character)
         {
             return checkReaction ? isForbidden(character) : false;
+        }
+    }
+
+
+    public class ModifySpellDamageType: FeatureDefinition, IModifySpellEffect
+    {
+        public string newDamageType;
+
+        public EffectDescription modifyEffect(RulesetEffectSpell spell_effect, EffectDescription current_effect)
+        {
+            var eff = new EffectDescription();
+            eff.Copy(current_effect);
+            eff.effectForms.Clear();
+            foreach (var f in current_effect.effectForms)
+            {
+                if (f.FormType == EffectForm.EffectFormType.Damage)
+                {
+                    var new_f = new EffectForm();
+                    new_f.Copy(f);
+                    new_f.damageForm.damageType = newDamageType;
+                    eff.effectForms.Add(new_f);
+                }
+                else
+                {
+                    eff.effectForms.Add(f);
+                }
+            }
+            return eff;
         }
     }
 }

@@ -213,10 +213,10 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 prev_characters.Remove(original);
                 prev_characters.Add(wildshaped);
                 PolymorphPatcher.GameLocationSelectionManager_IsCharacterSelectable.ignore_selection_constraints = true;
-                PolymorphPatcher.GameLocationSelectionManager_IsCharacterSelectable.force_recompute = true;
+                //PolymorphPatcher.GameLocationSelectionManager_IsCharacterSelectable.force_recompute = true;
                 service.SelectMultipleCharacters(prev_characters, true);
                 PolymorphPatcher.GameLocationSelectionManager_IsCharacterSelectable.ignore_selection_constraints = false;
-                PolymorphPatcher.GameLocationSelectionManager_IsCharacterSelectable.force_recompute = false;
+                //PolymorphPatcher.GameLocationSelectionManager_IsCharacterSelectable.force_recompute = false;
             }
         }
 
@@ -857,7 +857,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 {
                     if (pc.RulesetCharacter.conditionsByCategory.ContainsKey(Polymorph.tagWildshapePolymorphed) && pc.RulesetCharacter.conditionsByCategory[Polymorph.tagWildshapePolymorphed].Count > 0)
                     {
-                        __instance.playerContenders.Remove(pc);
+                       __instance.playerContenders.Remove(pc);
                     }
                 }
                 return true;
@@ -918,18 +918,40 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         internal class GameLocationSelectionManager_IsCharacterSelectable
         {
             static internal bool ignore_selection_constraints = false;
-            static internal bool force_recompute = false;
+            //static internal bool force_recompute = false;
+
+            static void Prefix(GameLocationSelectionManager __instance, GameLocationCharacter gameCharacter, bool ignoreInactive, ref bool __result)
+            {
+                IGameLocationCharacterService service = ServiceRepository.GetService<IGameLocationCharacterService>();
+                var controller = ServiceRepository.GetService<IPlayerControllerService>()?.ActivePlayerController;
+                if (controller == null || service == null)
+                {
+                    return;
+                }
+                foreach (GameLocationCharacter partyCharacter in service.PartyCharacters)
+                {
+                    if (partyCharacter.ControllerId == controller.controllerId 
+                        && partyCharacter.Side == RuleDefinitions.Side.Ally && !partyCharacter.RulesetCharacter.HasForcedBehavior
+                        && !controller.controlledCharacters.Contains(partyCharacter))
+                    {
+                        controller.RecomputeControlledCharacters();
+                        return;
+                    }   
+                }
+                foreach (GameLocationCharacter guestCharacter in service.GuestCharacters)
+                {
+                    if (guestCharacter.Side == RuleDefinitions.Side.Ally
+                        && !guestCharacter.RulesetCharacter.HasForcedBehavior
+                        && !controller.controlledCharacters.Contains(guestCharacter))
+                    {
+                        controller.RecomputeControlledCharacters();
+                        return;
+                    }
+                }
+            }
 
             static void Postfix(GameLocationSelectionManager __instance, GameLocationCharacter gameCharacter, bool ignoreInactive, ref bool __result)
             {
-                if (!__result && force_recompute
-                    && gameCharacter.Side == RuleDefinitions.Side.Ally && !gameCharacter.RulesetCharacter.HasForcedBehavior
-                    && !((gameCharacter?.RulesetCharacter?.IsDeadOrDyingOrUnconscious).GetValueOrDefault() && ignoreInactive))
-                {
-                    ServiceRepository.GetService<IPlayerControllerService>()?.ActivePlayerController?.RecomputeControlledCharacters();
-                    __result = true;
-                }
-
                 if (ignore_selection_constraints)
                 {
                     __result = true;
