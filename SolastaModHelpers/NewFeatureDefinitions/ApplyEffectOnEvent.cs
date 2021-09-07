@@ -1078,9 +1078,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public class ApplyPowerOnProxySummon : FeatureDefinition, IApplyEffectOnProxySummon
     {
         public FeatureDefinitionPower power;
+        public EffectProxyDefinition proxy;
 
         public void processProxySummon(RulesetActor caster, RulesetEffect rulesetEffect, int3 position, EffectProxyDefinition effectProxyDefinition)
         {
+            if (proxy != effectProxyDefinition)
+            {
+                return;
+            }
             CharacterActionParams actionParams;
             var character = Helpers.Misc.findGameLocationCharacter(caster as RulesetCharacter);
             actionParams = new CharacterActionParams(character, ActionDefinitions.Id.PowerNoCost, position);
@@ -1088,6 +1093,31 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             RulesetUsablePower usablePower = (caster as RulesetCharacter)?.UsablePowers?.Find(p => p.powerDefinition == power) ?? new RulesetUsablePower(power, (CharacterRaceDefinition)null, (CharacterClassDefinition)null);
             IRulesetImplementationService service = ServiceRepository.GetService<IRulesetImplementationService>();
             actionParams.RulesetEffect = (RulesetEffect)service.InstantiateEffectPower(character.RulesetCharacter, usablePower, false);
+            actionParams.StringParameter = power.Name;
+            ServiceRepository.GetService<IGameLocationActionService>().ExecuteInstantSingleAction(actionParams);
+        }
+    }
+
+
+    public class ApplyPowerAfterPowerUseToCaster : FeatureDefinition, IApplyEffectOnPowerUse
+    {
+        public FeatureDefinitionPower power;
+        public FeatureDefinitionPower usedPower;
+
+        public void processPowerUse(RulesetCharacter character, RulesetUsablePower used_power)
+        {
+            if (used_power.powerDefinition != usedPower)
+            {
+                return;
+            }
+
+            CharacterActionParams actionParams;
+            var game_location_character = Helpers.Misc.findGameLocationCharacter(character);
+            actionParams = new CharacterActionParams(game_location_character, ActionDefinitions.Id.PowerNoCost, game_location_character.locationPosition);
+
+            RulesetUsablePower usablePower = character?.UsablePowers?.Find(p => p.powerDefinition == power) ?? new RulesetUsablePower(power, (CharacterRaceDefinition)null, (CharacterClassDefinition)null);
+            IRulesetImplementationService service = ServiceRepository.GetService<IRulesetImplementationService>();
+            actionParams.RulesetEffect = (RulesetEffect)service.InstantiateEffectPower(character, usablePower, false);
             actionParams.StringParameter = power.Name;
             ServiceRepository.GetService<IGameLocationActionService>().ExecuteInstantSingleAction(actionParams);
         }
