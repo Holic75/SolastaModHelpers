@@ -1113,7 +1113,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
             CharacterActionParams actionParams;
             var game_location_character = Helpers.Misc.findGameLocationCharacter(character);
-            actionParams = new CharacterActionParams(game_location_character, ActionDefinitions.Id.PowerNoCost, game_location_character.locationPosition);
+            actionParams = new CharacterActionParams(game_location_character, ActionDefinitions.Id.PowerNoCost);
+            //actionParams = new CharacterActionParams(game_location_character, ActionDefinitions.Id.PowerNoCost, game_location_character.locationPosition);
 
             RulesetUsablePower usablePower = character?.UsablePowers?.Find(p => p.powerDefinition == power) ?? new RulesetUsablePower(power, (CharacterRaceDefinition)null, (CharacterClassDefinition)null);
             IRulesetImplementationService service = ServiceRepository.GetService<IRulesetImplementationService>();
