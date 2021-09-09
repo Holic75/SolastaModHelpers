@@ -22,7 +22,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         {
             if ((attackMode?.sourceDefinition as MonsterAttackDefinition)?.itemDefinitionMainHand != null
                 || (attackMode?.sourceDefinition as MonsterAttackDefinition)?.ItemDefinitionOffHand != null
-                || ((attackMode.sourceDefinition as ItemDefinition)?.IsWeapon).GetValueOrDefault())
+                || ((attackMode?.sourceDefinition as ItemDefinition)?.IsWeapon).GetValueOrDefault())
             {
                 attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(-1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
             }
