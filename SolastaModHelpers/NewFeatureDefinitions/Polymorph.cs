@@ -935,6 +935,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                         && !controller.controlledCharacters.Contains(partyCharacter))
                     {
                         controller.RecomputeControlledCharacters();
+                        Gui.GuiService.GetScreen<GameLocationScreenExploration>()?.partyControlPanel?.Refresh();
                         return;
                     }   
                 }
@@ -945,6 +946,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                         && !controller.controlledCharacters.Contains(guestCharacter))
                     {
                         controller.RecomputeControlledCharacters();
+                        Gui.GuiService.GetScreen<GameLocationScreenExploration>()?.partyControlPanel?.Refresh();
                         return;
                     }
                 }
