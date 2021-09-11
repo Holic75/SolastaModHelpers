@@ -72,10 +72,10 @@ namespace SolastaModHelpers.Patches
                     var hero_character = defender.RulesetCharacter;
                     if (hero_character != null)
                     {
-                        var features = Helpers.Accessors.extractFeaturesHierarchically<ITargetApplyEffectOnDamageTaken>(hero_character);
+                        var features = Helpers.Accessors.extractFeaturesHierarchically<ITargetApplyEffectOnDamageTakenFromCreature>(hero_character);
                         foreach (var f in features)
                         {
-                            f.processDamageTarget(attacker, defender, modifier, effectForms);
+                            f.processDamageTargetTakenFromCreature(attacker, defender, modifier, effectForms);
                         }
                     }
 

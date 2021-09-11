@@ -363,13 +363,20 @@ namespace SolastaModHelpers.Patches
                                 bool forceKillOnZeroHp,
                                 ConditionDefinition specialDeathCondition)
             {
+
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ITargetApplyEffectOnDamageTaken>(__instance);
+                foreach (var f in features)
+                {
+                    f.processDamageTargetTaken(__instance, totalDamageRaw, damageType);
+                }
+
                 if (__instance.currentHitPoints > 0)
                 {
                     return;
                 }
 
-                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IInitiatorApplyEffectOnCharacterDeath>(__instance);
-                foreach (var f in features)
+                var features2 = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IInitiatorApplyEffectOnCharacterDeath>(__instance);
+                foreach (var f in features2)
                 {
                     RulesetCharacter entity = (RulesetCharacter)null;
                     RulesetEntity.TryGetEntity<RulesetCharacter>(sourceGuid, out entity);

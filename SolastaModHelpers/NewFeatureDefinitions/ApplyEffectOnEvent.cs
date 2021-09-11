@@ -96,9 +96,15 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface ITargetApplyEffectOnDamageTakenFromCreature
+    {
+        void processDamageTargetTakenFromCreature(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms);
+    }
+
+
     public interface ITargetApplyEffectOnDamageTaken
     {
-        void processDamageTarget(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms);
+        void processDamageTargetTaken(RulesetCharacter character, int total_damage, string damage_type);
     }
 
 
@@ -573,13 +579,13 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public RuleDefinitions.TurnOccurenceType turnOccurence;
 
 
-        public void processDamageTarget(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms)
+        public void processDamageTargetTaken(RulesetCharacter character, int damage_raw, string damage_type)
         {
-            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(character.Guid,
                                                                                        condition, durationType, durationValue, turnOccurence,
-                                                                                       defender.RulesetCharacter.Guid,
-                                                                                       defender.RulesetCharacter.CurrentFaction.Name);
-            defender.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+                                                                                       character.Guid,
+                                                                                       character.CurrentFaction.Name);
+            character.AddConditionOfCategory("10Combat", active_condition, true);
         }
     }
 
@@ -719,13 +725,13 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             attacker.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
         }
 
-        public void processDamageTarget(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, List<EffectForm> effect_forms)
+        public void processDamageTargetTaken(RulesetCharacter character, int damage_raw, string damage_type)
         {
-            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(character.Guid,
                                                                                        this.requiredCondition, RuleDefinitions.DurationType.Round, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
-                                                                                       defender.RulesetCharacter.Guid,
-                                                                                       defender.RulesetCharacter.CurrentFaction.Name);
-            defender.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+                                                                                       character.Guid,
+                                                                                       character.CurrentFaction.Name);
+            character.AddConditionOfCategory("10Combat", active_condition, true);
         }
 
         public void processBattleEnd(GameLocationCharacter character)
