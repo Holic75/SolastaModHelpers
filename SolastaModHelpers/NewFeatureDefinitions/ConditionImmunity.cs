@@ -35,7 +35,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return false ;
             }
 
-            return immuneCondtions.Contains(condition);
+            return immuneCondtions.Contains(condition) || immuneCondtions.Contains(condition.parentCondition);
         }
     }
 

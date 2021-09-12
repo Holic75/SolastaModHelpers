@@ -139,6 +139,7 @@ namespace SolastaModHelpers
                                                                                            a.features.Add(cancel_polymorph_feature);
                                                                                            a.droppedLootDefinition = null;
                                                                                            a.bestiaryEntry = BestiaryDefinitions.BestiaryEntry.None;
+                                                                                           a.inDungeonEditor = false;
                                                                                        });
             return unit;
         }
