@@ -81,6 +81,39 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class ReplaceWeaponAbilityScoreForWeapons : FeatureDefinition, IAttackAbilityScoreModeModifier
+    {
+        public List<string> abilityScores = new List<string>();
+
+        public void applyAbilityScoreModification(RulesetCharacterHero character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        {
+            var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
+            if (weapon2 == null || !weapon2.isWeapon)
+            {
+                return;
+            }
+
+            var current_value = character.GetAttribute(attack_mode.AbilityScore).CurrentValue;
+            var current_stat = attack_mode.AbilityScore;
+
+            foreach (var a in abilityScores)
+            {
+                var new_val = character.GetAttribute(a).CurrentValue;
+                if (new_val > current_value)
+                {
+                    current_value = new_val;
+                    current_stat = a;
+                }
+            }
+
+            if (current_stat != attack_mode.AbilityScore)
+            {
+                attack_mode.AbilityScore = current_stat;
+            }
+        }
+    }
+
+
     public class ReplaceWeaponAbilityScoreWithHighestStatIfWeaponHasFeature : FeatureDefinition, IAttackAbilityScoreModeModifier
     {
         public FeatureDefinition weaponFeature;

@@ -62,28 +62,42 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public void ComputeAttackModifier(RulesetCharacter myself, RulesetCharacter defender, RulesetAttackMode attackMode, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
         {
-            foreach (var f in ignore_features)
+            bool defender_ignore = ignore_features.Any(f => Helpers.Misc.characterHasFeature(defender, f));
+            bool attacker_ignore = ignore_features.Any(f => Helpers.Misc.characterHasFeature(myself, f));
+
+            if (defender_ignore && attacker_ignore)
             {
-                if (Helpers.Misc.characterHasFeature(myself, f))
-                {
-                    return;
-                }
+                return;
             }
 
-            attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(-1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
+            if (attacker_ignore)
+            {
+                attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
+            }
+            else
+            {
+                attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(-1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
+            }        
         }
 
         public void ComputeDefenseModifier(RulesetCharacter myself, RulesetCharacter attacker, int sustainedAttacks, bool defenderAlreadyAttackedByAttackerThisTurn, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
         {
-            foreach (var f in ignore_features)
+            bool defender_ignore = ignore_features.Any(f => Helpers.Misc.characterHasFeature(myself, f));
+            bool attacker_ignore = ignore_features.Any(f => Helpers.Misc.characterHasFeature(attacker, f));
+
+            if (defender_ignore && attacker_ignore)
             {
-                if (Helpers.Misc.characterHasFeature(attacker, f))
-                {
-                    return;
-                }
+                return;
             }
 
-            attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(-1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
+            if (attacker_ignore)
+            {
+                attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
+            }
+            else
+            {
+                attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(-1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
+            }
         }
 
         public RuleDefinitions.AdvantageType GetAdvantageOnOpportunityAttackOnMe(RulesetCharacter myself, RulesetCharacter attacker)
