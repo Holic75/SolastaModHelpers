@@ -44,6 +44,59 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
     }
 
+
+
+    public class ObscuredByDarkness : FeatureDefinition, ICombatAffinityProvider
+    {
+        public RuleDefinitions.SituationalContext SituationalContext => RuleDefinitions.SituationalContext.None;
+
+        public bool AutoCritical => false;
+
+        public bool CriticalHitImmunity => false;
+
+        public ConditionDefinition RequiredTargetCondition => null;
+
+        public bool IgnoreCover => false;
+
+        public List<FeatureDefinition> ignore_features;
+
+        public void ComputeAttackModifier(RulesetCharacter myself, RulesetCharacter defender, RulesetAttackMode attackMode, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
+        {
+            foreach (var f in ignore_features)
+            {
+                if (Helpers.Misc.characterHasFeature(myself, f))
+                {
+                    return;
+                }
+            }
+
+            attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(-1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
+        }
+
+        public void ComputeDefenseModifier(RulesetCharacter myself, RulesetCharacter attacker, int sustainedAttacks, bool defenderAlreadyAttackedByAttackerThisTurn, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
+        {
+            foreach (var f in ignore_features)
+            {
+                if (Helpers.Misc.characterHasFeature(attacker, f))
+                {
+                    return;
+                }
+            }
+
+            attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(-1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
+        }
+
+        public RuleDefinitions.AdvantageType GetAdvantageOnOpportunityAttackOnMe(RulesetCharacter myself, RulesetCharacter attacker)
+        {
+            return RuleDefinitions.AdvantageType.None;
+        }
+
+        public bool IsImmuneToOpportunityAttack(RulesetCharacter myself, RulesetCharacter attacker)
+        {
+            return false;
+        }
+    }
+
     public class RecklessAttack : FeatureDefinition, ICombatAffinityProvider
     {
         public string attackStat;
