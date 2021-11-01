@@ -60,15 +60,6 @@ namespace SolastaModHelpers.Patches
                         return true;
                     }
                  
-                    //var extra_spell_list = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IReplaceSpellList>(hero)
-                    //                                                .Select(rs => rs.getSpelllist(characterBuildingService, spellLevel == 0)).FirstOrDefault(s => s != null);
-                    //if (extra_spell_list == null)
-                    //{
-                    //    return true;
-                    //}
-
-                    //spellListDefinition = extra_spell_list;
-                    //restrictedSchools = new List<string>();
                     return true;
                 }
 

@@ -135,6 +135,18 @@ namespace SolastaModHelpers
             }
 
 
+            var items = DatabaseRepository.GetDatabase<ItemDefinition>().GetAllElements();
+            foreach (var c in items)
+            {
+                var sprite_reference = c.GuiPresentation.SpriteReference;
+
+                if (sprite_reference != null)
+                {
+                    CustomIcons.Tools.saveSpriteFromAssetReferenceAsPNG(c.GuiPresentation.SpriteReference, $@"{UnityModManager.modsPath}/SolastaModHelpers/Items/{c.name}.png");
+                }
+            }
+
+
             var races = DatabaseRepository.GetDatabase<CharacterRaceDefinition>().GetAllElements();
             foreach (var r in races)
             {

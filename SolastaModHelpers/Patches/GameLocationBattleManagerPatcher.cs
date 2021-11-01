@@ -444,7 +444,7 @@ namespace SolastaModHelpers.Patches
                                 reactionParams.IsReactionEffect = true;
                                 IGameLocationActionService service2 = ServiceRepository.GetService<IGameLocationActionService>();
                                 int count = service2.PendingReactionRequestGroups.Count;
-                                service2.ReactToUsePower(reactionParams, p.PowerDefinition.Name);
+                                service2.ReactToUsePower(reactionParams, /*p.PowerDefinition.Name*/ "");
                                 yield return __instance.WaitForReactions(attacker, service2, count);
                             }
                         }
@@ -668,7 +668,7 @@ namespace SolastaModHelpers.Patches
                                 reactionParams.IsReactionEffect = true;
                                 IGameLocationActionService service2 = ServiceRepository.GetService<IGameLocationActionService>();
                                 int count = service2.PendingReactionRequestGroups.Count;
-                                service2.ReactToUsePower(reactionParams, p.PowerDefinition.Name);
+                                service2.ReactToUsePower(reactionParams, /*p.PowerDefinition.Name*/ "");
                                 yield return __instance.WaitForReactions(attacker, service2, count);
                             }
                         }

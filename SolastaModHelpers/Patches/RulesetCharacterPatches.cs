@@ -152,6 +152,20 @@ namespace SolastaModHelpers.Patches
                         __instance.recoveredFeatures.Remove(f);
                     }
                 }
+                //remove temporary item upon long rest
+
+                if (restType == RuleDefinitions.RestType.LongRest && !simulate)
+                {
+                    foreach (var slot in __instance.CharacterInventory.EnumerateAllSlots().ToArray())
+                    {
+                        var item = slot?.EquipedItem;
+                        if (item?.ItemDefinition != null 
+                            && NewFeatureDefinitions.ItemsData.items_to_remove_on_long_rest.Contains(item.itemDefinition))
+                        {
+                            __instance.LoseItem(item);
+                        }
+                    }
+                }
             }
 
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
