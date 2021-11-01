@@ -15,7 +15,9 @@ namespace SolastaModHelpers.Patches
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var codes = instructions.ToList();
-                var contains_check = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("Contains"));
+                var contains_check = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt 
+                                                          && x.operand.ToString().Contains("Contains") 
+                                                          && !x.operand.ToString().Contains("Key"));
 
                 codes[contains_check] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
                                                                  new Func<List<FeatureDefinition>, FeatureDefinition, bool>(isFeatureForbidden).Method

@@ -18,6 +18,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public bool IgnoreCover => false;
 
+        public bool CanRageToOvercomeSurprise => false;
+
         public void ComputeAttackModifier(RulesetCharacter myself, RulesetCharacter defender, RulesetAttackMode attackMode, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
         {
             if ((attackMode?.sourceDefinition as MonsterAttackDefinition)?.itemDefinitionMainHand != null
@@ -57,6 +59,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public ConditionDefinition RequiredTargetCondition => null;
 
         public bool IgnoreCover => false;
+
+        public bool CanRageToOvercomeSurprise => false;
 
         public List<FeatureDefinition> ignore_features;
 
@@ -125,6 +129,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public bool IgnoreCover => false;
 
+        public bool CanRageToOvercomeSurprise => false;
+
         public void ComputeAttackModifier(RulesetCharacter myself, RulesetCharacter defender, RulesetAttackMode attackMode, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
         {
             if (attackMode.AbilityScore != attackStat)
@@ -165,6 +171,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public ConditionDefinition RequiredTargetCondition => null;
 
         public bool IgnoreCover => false;
+
+        public bool CanRageToOvercomeSurprise => false;
 
         public void ComputeAttackModifier(RulesetCharacter myself, RulesetCharacter defender, RulesetAttackMode attackMode, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
         {

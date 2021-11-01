@@ -35,7 +35,17 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public bool isForbidden(RulesetActor character)
         {
-            return ((character as RulesetCharacter)?.IsWieldingRangedWeapon()).GetValueOrDefault();
+            var ruleset_character_hero = character as RulesetCharacterHero;
+            if (ruleset_character_hero == null)
+            {
+                return false;
+            }
+
+            RulesetItem equipedItem = ruleset_character_hero.characterInventory.InventorySlotsByName[EquipmentDefinitions.SlotTypeMainHand].EquipedItem;
+            if (equipedItem == null || !equipedItem.ItemDefinition.IsWeapon)
+                return false;
+            return DatabaseRepository.GetDatabase<WeaponTypeDefinition>().GetElement(equipedItem.ItemDefinition.WeaponDescription.WeaponType).WeaponProximity == RuleDefinitions.AttackProximity.Range;
+            //return ((character as RulesetCharacter)?.IsWieldingRangedWeapon()).GetValueOrDefault();
         }
     }
 

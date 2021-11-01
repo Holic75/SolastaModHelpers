@@ -77,7 +77,6 @@ namespace SolastaModHelpers
             CharacterActionConsumePowerUse.initialize();
             ReactionRequestCastSpellInResponseToAttack.initialize();
             DatabaseHelper.SpellDefinitions.MageArmor.EffectDescription.SetTargetFilteringTag(RuleDefinitions.TargetFilteringTag.Unarmored); //fix mage armor tag to unarmored
-            Fixes.fixVampiricTouch();
             Fixes.fixConjureAnimalDuration();
             var monsters = DatabaseRepository.GetDatabase<MonsterDefinition>().GetAllElements();
             foreach (var m in monsters)
@@ -133,10 +132,10 @@ namespace SolastaModHelpers
                 {
                     CustomIcons.Tools.saveSpriteFromAssetReferenceAsPNG(c.GuiPresentation.SpriteReference, $@"{UnityModManager.modsPath}/SolastaModHelpers/Conditions/{c.name}.png");
                 }
-            }*/
+            }
 
 
-            /*var races = DatabaseRepository.GetDatabase<CharacterRaceDefinition>().GetAllElements();
+            var races = DatabaseRepository.GetDatabase<CharacterRaceDefinition>().GetAllElements();
             foreach (var r in races)
             {
                 var sprite_reference = r.GuiPresentation.SpriteReference;

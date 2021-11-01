@@ -8,8 +8,6 @@ Reaction/&CastSpellInResponseToAttackDescription	{0} is attacking {1}! You can c
 Reaction/&CastSpellInResponseToAttackReactDescription	Click to cast {0} and punish the attacker.
 Reaction/&CastSpellInResponseToAttackReactTitle	Cast Spell
 Reaction/&CastSpellInResponseToAttackTitle	Punish Attacker.
-Feature/&CancelPolymorphSelfPowerTitle	Return to Natural Form
-Feature/&CancelPolymorphSelfPowerDescription	You return back to your natural form.
 Rules/&WildshapedConditionTitle	Transformed
 Rules/&WildshapedConditionDescription	The character is transformed into another creature.
 Feedback/&RollResultModifiedTitle {0}'s roll result was modified: {1} -> {2}

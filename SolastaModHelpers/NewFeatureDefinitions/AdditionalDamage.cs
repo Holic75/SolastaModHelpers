@@ -85,6 +85,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public bool AttackModeOnly => false;
 
+        public bool IgnoreCriticalDoubleDice => false;
+
         public int GetDiceOfRank(int rank)
         {
             for (int index = 0; index < this.DiceByRankTable.Count; ++index)

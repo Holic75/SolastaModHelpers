@@ -65,7 +65,7 @@ namespace SolastaModHelpers.Patches
                         reactionParams.IsReactionEffect = true;
                         IGameLocationActionService actionService = ServiceRepository.GetService<IGameLocationActionService>();
                         int previousReactionCount = actionService.PendingReactionRequestGroups.Count;
-                        actionService.ReactToUsePower(reactionParams);
+                        actionService.ReactToUsePower(reactionParams, usable_power.PowerDefinition.Name);
                         while (previousReactionCount < actionService.PendingReactionRequestGroups.Count)
                             yield return (object)null;
                         actionService = (IGameLocationActionService)null;

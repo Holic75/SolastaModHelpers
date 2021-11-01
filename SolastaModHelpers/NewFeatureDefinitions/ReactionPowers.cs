@@ -204,7 +204,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return false;
             }
 
-            if (checkImmunityToCondtions.Any(c => attacker.rulesetActor.IsImmuneToCondition(c.name)))
+            if (checkImmunityToCondtions.Any(c => attacker.rulesetActor.IsImmuneToCondition(c.name, 0)))
             {
                 return false;
             }
@@ -293,7 +293,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return false;
             }
 
-            if (checkImmunityToCondtions.Any(c => attacker.rulesetActor.IsImmuneToCondition(c.name)))
+            if (checkImmunityToCondtions.Any(c => attacker.rulesetActor.IsImmuneToCondition(c.name, 0)))
             {
                 return false;
             }

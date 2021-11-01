@@ -492,6 +492,51 @@ namespace SolastaModHelpers.Helpers
         }
 
 
+        public static SpellListDefinition createCombinedSpellList(string name, string guid, string title_string, Predicate<SpellDefinition> predicate, params SpellListDefinition[] spell_lists)
+        {
+            List<SpellsByLevelDuplet> spells_by_level = new List<SpellsByLevelDuplet>();
+            Dictionary<SpellDefinition, int> min_spell_levels = new Dictionary<SpellDefinition, int>();
+            for (int i = 0; i < 10; i++)
+            {
+                spells_by_level.Add(new SpellsByLevelDuplet());
+                spells_by_level[i].Level = i;
+                spells_by_level[i].Spells = new List<SpellDefinition>();
+            }
+
+            foreach (var sl in spell_lists)
+            {
+                foreach (var sll in sl.SpellsByLevel)
+                {
+                    foreach (var s in sll.Spells)
+                    {
+                        if (!predicate(s))
+                        {
+                            continue;
+                        }
+                        if (!min_spell_levels.ContainsKey(s) || min_spell_levels[s] > sll.Level)
+                        {
+                            min_spell_levels[s] = sll.Level;
+                        }
+                    }
+                }
+            }
+
+            foreach (var kv in min_spell_levels)
+            {
+                spells_by_level[kv.Value].Spells.Add(kv.Key);
+            }
+
+            //spells_by_level.RemoveAll(e => e.Spells.Count == 0);
+
+            foreach (var sl in spells_by_level)
+            {
+                sl.Spells.Sort((a, b) => a.name.CompareTo(b.name));
+            }
+
+            return create9LevelSpelllist(name, guid, title_string, spells_by_level.Select(s => s.Spells).ToArray());
+        }
+
+
         public static SpellListDefinition createCombinedSpellListWithLevelRestriction(string name, string guid, string title_string, params (SpellListDefinition, int)[] spell_lists_with_max_lvl)
         {
             List<SpellsByLevelDuplet> spells_by_level = new List<SpellsByLevelDuplet>();

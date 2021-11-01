@@ -382,8 +382,6 @@ namespace SolastaModHelpers.Patches
                     RulesetEntity.TryGetEntity<RulesetCharacter>(sourceGuid, out entity);
                     f.processDeath(entity, __instance);
                 }
-
-                //NewFeatureDefinitions.Polymorph.maybeProcessPolymorphedDeath(__instance);
             }
 
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

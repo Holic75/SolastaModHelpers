@@ -149,32 +149,6 @@ namespace SolastaModHelpers.Patches
         }
 
 
-
-        /*[HarmonyPatch(typeof(GraphicsResourceManager), "LateUpdate")]
-        class GraphicsResourceManager_LateUpdate
-        {
-            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-            {
-                var codes = instructions.ToList();
-                var release = codes.FindLastIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Call && x.operand.ToString().Contains("Release"));
-
-                codes[release] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
-                                                                 new Action<UnityEngine.Object>(releaseObject).Method
-                                                                 );
-                return codes.AsEnumerable();
-            }
-
-            static void releaseObject(UnityEngine.Object asset)
-            {
-                if (CustomIcons.Tools.isCustomIcon(asset as UnityEngine.Sprite))
-                {
-                    return;
-                }
-                Addressables.Release<UnityEngine.Object>(asset);
-            }
-        }*/
-
-
         [HarmonyPatch(typeof(Gui), "ReleaseAddressableAsset")]
         internal static class Gui_ReleaseAddressableAsset_Patch
         {

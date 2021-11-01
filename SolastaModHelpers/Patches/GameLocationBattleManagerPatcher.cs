@@ -25,11 +25,6 @@ namespace SolastaModHelpers.Patches
                     }
 
                     var monster = mover.RulesetCharacter as RulesetCharacterMonster;
-                    if (monster != null && !monster.monsterDefinition.groupAttacks && monster.monsterDefinition.AttackIterations.Count() > 1
-                        && monster.ConditionsByCategory.ContainsKey(NewFeatureDefinitions.Polymorph.tagWildshapePolymorphed))
-                    {
-                        monster.RefreshAttackModes(false);
-                    }
                 }
             }
         }
@@ -449,7 +444,7 @@ namespace SolastaModHelpers.Patches
                                 reactionParams.IsReactionEffect = true;
                                 IGameLocationActionService service2 = ServiceRepository.GetService<IGameLocationActionService>();
                                 int count = service2.PendingReactionRequestGroups.Count;
-                                service2.ReactToUsePower(reactionParams);
+                                service2.ReactToUsePower(reactionParams, p.PowerDefinition.Name);
                                 yield return __instance.WaitForReactions(attacker, service2, count);
                             }
                         }
@@ -673,7 +668,7 @@ namespace SolastaModHelpers.Patches
                                 reactionParams.IsReactionEffect = true;
                                 IGameLocationActionService service2 = ServiceRepository.GetService<IGameLocationActionService>();
                                 int count = service2.PendingReactionRequestGroups.Count;
-                                service2.ReactToUsePower(reactionParams);
+                                service2.ReactToUsePower(reactionParams, p.PowerDefinition.Name);
                                 yield return __instance.WaitForReactions(attacker, service2, count);
                             }
                         }
