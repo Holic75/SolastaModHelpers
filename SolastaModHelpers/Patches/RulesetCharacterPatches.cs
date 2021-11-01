@@ -91,12 +91,15 @@ namespace SolastaModHelpers.Patches
                             RulesetUsablePower usablePower,
                             ref int __result)
             {
+
                 if (__instance == null)
                 {
                     return;
                 }
+
                 if (((usablePower?.PowerDefinition as NewFeatureDefinitions.IPowerRestriction)?.isReactionForbidden(__instance)).GetValueOrDefault())
                 {
+
                     __result = 0;
                     return;
                 }
@@ -104,8 +107,10 @@ namespace SolastaModHelpers.Patches
                 var base_power = (usablePower?.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {
+
                     return;
                 }
+
                 __result = Math.Min(__instance.GetRemainingUsesOfPower(base_power) * base_power.PowerDefinition.CostPerUse / usablePower.PowerDefinition.costPerUse, __result);
             }
         }
@@ -153,7 +158,6 @@ namespace SolastaModHelpers.Patches
                     }
                 }
                 //remove temporary item upon long rest
-
                 if (restType == RuleDefinitions.RestType.LongRest && !simulate)
                 {
                     foreach (var slot in __instance.CharacterInventory.EnumerateAllSlots().ToArray())
