@@ -440,7 +440,7 @@ namespace SolastaModHelpers.Helpers
                 Definition.SpellsByLevel[i].Spells.Clear();
                 if (spells_by_level.Length > i)
                 {
-                    Definition.SpellsByLevel[i].Spells.AddRange(spells_by_level[i].Where(s => s.ContentPack == GamingPlatformDefinitions.ContentPack.BaseGame && s.Implemented));
+                    Definition.SpellsByLevel[i].Spells.AddRange(spells_by_level[i].Where(s => s.Implemented));
                 }
             }
         }
