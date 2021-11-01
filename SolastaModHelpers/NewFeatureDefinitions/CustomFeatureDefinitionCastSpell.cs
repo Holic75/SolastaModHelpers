@@ -8,6 +8,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 {
     public class WarlockCastSpell: FeatureDefinitionCastSpell
     {
-        public int mystic_arcanum_level_start = 6;
+        public int mystic_arcanum_level_start;
     }
+
 }

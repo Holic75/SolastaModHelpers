@@ -43,7 +43,8 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 }
             }
 
-            var repertoire = manager.HeroCharacter.SpellRepertoires.FirstOrDefault(r => r.spellCastingClass == current_class);
+            var repertoire = manager.HeroCharacter.SpellRepertoires.FirstOrDefault(r => r.spellCastingClass == current_class
+                                                                                   && (r.spellCastingFeature == spellcastingFeature || spellcastingFeature == null));
             if (repertoire == null)
             {
                 return;

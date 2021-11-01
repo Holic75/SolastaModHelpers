@@ -87,19 +87,6 @@ namespace SolastaModHelpers.Patches
         [HarmonyPatch(typeof(RulesetCharacter), "GetRemainingUsesOfPower")]
         class RulesetCharacter_GetRemainingUsesOfPower
         {
-            /*internal static bool Prefix(RulesetCharacter __instance,
-                                        RulesetUsablePower usablePower,
-                                        ref int __result)
-            {
-                if (((usablePower.PowerDefinition as NewFeatureDefinitions.IPowerRestriction)?.isForbidden(__instance)).GetValueOrDefault())
-                {
-                    __result = 0;
-                    return false;
-                }
-                return true;
-            }*/
-
-
             internal static void Postfix(RulesetCharacter __instance,
                             RulesetUsablePower usablePower,
                             ref int __result)
@@ -166,11 +153,48 @@ namespace SolastaModHelpers.Patches
                     }
                 }
             }
+
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var restore_all_spell_slots = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("RestoreAllSpellSlots"));
+
+                codes[restore_all_spell_slots] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_1); //put rest type on stack
+                codes.Insert(restore_all_spell_slots + 1,
+                              new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                             new Action<RulesetSpellRepertoire, RuleDefinitions.RestType>(applyRestToSpellSlots).Method
+                                                             )
+                            );
+                return codes.AsEnumerable();
+            }
+
+            static void applyRestToSpellSlots(RulesetSpellRepertoire spellRepertoire, RuleDefinitions.RestType restType)
+            {
+                //account for lower level warlock spell slots that should recover on short rest and higher level spell slots that should recover on long rest
+                var warlock_spellcasting = spellRepertoire?.spellCastingFeature as NewFeatureDefinitions.WarlockCastSpell;
+                if (warlock_spellcasting == null)
+                {
+                    if (spellRepertoire.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.ShortRest
+                        && (restType == RuleDefinitions.RestType.ShortRest || restType == RuleDefinitions.RestType.LongRest)
+                        || spellRepertoire.SpellCastingFeature.SlotsRecharge == RuleDefinitions.RechargeRate.LongRest && restType == RuleDefinitions.RestType.LongRest)
+                    {
+                        spellRepertoire.RestoreAllSpellSlots();
+                    }
+                }
+                else if (restType == RuleDefinitions.RestType.LongRest)
+                {
+                    spellRepertoire.RestoreAllSpellSlots();
+                }
+                else
+                {
+                    for (int i = 0; i < warlock_spellcasting.mystic_arcanum_level_start; i++)
+                    {
+                        spellRepertoire.usedSpellsSlots.Remove(i);
+                    }
+                    spellRepertoire.RepertoireRefreshed?.Invoke(spellRepertoire);
+                }
+            }
         }
-
-
-
-
 
         [HarmonyPatch(typeof(RulesetCharacter), "RollAttackMode")]
         class RulesetCharacter_RollAttackMode
