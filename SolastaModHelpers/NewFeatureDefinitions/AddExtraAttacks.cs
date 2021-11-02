@@ -13,12 +13,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
 
     public class ExtraUnarmedAttack : FeatureDefinition, IAddExtraAttacks
-    {
-        public List<string> allowedWeaponTypes;
+    {        
         public List<IRestriction> restrictions = new List<IRestriction>();
 
         public bool clearAllAttacks = false;
         public ActionDefinitions.ActionType actionType;
+
+        public List<string> allowedWeaponTypesIfHasRequiredFeature = new List<string>();
+        public FeatureDefinition requiredFeature;
 
         public void tryAddExtraAttack(RulesetCharacterHero character)
         {
@@ -45,7 +47,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return;
             }
 
-            if (!allowedWeaponTypes.Empty())
+            if (requiredFeature != null && Helpers.Misc.characterHasFeature(character, requiredFeature))
             {
                 if (rulesetInventorySlot1.EquipedItem != null && rulesetInventorySlot1.EquipedItem.ItemDefinition.IsWeapon)
                 {
@@ -53,24 +55,24 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     ItemDefinition itemDefinition = rulesetInventorySlot1.EquipedItem.ItemDefinition;
                     WeaponDescription weaponDescription = itemDefinition.WeaponDescription;
 
-                    if (!allowedWeaponTypes.Contains(weaponDescription.weaponType))
+                    if (allowedWeaponTypesIfHasRequiredFeature.Contains(weaponDescription.weaponType) || allowedWeaponTypesIfHasRequiredFeature.Empty())
                     {
-                        return;
+                        character.AttackModes.Add(character.RefreshAttackMode(actionType, rulesetInventorySlot1.EquipedItem.ItemDefinition,
+                                                      rulesetInventorySlot1.EquipedItem.ItemDefinition.WeaponDescription, true, true,
+                                                      character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,
+                                                      character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null));
                     }
                 }
-
-                if (rulesetInventorySlot1.EquipedItem == null && !allowedWeaponTypes.Contains(Helpers.WeaponProficiencies.Unarmed))
-                {
-                    return;
-                }
             }
+            else
+            {
+                ItemDefinition strikeDefinition = character.UnarmedStrikeDefinition;
 
-            ItemDefinition strikeDefinition = character.UnarmedStrikeDefinition;
-
-            character.AttackModes.Add(character.RefreshAttackMode(actionType, strikeDefinition,
-                                                                  strikeDefinition.WeaponDescription, false, true,
-                                                                  character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,
-                                                                  character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null));
+                character.AttackModes.Add(character.RefreshAttackMode(actionType, strikeDefinition,
+                                                                      strikeDefinition.WeaponDescription, false, true,
+                                                                      character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,
+                                                                      character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null));
+            }
         }
     }
 

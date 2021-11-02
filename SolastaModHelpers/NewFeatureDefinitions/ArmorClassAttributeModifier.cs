@@ -19,7 +19,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public string stat;
         public bool armorAllowed;
         public bool shieldAlowed;
-        public List<ConditionDefinition> forbiddenConditions;
+        public List<FeatureDefinition> forbiddenFeatures = new List<FeatureDefinition>();
         public bool onlyPositive;
         public bool exclusive = false;
 
@@ -48,17 +48,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return 0;
             }
-
-            if (forbiddenConditions != null)
+            foreach (var f in forbiddenFeatures)
             {
-                foreach (var c in forbiddenConditions)
+                if (Helpers.Misc.characterHasFeature(character, f))
                 {
-                    if (character.HasConditionOfType(c))
-                    {
-                        return 0;
-                    }
+                    return 0;
                 }
             }
+
             var stat_bonus = AttributeDefinitions.ComputeAbilityScoreModifier(character.GetAttribute(stat, false).CurrentValue);
             if (stat_bonus < 0 && onlyPositive)
             {
