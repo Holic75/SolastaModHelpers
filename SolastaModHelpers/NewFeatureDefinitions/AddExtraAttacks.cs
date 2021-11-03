@@ -37,15 +37,15 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 }
             }
 
-
             RulesetInventorySlot rulesetInventorySlot1 = character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0];
             RulesetInventorySlot rulesetInventorySlot2 = character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeOffHand][0];
 
             if (rulesetInventorySlot2.EquipedItem != null && rulesetInventorySlot2.EquipedItem.ItemDefinition.IsWeapon)
             {
-                //no extra attacks if already have and off-hand weapon
+                //no extra attacks if already have an off-hand weapon
                 return;
             }
+
 
             if (requiredFeature != null && Helpers.Misc.characterHasFeature(character, requiredFeature))
             {

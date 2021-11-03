@@ -255,5 +255,47 @@ namespace SolastaModHelpers.Patches
                 }
             }
         }
+
+
+
+        class BuildSlotSubOptionsPatcher
+        {
+            [HarmonyPatch(typeof(ReactionRequestCastSpell), "BuildSlotSubOptions")]
+            internal static class ReactionRequestCastSpell_BuildSlotSubOptions_Patch
+            {
+                static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+                {
+                    var codes = instructions.ToList();
+                    var get_max_spellcasting_level = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("MaxSpellLevelOfSpellCastingLevel"));
+                    codes[get_max_spellcasting_level] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldloc_1); //spell level
+                    codes.Insert(get_max_spellcasting_level + 1,
+                                  new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                 new Func<RulesetSpellRepertoire, int, int>(getMaxSpellLevel).Method
+                                                                 )
+                                );
+                    return codes.AsEnumerable();
+                }
+
+                static int getMaxSpellLevel(RulesetSpellRepertoire spell_repertoire, int spell_level)
+                {
+                    var warlock_spellcasting = spell_repertoire.spellCastingFeature as NewFeatureDefinitions.WarlockCastSpell;
+                    if (warlock_spellcasting == null)
+                    {
+                        return spell_repertoire.MaxSpellLevelOfSpellCastingLevel;
+                    }
+                    else
+                    {
+                        if (spell_level >= warlock_spellcasting.mystic_arcanum_level_start)
+                        {
+                            return Math.Min(spell_level, spell_repertoire.MaxSpellLevelOfSpellCastingLevel);
+                        }
+                        else
+                        {
+                            return Math.Min(warlock_spellcasting.mystic_arcanum_level_start - 1, spell_repertoire.MaxSpellLevelOfSpellCastingLevel);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

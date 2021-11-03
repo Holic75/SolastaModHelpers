@@ -23,14 +23,14 @@ namespace SolastaModHelpers.Patches
                     f.apply(__instance, __result, null);
                 }
 
-                var attack_modifiers = Helpers.Accessors.extractFeaturesHierarchically<IAttackModificationProvider>(__instance);
+                /*var attack_modifiers = Helpers.Accessors.extractFeaturesHierarchically<IAttackModificationProvider>(__instance);
                 foreach (var f in attack_modifiers)
                 {
                     __result.ToHitBonus += f.AttackRollModifier;
                     __result.ToHitBonusTrends.Add(new RuleDefinitions.TrendInfo(f.AttackRollModifier, RuleDefinitions.FeatureSourceType.MonsterFeature, (f as FeatureDefinition)?.Name, (f as FeatureDefinition)));
                     DamageForm firstDamageForm = __result.EffectDescription.FindFirstDamageForm();
                     firstDamageForm.BonusDamage += f.DamageRollModifier;
-                }
+                }*/
             }
         }
 

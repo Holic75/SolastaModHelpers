@@ -47,26 +47,6 @@ namespace SolastaModHelpers
             CharacterActionConsumePowerUse.initialize();
             ReactionRequestCastSpellInResponseToAttack.initialize();
             DatabaseHelper.SpellDefinitions.MageArmor.EffectDescription.SetTargetFilteringTag(RuleDefinitions.TargetFilteringTag.Unarmored); //fix mage armor tag to unarmored
-            Fixes.fixConjureAnimalDuration();
-            var monsters = DatabaseRepository.GetDatabase<MonsterDefinition>().GetAllElements();
-            foreach (var m in monsters)
-            {
-                if (m.defaultFaction == DatabaseHelper.FactionDefinitions.Party.Name)
-                {
-                    m.fullyControlledWhenAllied = true;
-                }
-            }
-
-            var summon_elemental_spells = new List<SpellDefinition> { DatabaseHelper.SpellDefinitions.ConjureMinorElementals, DatabaseHelper.SpellDefinitions.ConjureElemental };
-            foreach (var s in summon_elemental_spells)
-            {
-                foreach (var ss in s.subspellsList)
-                {
-                    var monster_name = ss.effectDescription.effectForms.Find(f => f.formType == EffectForm.EffectFormType.Summon).summonForm.monsterDefinitionName;
-                    var monster = DatabaseRepository.GetDatabase<MonsterDefinition>().GetElement(monster_name);
-                    monster.fullyControlledWhenAllied = true;
-                }
-            }
 
 
             /*var spells = DatabaseRepository.GetDatabase<SpellDefinition>().GetAllElements();

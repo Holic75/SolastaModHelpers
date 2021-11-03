@@ -60,6 +60,7 @@ namespace SolastaModHelpers.Patches
                             ActionModifier modifier,
                             List<EffectForm> effectForms)
                 {
+                    Main.Logger.Log("Handling Reaction to damage");
                     if (__instance.battle == null)
                     {
                         yield break;
@@ -76,13 +77,14 @@ namespace SolastaModHelpers.Patches
 
                     if (defender?.RulesetCharacter != null
                         && !defender.RulesetCharacter.IsDeadOrDyingOrUnconscious && defender.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction) == ActionDefinitions.ActionStatus.Available
-                        && defender.GetActionStatus(ActionDefinitions.Id.PowerReaction, ActionDefinitions.ActionScope.Battle, ActionDefinitions.ActionStatus.Available) == ActionDefinitions.ActionStatus.Available)
+                        && defender.GetActionStatus(ActionDefinitions.Id.CastReaction, ActionDefinitions.ActionScope.Battle, ActionDefinitions.ActionStatus.Available) == ActionDefinitions.ActionStatus.Available)
                     {
                         var spells = Helpers.Misc.filterCharacterSpells(defender.RulesetCharacter,
                                                                         s => ((s as IMagicEffectReactionOnDamageDoneToCaster)?.canUseMagicalEffectInReactionToDamageDoneToCaster(attacker, defender)).GetValueOrDefault()
                                                                         );
                         foreach (var s in spells)
                         {
+
                             if (defender.GetActionStatus(ActionDefinitions.Id.CastReaction, ActionDefinitions.ActionScope.Battle, ActionDefinitions.ActionStatus.Available) != ActionDefinitions.ActionStatus.Available)
                             {
                                 break;
@@ -93,6 +95,7 @@ namespace SolastaModHelpers.Patches
                             {
                                 continue;
                             }
+
                             CharacterActionParams reactionParams = new CharacterActionParams(defender, ActionDefinitions.Id.CastReaction);
                             reactionParams.IntParameter = 1;
                             reactionParams.TargetCharacters.Add(attacker);
@@ -105,6 +108,7 @@ namespace SolastaModHelpers.Patches
                             {
                                 break;
                             }
+
                             int count = service2.PendingReactionRequestGroups.Count;
                             service2.AddInterruptRequest(new ReactionRequestCastSpellInResponseToAttack(reactionParams));
                             yield return (object)__instance.WaitForReactions(attacker, service2, count);
