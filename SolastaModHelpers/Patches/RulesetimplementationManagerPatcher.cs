@@ -120,7 +120,7 @@ namespace SolastaModHelpers.Patches
                                     bool forceSelfConditionOnly
                                )
             {
-                
+
                 var caster = formsParams.sourceCharacter;
                 if (caster == null)
                 {
@@ -138,7 +138,7 @@ namespace SolastaModHelpers.Patches
                 {
                     f.processCasterEffectApplication(caster, effectForms, formsParams);
                 }
-               
+
                 var target = formsParams.targetCharacter as RulesetCharacter;
                 if (target == null)
                 {
@@ -151,6 +151,17 @@ namespace SolastaModHelpers.Patches
                     f.processTargetEffectApplication(target, effectForms, formsParams);
                 }
                 return true;
+            }
+
+
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var save_outcome_failure = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Ldfld && x.operand.ToString().Contains("saveOutcome"));
+                var save_outcome_critical_failure = codes.FindLastIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Ldfld && x.operand.ToString().Contains("saveOutcome"));
+                codes[save_outcome_failure + 1] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldc_I4_1);
+                codes[save_outcome_critical_failure + 1] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldc_I4_0);
+                return codes.AsEnumerable();
             }
         }
 
