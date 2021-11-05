@@ -321,7 +321,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
         {
-
             var condition = character.FindFirstConditionHoldingFeature(this);
             if (condition == null)
             {
@@ -334,16 +333,16 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return;
             }
 
-            var spell_effect = Helpers.Misc.findConditionParentEffect(condition) as RulesetEffectSpell;
+            /*var spell_effect = Helpers.Misc.findConditionParentEffect(condition) as RulesetEffectSpell;
             if (spell_effect == null)
             {
                 return;
             }
 
-            var value = spell_effect.spellRepertoire.spellAttackBonus;
+            var value = spell_effect.spellRepertoire.spellAttackBonus;*/
+            var value = condition.sourceAbilityBonus;
 
-
-            attack_mode.ToHitBonus += value;
+            attack_mode.ToHitBonus += value + (caster.GetAttribute("ProficiencyBonus", true)?.CurrentValue).GetValueOrDefault();
             attack_mode.ToHitBonusTrends.Add(new RuleDefinitions.TrendInfo(value, RuleDefinitions.FeatureSourceType.MonsterFeature, this.Name, this));
         }
     }

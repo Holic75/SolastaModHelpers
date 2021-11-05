@@ -60,7 +60,6 @@ namespace SolastaModHelpers.Patches
                             ActionModifier modifier,
                             List<EffectForm> effectForms)
                 {
-                    Main.Logger.Log("Handling Reaction to damage");
                     if (__instance.battle == null)
                     {
                         yield break;

@@ -150,15 +150,19 @@ namespace SolastaModHelpers.Patches
                                         bool simulate,
                                         TimeInfo restStartTime)
             {
-                foreach (var f in __instance.recoveredFeatures.ToArray())
+
+                if (__instance?.recoveredFeatures != null)
                 {
-                    if ((f as NewFeatureDefinitions.LinkedPower)?.linkedPower != null)
+                    foreach (var f in __instance.recoveredFeatures.ToArray())
                     {
-                        __instance.recoveredFeatures.Remove(f);
+                        if ((f as NewFeatureDefinitions.LinkedPower)?.linkedPower != null)
+                        {
+                            __instance.recoveredFeatures.Remove(f);
+                        }
                     }
                 }
                 //remove temporary item upon long rest
-                if (restType == RuleDefinitions.RestType.LongRest && !simulate)
+                if (restType == RuleDefinitions.RestType.LongRest && !simulate && __instance.CharacterInventory != null)
                 {
                     foreach (var slot in __instance.CharacterInventory.EnumerateAllSlots().ToArray())
                     {
