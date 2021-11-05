@@ -76,7 +76,6 @@ namespace SolastaModHelpers.Patches
                 formsParams.targetSubstitute = magic_effect.ActionParams.TargetSubstitute;
                 if (activeEffect.EffectDescription.RangeType == RuleDefinitions.RangeType.MeleeHit || activeEffect.EffectDescription.RangeType == RuleDefinitions.RangeType.RangeHit)
                     formsParams.attackOutcome = attack_outcome;
-                Main.Logger.Log("Save value: " + formsParams.saveOutcome);
                 damageReceived = service.ApplyEffectForms(magic_effect.actualEffectForms[targetIndex], formsParams);
             }
         }
