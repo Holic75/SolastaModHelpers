@@ -25,6 +25,10 @@ namespace SolastaModHelpers.Patches
                     }
 
                     var monster = mover.RulesetCharacter as RulesetCharacterMonster;
+                    if (monster != null && !monster.monsterDefinition.groupAttacks && monster.monsterDefinition.AttackIterations.Count() > 1)
+                    {
+                        monster.RefreshAttackModes(false);
+                    }
                 }
             }
         }
