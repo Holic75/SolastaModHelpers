@@ -10,10 +10,12 @@ namespace SolastaModHelpers.Patches
 {
     class RulesetEntityPatcher
     {
+       
         [HarmonyPatch(typeof(RulesetEntity), "TryGetAttributeValue")]
         internal static class RulesetEntity_TryGetAttributeValue
         {
-            internal static bool Prefix(RulesetEntity __instance, ref string attributeName, ref int __result)
+            //no longer needed since 1.2.x introdced Surrogate spell field of power definition to extract original spell context (although it will work correctly only if spell belongs to a single spell repertoire)
+            /*internal static bool Prefix(RulesetEntity __instance, ref string attributeName, ref int __result)
             {
                 var character = __instance as RulesetCharacter;
                 if (character == null)
@@ -27,9 +29,9 @@ namespace SolastaModHelpers.Patches
                     attributeName = ability_name;
                 }
                 return true;
-            }
+            }*/
 
-
+            //allow to get extract RageDamage attribute value from original caster if the rage was shared (like in case of War shaman)
             internal static void Postfix(RulesetEntity __instance, string attributeName, ref int __result)
             {
                 var character = __instance as RulesetCharacter;

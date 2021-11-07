@@ -10,7 +10,7 @@ namespace SolastaModHelpers.Patches
 {
     class GameLocationVisibilityManagerPatcher
     {
-
+        //support for IgnoreDynamicVisionImpairement feature, allowing to perceive enemies while in darkness
         [HarmonyPatch(typeof(GameLocationVisibilityManager), "IsPositionPerceivedByCharacter")]
         class GameLocationVisibilityManager_IsPositionPerceivedByCharacter
         {

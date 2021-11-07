@@ -9,6 +9,7 @@ namespace SolastaModHelpers.Patches
 {
     class GraphicsCharacterPatches
     {
+        //patch allowing to store prerolled saving throw data, that can further be used to determine whether saving throw failed and propose a player to use an ability to reroll/modify it
         [HarmonyPatch(typeof(GraphicsCharacter), "SaveRolled")]
         class GraphicsCharacter_SaveRolled
         {

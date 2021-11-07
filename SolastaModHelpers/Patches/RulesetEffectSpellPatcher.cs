@@ -9,6 +9,8 @@ namespace SolastaModHelpers.Patches
 {
     class RulesetEffectSpellPatcher
     {
+        //add support for ICustomMagicEffectBasedOnCaster allowing to pick spell effect depending on some caster properties
+        //and IModifySpellEffect which modifies existing effect (changing elemental damage type for example)
         [HarmonyPatch(typeof(RulesetEffectSpell), "EffectDescription", MethodType.Getter)]
         class RulesetEffectSpell_EffectDescription
         {

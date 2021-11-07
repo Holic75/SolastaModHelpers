@@ -9,6 +9,7 @@ namespace SolastaModHelpers.Patches
 {
     class RulesetCharacterPatches
     {
+        //support for IDefenseAffinty
         [HarmonyPatch(typeof(RulesetCharacter), "ComputeAttackModifier")]
         class RulesetCharacter_ComputeAttackModifier
         {
@@ -30,7 +31,7 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-        //remove overriden powers (in case there are too many of them like for druid wildshapes)
+        
         [HarmonyPatch(typeof(RulesetCharacter), "GrantPowers")]
         class RulesetCharacter_GrantPowers
         {
@@ -52,17 +53,17 @@ namespace SolastaModHelpers.Patches
                         f.apply(__instance, p);
                     }
                 }
+                /* NO LONGER SEEMS NECESSARY SINCE EXTENSIVE DRUID WILDSHAPES POWER OVERRIDING DOES NOT HAPPEN WITH VANILLA DRUID
+                //remove overriden powers (in case there are too many of them)
                 var overriden_powers = __instance.UsablePowers.Select(p => p.powerDefinition.overriddenPower).Where(p => p != null).ToHashSet();
-
                 var powers_array = __instance.usablePowers.ToArray();
-
                 foreach (var p in powers_array)
                 {
                     if (overriden_powers.Contains(p?.powerDefinition))
                     {
                         __instance.usablePowers.Remove(p);
                     }
-                }
+                }*/
             }
         }
 
@@ -79,7 +80,36 @@ namespace SolastaModHelpers.Patches
                 {
                     return;
                 }
-                __result = Math.Min(__instance.GetMaxUsesOfPower(base_power), __result);
+                __result = Math.Min(__instance.GetMaxUsesOfPower(base_power) * base_power.PowerDefinition.costPerUse / usablePower.powerDefinition.costPerUse, __result);
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "RepayPowerUse")]
+        class RulesetCharacter_RepayPowerUse
+        {
+            internal static void Postfix(RulesetCharacter __instance,
+                                        RulesetUsablePower usablePower)
+            {
+                var base_power = (usablePower.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
+                if (base_power == null)
+                {
+                    return;
+                }
+                int uses_to_repay = usablePower.PowerDefinition.costPerUse / base_power.PowerDefinition.costPerUse;
+                for (int i = 0; i < uses_to_repay; i++)
+                {
+                    base_power.RepayUse();
+                }
+                var powers = __instance.usablePowers;
+                foreach (var p in powers)
+                {
+                    if ((p.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance) == base_power)
+                    {
+                        p.remainingUses = p.remainingUses = Math.Min(base_power.remainingUses * base_power.PowerDefinition.costPerUse / p.PowerDefinition.costPerUse, __instance.GetMaxUsesOfPower(p));
+                    }
+                }
+                __instance.RefreshAll();
             }
         }
 
@@ -136,6 +166,15 @@ namespace SolastaModHelpers.Patches
                 for (int i = 0; i < usablePower.PowerDefinition.costPerUse / base_power.PowerDefinition.costPerUse; i++)
                 {
                     base_power.Consume();
+                }
+
+                var powers = __instance.usablePowers;
+                foreach (var p in powers)
+                {
+                    if ((p.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance) == base_power)
+                    {
+                        p.remainingUses = Math.Min(base_power.remainingUses * base_power.PowerDefinition.costPerUse / p.PowerDefinition.costPerUse, __instance.GetMaxUsesOfPower(p));
+                    }
                 }
             }
         }
@@ -251,7 +290,7 @@ namespace SolastaModHelpers.Patches
         }
 
 
-        [HarmonyPatch(typeof(RulesetCharacter), "CanUseAttackOutcomeAlterationPower")]
+        /*[HarmonyPatch(typeof(RulesetCharacter), "CanUseAttackOutcomeAlterationPower")]
         class RulesetCharacter_CanUseAttackOutcomeAlterationPower
         {
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -272,10 +311,10 @@ namespace SolastaModHelpers.Patches
             {
                 return character.GetRemainingUsesOfPower(power);
             }
-        }
+        }*/
 
 
-        [HarmonyPatch(typeof(RulesetCharacter), "FillAvailableMagicEffectList")]
+        /*[HarmonyPatch(typeof(RulesetCharacter), "FillAvailableMagicEffectList")]
         class RulesetCharacter_FillAvailableMagicEffectList
         {
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -296,7 +335,7 @@ namespace SolastaModHelpers.Patches
             {
                 return character.GetRemainingUsesOfPower(power);
             }
-        }
+        }*/
 
 
         [HarmonyPatch(typeof(RulesetCharacter), "IsComponentMaterialValid")]

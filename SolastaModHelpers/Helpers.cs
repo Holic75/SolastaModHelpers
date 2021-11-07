@@ -1636,7 +1636,7 @@ namespace SolastaModHelpers.Helpers
         }
 
 
-        public static string createContextDeterminedAttribute(ConditionDefinition condition)
+        /*public static string createContextDeterminedAttribute(ConditionDefinition condition)
         {
             return "CONTEXT_DETERMINED_ATTRIBUTE_" + condition.name;
         }
@@ -1677,7 +1677,7 @@ namespace SolastaModHelpers.Helpers
             {
                 return string.Empty;
             }
-        }
+        }*/
     }
 
 

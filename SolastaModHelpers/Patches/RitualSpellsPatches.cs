@@ -9,6 +9,7 @@ namespace SolastaModHelpers.Patches
 {
     class SpontaneousRitualSpellsPatcher
     {
+        //Support for spontaneous caster ritual casting (for bard for example)
         [HarmonyPatch(typeof(RulesetCharacterHero), "EnumerateUsableRitualSpells")]
         internal static class RestModuleHitDice_EnumerateUsableRitualSpells_Patch
         {

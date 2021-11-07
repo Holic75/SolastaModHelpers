@@ -9,6 +9,8 @@ namespace SolastaModHelpers.Patches
 {
     class RulesetUsablePowerPatches
     {
+        //Allow IPowerNumberOfUsesIncrease work correctly on powers with number of uses determined by Ability or Proficiency bonus
+        //otherwise they these kind of powers will simply ignore maxUses field affected by IPowerNumberOfUsesIncrease
         [HarmonyPatch(typeof(RulesetUsablePower), "MaxUses", MethodType.Getter)]
         internal static class RulesetUsablePower_MaxUses
         {

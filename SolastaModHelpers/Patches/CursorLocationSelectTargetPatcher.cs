@@ -64,16 +64,6 @@ namespace SolastaModHelpers.Patches
                     action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectCreatureFamily");
                     return;
                 }
-                if ((tag & ExtendedEnums.ExtraTargetFilteringTag.MetalArmor) != ExtendedEnums.ExtraTargetFilteringTag.No)
-                {
-                    if (!target.RulesetCharacter.Tags.Contains("MetalArmor"))
-                    {
-                        __result = false;
-                        var action_modifier = __instance.actionModifier;
-                        action_modifier.FailureFlags.Add("Failure/&FailureFlagTargetIncorrectArmor");
-                        return;
-                    }
-                }
 
                 if ((tag & ExtendedEnums.ExtraTargetFilteringTag.NoHeavyArmor) != ExtendedEnums.ExtraTargetFilteringTag.No)
                 {

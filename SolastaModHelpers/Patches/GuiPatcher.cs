@@ -9,6 +9,7 @@ using UnityEngine.UI;
 
 namespace SolastaModHelpers.Patches
 {
+    //set of patches to support custom icons usage (Currently works for Class, Race, Spell and Power sprites)
     class GuiPatcher
     {
         [HarmonyPatch(typeof(GuiItemProperty), "SetupSprite")]

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace SolastaModHelpers.Patches
 {
+    //add support for ICustomPowerEffectBasedOnCaster allowing to pick power effect depending on some caster properties
     class RulesetEffectPowerPatcher
     {
         [HarmonyPatch(typeof(RulesetEffectPower), "EffectDescription", MethodType.Getter)]

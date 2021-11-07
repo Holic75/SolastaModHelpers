@@ -8,6 +8,7 @@ namespace SolastaModHelpers.Patches
 {
     class RestModuleHitDicePatcher
     {
+        //set of patches to enable FeatureDefinitionExtraHealingDieOnShortRest (like bard song of rest)
         [HarmonyPatch(typeof(RestModuleHitDice), "Bind")]
         internal static class RestModuleHitDice_Bind_Patch
         {
