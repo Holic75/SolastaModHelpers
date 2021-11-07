@@ -9,25 +9,8 @@ namespace SolastaModHelpers.Patches
 {
     class CharacterBuildingManagerPatcher
     {
-        /*class CharacterBuildingManagerSetPointPoolPatcher
-        {
-            [HarmonyPatch(typeof(CharacterBuildingManager), "SetPointPool")]
-            internal static class CharacterBuildingManager_SetPointPool_Patch
-            {
-                internal static bool Prefix(CharacterBuildingManager __instance, HeroDefinitions.PointsPoolType pointPoolType, string tag, ref int maxNumber)
-                {
-                    //fix dev's hack to add extra elf cantrips
-                    if (pointPoolType == HeroDefinitions.PointsPoolType.Cantrip && tag != "02Race") 
-                    {
-                        if (__instance.HasAnyActivePoolOfType(HeroDefinitions.PointsPoolType.Cantrip) && __instance.pointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools.ContainsKey(tag))
-                            maxNumber = maxNumber - __instance.pointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip].ActivePools[tag].MaxPoints;
-                    }
-                    return true;
-                }
-            }
-        }*/
-
-
+        //Support for custom bonus cantrips known and spells known number increase features
+        //fix vanilla bonus cantrip features not to acount against total number of cantrips character knows
         class CharacterBuildingManagerApplyFeatureCastSpellPatcher
         {
             [HarmonyPatch(typeof(CharacterBuildingManager), "ApplyFeatureCastSpell")]
@@ -57,6 +40,7 @@ namespace SolastaModHelpers.Patches
 
                     if (current_class == class_origin)
                     {
+                        //fix vanilla bonus cantrip features not to acount against total number of cantrips character knows
                         bonus_known_cantrips += Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinitionBonusCantrips>(__instance.HeroCharacter)
                                                          .Aggregate(0, (old, next) => old += next.bonusCantrips.Count()) - __instance.bonusCantrips.Count;
                     }
@@ -68,7 +52,7 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-
+        //Reset extra bonus spells known, when user unselects a subclass
         class CharacterBuildingManagerGrantFeaturesPatcher
         {
             [HarmonyPatch(typeof(CharacterBuildingManager), "UnassignLastSubclass")]
@@ -86,7 +70,8 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-
+        //Support for features granting extra known spells
+        //correct bonus number of spells  known for the features granted by subclass at level 1 
         class CharacterBuildingManagerBrowseGrantedFeaturesHierarchicallyPatcher
         {
             [HarmonyPatch(typeof(CharacterBuildingManager), "BrowseGrantedFeaturesHierarchically")]
@@ -145,7 +130,6 @@ namespace SolastaModHelpers.Patches
                     int current_level;
                     __instance.GetLastAssignedClassAndLevel(out current_class, out current_level);
 
-                    HashSet<SpellDefinition> spells = new HashSet<SpellDefinition>();
                     foreach (var f in features)
                     {
                         f.maybeGrantSpellsOnLevelUp(__instance);

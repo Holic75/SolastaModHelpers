@@ -9,6 +9,8 @@ namespace SolastaModHelpers.Patches
 {
     class FeatureDescriptionItemPatcher
     {
+        //remove features from the selection list of exclusive FeatureDefinitionFeatureSet if the requirements are not met
+        //Requires should be added by calling NewFeatureDefinitions.FeatureData.addFeatureRestrictions
         [HarmonyPatch(typeof(FeatureDescriptionItem), "Bind")]
         class FeatureDescriptionItem_Bind
         {

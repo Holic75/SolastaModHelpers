@@ -10,6 +10,7 @@ namespace SolastaModHelpers.Patches
 {
     class GameLocationCharacterManagerPatcher
     {
+        //Add support for custom features triggering effects on proxy summon
         [HarmonyPatch(typeof(GameLocationCharacterManager), "CreateAndBindEffectProxy")]
         internal static class GameLocationCharacterManager_CreateAndBindEffectProxy_Patch
         {

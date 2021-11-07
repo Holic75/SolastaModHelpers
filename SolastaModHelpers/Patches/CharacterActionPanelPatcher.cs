@@ -9,6 +9,7 @@ namespace SolastaModHelpers.Patches
 {
     class CharacterActionPanelPatcher
     {
+        //remove restricted or hidden powers from power selection panel
         [HarmonyPatch(typeof(PowerSelectionPanel), "Bind")]
         class PowerSelectionPanel_Bind
         {

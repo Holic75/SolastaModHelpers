@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static RuleDefinitions;
 
 namespace SolastaModHelpers.Patches
 {
@@ -831,6 +832,42 @@ namespace SolastaModHelpers.Patches
                         }
                     }
                 }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(GameLocationBattleManager), "CanAttack")]
+        class GameLocationBattleManager_CanAttack
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var proximity_range_string = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Ldstr && x.operand.ToString().Contains("ProximityRangeEnemyNearby"));
+
+                codes[proximity_range_string + 4] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_1); //load attack parameters
+                codes.Insert(proximity_range_string + 5, new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                                         new Action<List<TrendInfo>, TrendInfo, BattleDefinitions.AttackEvaluationParams>(maybeAddProximityRangeDisadvantage).Method)
+                                                                                         );
+
+                return codes.AsEnumerable();
+            }
+
+
+            static void maybeAddProximityRangeDisadvantage(List<TrendInfo> advantage_trends, TrendInfo trend_info, BattleDefinitions.AttackEvaluationParams attack_params)
+            {
+                RulesetCharacter character = attack_params.attacker?.RulesetCharacter;
+                if (character != null)
+                {
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<IIgnoreRangeProximityPenalty>(character);
+                    foreach (var f in features)
+                    {
+                        if (f.canIgnoreRangeProximityPenalty(character, attack_params))
+                        {
+                            return;
+                        }
+                    }
+                }
+                advantage_trends.Add(trend_info);
             }
         }
     }

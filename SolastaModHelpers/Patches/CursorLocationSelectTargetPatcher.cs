@@ -10,6 +10,8 @@ namespace SolastaModHelpers.Patches
 {
     class CursorLocationSelectTargetPatcher
     {
+        //add suport for target spell filtering based on custom spell filters
+        //(i.e. preventing target from being selected)
         [HarmonyPatch(typeof(CursorLocationSelectTarget), "IsFilteringValid")]
         internal static class CursorLocationSelectTarget_IsFilteringValid_Patch
         {

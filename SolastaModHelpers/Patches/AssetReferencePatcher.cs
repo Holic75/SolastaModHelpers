@@ -10,6 +10,7 @@ namespace SolastaModHelpers.Patches
 {
     class AssetReferencePatcher
     {
+        //hack to properly load a custom icon
         [HarmonyPatch(typeof(AssetReference), "RuntimeKeyIsValid")]
         internal static class AssetReference_RuntimeKeyIsValid
         {
@@ -25,7 +26,7 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-
+        //hack to avoid "releaseing" custom icons
         [HarmonyPatch(typeof(AssetReference), "ReleaseAsset")]
         internal static class AssetReference_ReleaseAsset
         {

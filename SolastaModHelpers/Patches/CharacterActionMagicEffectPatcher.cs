@@ -10,6 +10,7 @@ namespace SolastaModHelpers.Patches
 {
     class CharacterActionMagicEffectPatcher
     {
+        //enable to performing automatic attacks after spell cast (like for sunlight blade cantrip)
         [HarmonyPatch(typeof(CharacterActionMagicEffect), "ExecuteImpl")]
         internal static class CharacterActionMagicEffect_ExecuteImpl_Patch
         {
@@ -24,7 +25,7 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-
+        //allow to refill formParams at a later stage when using spell power (in case actual effect description was modified as with caster dependent effects)
         [HarmonyPatch(typeof(CharacterActionCastSpell))]
         [HarmonyPatch("ApplyMagicEffect", MethodType.Normal)]
         [HarmonyPatch(new Type[] { typeof(GameLocationCharacter), typeof(ActionModifier), typeof(int), typeof(int), typeof(RuleDefinitions.RollOutcome), typeof(bool), typeof(RuleDefinitions.RollOutcome), typeof(int) },

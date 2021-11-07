@@ -9,6 +9,7 @@ namespace SolastaModHelpers.Patches
 {
     class CharacterActionFreeFallPatcher
     {
+        //allow character fall handler to account for custom fall prevention powers (and not only feather fall and boots)
         [HarmonyPatch(typeof(CharacterActionFreeFall), "HandleCharacterFall")]
         internal static class CharacterActionFreeFall_HandleCharacterFall_Patch
         {

@@ -99,7 +99,6 @@ namespace SolastaModHelpers.Patches
 
                 if (((usablePower?.PowerDefinition as NewFeatureDefinitions.IPowerRestriction)?.isReactionForbidden(__instance)).GetValueOrDefault())
                 {
-
                     __result = 0;
                     return;
                 }

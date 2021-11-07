@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SolastaModHelpers.Patches
 {
-
+    //allow executing custom actions
     [HarmonyPatch(typeof(CharacterAction), "InstantiateAction")]
     class CharacterActionPatcher
     {
