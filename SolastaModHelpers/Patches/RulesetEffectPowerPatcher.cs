@@ -46,7 +46,7 @@ namespace SolastaModHelpers.Patches
                     var new_f = new EffectForm();
                     new_f.Copy(f);
                     new_f.damageForm.diceNumber *= 2;
-                    new_f.damageForm.bonusDamage *= 2;
+                    //new_f.damageForm.bonusDamage *= 2;
                     eff.effectForms.Add(new_f);
                 }
                 else
