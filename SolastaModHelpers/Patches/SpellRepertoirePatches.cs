@@ -206,7 +206,7 @@ namespace SolastaModHelpers.Patches
             {
                 internal static bool Prefix(RulesetSpellRepertoire __instance, ref int __result)
                 {
-                    //NOTE: No need to account for mystic arcanum since this method is only used to extrac spell slots
+                    //NOTE: No need to account for mystic arcanum since this method is only used to extract spell slots
                     //for spending them on powers, mystic arcanum slots should not be used this way
                     var warlock_spellcasting = (__instance?.spellCastingFeature as NewFeatureDefinitions.WarlockCastSpell);
                     if (warlock_spellcasting == null || EnableCombinedSpellCasting)
@@ -257,7 +257,7 @@ namespace SolastaModHelpers.Patches
         }
 
 
-
+        //do not propose to use mystic arcanum slots for reaction powers
         class BuildSlotSubOptionsPatcher
         {
             [HarmonyPatch(typeof(ReactionRequestCastSpell), "BuildSlotSubOptions")]

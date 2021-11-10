@@ -226,21 +226,11 @@ namespace SolastaModHelpers.Patches
                     {
                         if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious)
                         {
-                            var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnAttackAttempt
-                                                                                  && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
-                                                                                  && (u.PowerDefinition as NewFeatureDefinitions.IReactionPowerOnAttackAttempt)
-                                                                                    .canBeUsedOnAttackAttempt(unit, attacker, defender, attackModifier, attackerAttackMode)
-                                                                                 ).ToArray();
-                            var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
-                            {
-                                if (next.PowerDefinition?.overriddenPower != null)
-                                {
-                                    old.Add(next.PowerDefinition?.overriddenPower);
-                                }
-                                return old;
-                            });
-                            powers = powers.Where(pp => !overriden_powers.Contains(pp.powerDefinition)).ToArray();
-
+                            var powers = Helpers.Misc.getNonOverridenPowers(unit.RulesetCharacter,
+                                                                            u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnAttackAttempt
+                                                                            && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
+                                                                            && (u.PowerDefinition as NewFeatureDefinitions.IReactionPowerOnAttackAttempt)
+                                                                            .canBeUsedOnAttackAttempt(unit, attacker, defender, attackModifier, attackerAttackMode));
                             foreach (var p in powers)
                             {
                                 if (p.powerDefinition.activationTime == RuleDefinitions.ActivationTime.Reaction &&
@@ -418,21 +408,11 @@ namespace SolastaModHelpers.Patches
                     {
                         if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious)
                         {
-                            var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnDamage
-                                                                                  && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
-                                                                                  && (u.PowerDefinition as NewFeatureDefinitions.IReactionPowerOnDamage)
-                                                                                    .canBeUsedOnDamage(unit, attacker, defender, null, true)
-                                                                                 ).ToArray();
-
-                            var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
-                            {
-                                if (next.PowerDefinition?.overriddenPower != null)
-                                {
-                                    old.Add(next.PowerDefinition?.overriddenPower);
-                                }
-                                return old;
-                            });
-                            powers = powers.Where(pp => !overriden_powers.Contains(pp.powerDefinition)).ToArray();
+                            var powers = Helpers.Misc.getNonOverridenPowers(unit.RulesetCharacter,
+                                                                            u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnDamage
+                                                                            && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
+                                                                            && (u.PowerDefinition as NewFeatureDefinitions.IReactionPowerOnDamage)
+                                                                            .canBeUsedOnDamage(unit, attacker, defender, null, true));
 
                             foreach (var p in powers)
                             {
@@ -462,11 +442,12 @@ namespace SolastaModHelpers.Patches
         }
 
 
-        class GameLocationBattleManagerHandleCharacterAttackDamagePatcher
+        internal class GameLocationBattleManagerHandleCharacterAttackDamagePatcher
         {
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterAttackDamage")]
             internal static class GameLocationBattleManager_HandleCharacterAttackDamage_Patch
             {
+                internal static bool scored_critical = false;
                 internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result,
                                                                         GameLocationBattleManager __instance,
                                                                         GameLocationCharacter attacker,
@@ -480,6 +461,7 @@ namespace SolastaModHelpers.Patches
                                                                         bool criticalHit,
                                                                         bool firstTarget)
                 {
+                    scored_critical = criticalHit;
                     while (__result.MoveNext())
                     {
                         yield return __result.Current;
@@ -649,22 +631,11 @@ namespace SolastaModHelpers.Patches
                             && unit.GetActionTypeStatus(ActionDefinitions.ActionType.Reaction, ActionDefinitions.ActionScope.Battle, false) == ActionDefinitions.ActionStatus.Available
                             && unit.GetActionStatus(ActionDefinitions.Id.PowerReaction, ActionDefinitions.ActionScope.Battle, ActionDefinitions.ActionStatus.Available) == ActionDefinitions.ActionStatus.Available)
                         {
-                            var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnDamage
+                            var powers = Helpers.Misc.getNonOverridenPowers(unit.RulesetCharacter,
+                                                                            u => u.PowerDefinition is NewFeatureDefinitions.IReactionPowerOnDamage
                                                                                   && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
                                                                                   && (u.PowerDefinition as NewFeatureDefinitions.IReactionPowerOnDamage)
-                                                                                    .canBeUsedOnDamage(unit, attacker, defender, attackMode, false)
-                                                                                 ).ToArray();
-
-                            var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
-                            {
-                                if (next.PowerDefinition?.overriddenPower != null)
-                                {
-                                    old.Add(next.PowerDefinition?.overriddenPower);
-                                }
-                                return old;
-                            });
-                            powers = powers.Where(pp => !overriden_powers.Contains(pp.powerDefinition)).ToArray();
-
+                                                                                    .canBeUsedOnDamage(unit, attacker, defender, attackMode, false));
                             foreach (var p in powers)
                             {
                                 CharacterActionParams reactionParams = new CharacterActionParams(unit, ActionDefinitions.Id.PowerReaction);
@@ -807,9 +778,10 @@ namespace SolastaModHelpers.Patches
                     }
                     NewFeatureDefinitions.SavingthrowRollsData.removePrerolledData(defender);
 
-                   var power = defender.RulesetCharacter?.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.RerollFailedSavePower
-                                                      && defender.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
-                                                     ).FirstOrDefault();
+                   var power = Helpers.Misc.getNonOverridenPowers(defender.RulesetCharacter, 
+                                                                  u => u.PowerDefinition is NewFeatureDefinitions.RerollFailedSavePower
+                                                                  && defender.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
+                                                                 ).FirstOrDefault();
                     if (power != null)
                     {
                         var reactionParams = new CharacterActionParams(defender, (ActionDefinitions.Id)ExtendedActionId.ConsumePowerUse);

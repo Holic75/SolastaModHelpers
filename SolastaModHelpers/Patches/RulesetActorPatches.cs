@@ -33,7 +33,7 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-
+        //add IConditionImmunity support for custom condition immunity effects
         [HarmonyPatch(typeof(RulesetActor), "IsImmuneToCondition")]
         class RulesetActor_IsImmuneToCondition
         {
@@ -51,7 +51,6 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
 
-
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IConditionImmunity>(__instance);
                 foreach (var f in features)
                 {
@@ -64,7 +63,7 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-
+        //support for IApplyEffectOnConditionRemoval that should trigeer effects on condition removal
         [HarmonyPatch(typeof(RulesetActor), "RemoveCondition")]
         class RulesetCharacter_RemoveCondition
         {
@@ -88,7 +87,7 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-
+        //Prevent refresh of character when applying certain conditions, to avoid losing count of its number of attacks (unclear if it is still necessary in 1.2.x)
         [HarmonyPatch(typeof(RulesetActor), "AddConditionOfCategory")]
         class AddConditionOfCategory_AddConditionOfCategory
         {

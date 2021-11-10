@@ -31,12 +31,10 @@ namespace SolastaModHelpers.Patches
             {
                 foreach (var p in panel.relevantPowers.ToArray())
                 {
-                    //Main.Logger.Log("Processing Power: " + p.PowerDefinition.name);
                     if (((p.PowerDefinition as NewFeatureDefinitions.IPowerRestriction)?.isForbidden(character)).GetValueOrDefault()
                         || ((p.PowerDefinition as NewFeatureDefinitions.IHiddenAbility)?.isHidden()).GetValueOrDefault())
                     {
                         panel.relevantPowers.Remove(p);
-                        //Main.Logger.Log("Removing Power: " + p.PowerDefinition.name);
                     }
                 }
             }

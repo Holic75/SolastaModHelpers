@@ -1388,6 +1388,28 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        public static RulesetUsablePower[] getNonOverridenPowers(RulesetCharacter character, Predicate<RulesetUsablePower> filter)
+        {
+            if (character == null)
+            {
+                return new RulesetUsablePower[0];
+            }
+
+            var powers = character.UsablePowers.Where(u => filter(u)).ToArray();
+
+            var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
+            {
+                if (next.PowerDefinition?.overriddenPower != null)
+                {
+                    old.Add(next.PowerDefinition?.overriddenPower);
+                }
+                return old;
+            }).ToHashSet();
+            powers = powers.Where(pp => !overriden_powers.Contains(pp.powerDefinition)).ToArray();
+            return powers;
+        }
+
+
         static public bool isWearingArmorWithNonZeroProtection(RulesetCharacter character)
         {
             if (character.IsWearingArmor())

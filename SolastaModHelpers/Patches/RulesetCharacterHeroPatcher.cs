@@ -10,6 +10,7 @@ namespace SolastaModHelpers.Patches
 {
     class RulesetCharacterHeroPatcher
     {
+        //support for IScalingArmorClassBonus
         [HarmonyPatch(typeof(RulesetCharacterHero), "RefreshArmorClass")]
         class RulesetCharacterHero_RefreshArmorClass
         {
@@ -65,7 +66,7 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-
+        //support for ICanUSeDexterityWithWeapon
         [HarmonyPatch(typeof(RulesetCharacterHero), "RefreshAttackMode")]
         class RulesetCharacterHero_RefreshAttackMode
         {
@@ -136,7 +137,7 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-
+        //Apply certain actions to characters upon save load (to correct feats for example)
         [HarmonyPatch(typeof(RulesetCharacterHero), "PostLoad")]
         internal class RulesetCharacterHero_PostLoad
         {
@@ -149,7 +150,7 @@ namespace SolastaModHelpers.Patches
             }
         }
 
-
+        //support for IAddExtraAttacks
         [HarmonyPatch(typeof(RulesetCharacterHero), "RefreshAttackModes")]
         class RulesetCharacterHero_RefreshAttackModes
         {
@@ -182,7 +183,8 @@ namespace SolastaModHelpers.Patches
         }
 
 
-
+        //Currently game will not detect feature origin if feature is given via FeatureDefinitionFeatureSet
+        //This patch fixes this issue, still does not work for recursive FeatureDefinitionFeatureSet inclusion
         [HarmonyPatch(typeof(RulesetCharacterHero), "LookForFeatureOrigin")]
         internal class RulesetCharacterHero_LookForFeatureOrigin
         {

@@ -10,6 +10,7 @@ namespace SolastaModHelpers.Patches
 {
     class RulesetCharacterMonsterPatcher
     {
+        //support for IAttackModeModifier for monsters
         [HarmonyPatch(typeof(RulesetCharacterMonster), "BuildAttackMode")]
         class RulesetCharacterMonster_BuildAttackMode
         {
