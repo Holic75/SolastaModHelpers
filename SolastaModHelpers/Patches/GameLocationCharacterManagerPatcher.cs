@@ -14,7 +14,7 @@ namespace SolastaModHelpers.Patches
         [HarmonyPatch(typeof(GameLocationCharacterManager), "CreateAndBindEffectProxy")]
         internal static class GameLocationCharacterManager_CreateAndBindEffectProxy_Patch
         {
-            internal static void Postfix(GameLocationCharacterManager __instance,
+            internal static void Prefix(GameLocationCharacterManager __instance,
                                          RulesetActor rulesetEntity,
                                          RulesetEffect rulesetEffect,
                                          int3 position,
