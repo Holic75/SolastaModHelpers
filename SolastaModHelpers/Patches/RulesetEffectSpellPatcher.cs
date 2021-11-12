@@ -31,5 +31,20 @@ namespace SolastaModHelpers.Patches
                 
             }
         }
+
+        //fix to make ICustomMagicEffectBasedOnCaster work properly on racial spells
+        [HarmonyPatch(typeof(RulesetEffectSpell), "GetClassLevel")]
+        class RulesetEffectSpell_GetClassLevel
+        {
+            static void Postfix(RulesetEffectSpell __instance, RulesetCharacter character, ref int __result)
+            {
+                if (__result == 0 
+                    && (__instance?.spellRepertoire?.spellCastingMonster != null || __instance?.spellRepertoire?.spellCastingRace != null))
+                {
+                    __result = character.GetSpellcastingLevel(__instance.spellRepertoire);
+                }
+
+            }
+        }
     }
 }
