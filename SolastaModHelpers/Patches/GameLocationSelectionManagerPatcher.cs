@@ -11,7 +11,7 @@ namespace SolastaModHelpers.Patches
     {
         //patch fixing crush (unclear why it happens in the first place) when exiting game with controlled summons in the party
         [HarmonyPatch(typeof(GameLocationSelectionManager), "GuestRemoved")]
-        internal static class AssetReference_ReleaseAsset
+        internal static class GameLocationSelectionManager_GuestRemoved
         {
             internal static bool Prefix(GameLocationSelectionManager __instance, GameLocationCharacter guest)
             {

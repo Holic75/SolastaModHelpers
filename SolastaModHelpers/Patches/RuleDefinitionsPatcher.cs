@@ -10,7 +10,7 @@ namespace SolastaModHelpers.Patches
     //check for spelleffect that grant weapon enchants when checking for buffs
     //To prevent termination of these kind of effects on map change (otherwise they will be removed - is it intentional ???)
     [HarmonyPatch(typeof(RuleDefinitions), "MatchesMagicType")]
-    internal static class AssetReference_RuntimeKeyIsValid
+    internal static class RuleDefinitions_MatchesMagicType
     {
         internal static bool Prefix(EffectDescription effectDescription, RuleDefinitions.MagicType validType, ref bool __result)
         {
