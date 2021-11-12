@@ -86,8 +86,8 @@ namespace SolastaModHelpers.CustomIcons
             }
         }
 
-
-        public static void merge2Images(string[] files, (int, int) final_scale, string final_image_filename)
+        //stacks horizontaly images from files from left to right, resizes resulting image to final scale and stores it to a file
+        public static void combineImages(string[] files, (int, int) final_scale, string final_image_filename)
         {
             List<System.Drawing.Bitmap> images = new List<System.Drawing.Bitmap>();
             System.Drawing.Bitmap finalImage = null;
@@ -144,6 +144,42 @@ namespace SolastaModHelpers.CustomIcons
                 {
                     image.Dispose();
                 }
+            }
+        }
+
+
+        //puts scaled inner image into specified postion of base image and stores it to a file
+        public static void merge2Images(string base_image_file, string inner_image_file, (int, int) inner_image_scale, (int, int) inner_image_position, 
+                                          string final_image_filename)
+        {
+            System.Drawing.Bitmap base_image = null;
+            System.Drawing.Bitmap inner_image = null;
+
+            try
+            {
+                base_image = new System.Drawing.Bitmap(base_image_file);
+                inner_image = new System.Drawing.Bitmap(new System.Drawing.Bitmap(inner_image_file), new System.Drawing.Size(inner_image_scale.Item1, inner_image_scale.Item2));
+
+                var src_region = new System.Drawing.Rectangle(0, 0, inner_image_scale.Item1, inner_image_scale.Item2);
+                var dst_region = new System.Drawing.Rectangle(inner_image_position.Item1, inner_image_position.Item2, inner_image_scale.Item1, inner_image_scale.Item2);
+                using (System.Drawing.Graphics grD = System.Drawing.Graphics.FromImage(base_image))
+                {
+                    grD.DrawImage(inner_image, dst_region, src_region, System.Drawing.GraphicsUnit.Pixel);
+                }
+
+                base_image.Save(final_image_filename);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                //clean up memory
+                if (base_image != null)
+                    base_image.Dispose();
+                if (inner_image != null)
+                    inner_image.Dispose();
             }
         }
 
