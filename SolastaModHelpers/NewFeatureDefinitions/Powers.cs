@@ -211,7 +211,9 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public interface IPowerBundle
     {
         List<RulesetUsablePower> getAvailablePowers(RulesetCharacter character);
+        List<FeatureDefinitionPower> getAllPowers();
         void addSubPower(FeatureDefinitionPower power);
+        bool containsSubpower(FeatureDefinitionPower power);
     }
 
 
@@ -304,6 +306,16 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 PowerBundleData.registerPower(this);
             }
+        }
+
+        public bool containsSubpower(FeatureDefinitionPower power)
+        {
+            return availablePowers.Contains(power);
+        }
+
+        public List<FeatureDefinitionPower> getAllPowers()
+        {
+            return availablePowers.ToList();
         }
     }
 }

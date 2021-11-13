@@ -9,6 +9,11 @@ using UnityEngine.UI;
 
 namespace SolastaModHelpers.Patches.PowerBundlePatches
 {
+    //set of patches to allow Power Bundle support
+    //Since we can not easily add new unity assets to the game, we are going to reuse existing ones supporting SpellBundles
+    //(used in SubspellSelectionModal and SubspellItem). 
+    //Since they only support spells, we create a set of fake spells mapped to the powers we want to use (master power and subpowers)
+    //and interface only through these fake spells, remapping them back to subpowers only when invoking PowerEngaged handler
     class SubspellSelectionModalPatches
     {
         [HarmonyPatch(typeof(SubspellSelectionModal))]
@@ -158,6 +163,44 @@ namespace SolastaModHelpers.Patches.PowerBundlePatches
             {
                 var power = NewFeatureDefinitions.PowerBundleData.findPowerFromSpell(spell);
                 box.powerEngaged(box.activator.usablePowers.First(u => u.powerDefinition == power));
+            }
+        }
+
+
+        //allow termination of all powers from bundle if they are unique
+        [HarmonyPatch(typeof(RulesetCharacter), "TerminateMatchingUniquePower")]
+        internal static class RulesetCharacter_TerminateMatchingUniquePower
+        {
+            internal static void Postfix(RulesetCharacter __instance, FeatureDefinitionPower powerDefinition)
+            {
+                var all_power_bundles = DatabaseRepository.GetDatabase<FeatureDefinitionPower>().GetAllElements().OfType<NewFeatureDefinitions.IPowerBundle>();
+                HashSet<FeatureDefinitionPower> powers_to_remove = new HashSet<FeatureDefinitionPower>();
+
+                foreach (var pb in all_power_bundles)
+                {
+                    if (pb.containsSubpower(powerDefinition))
+                    {
+                        var powers = pb.getAllPowers();
+                        foreach (var p in powers)
+                        {
+                            if (p != powerDefinition)
+                            {
+                                powers_to_remove.Add(p as FeatureDefinitionPower);
+                            }
+                        }
+                    }
+                }
+
+                __instance.powersToTerminate.Clear();
+                foreach (RulesetEffectPower rulesetEffectPower in __instance.powersUsedByMe)
+                {
+                    if (powers_to_remove.Contains(rulesetEffectPower.PowerDefinition))
+                    {
+                        __instance.powersToTerminate.Add(rulesetEffectPower);
+                    }
+                }
+                foreach (RulesetEffectPower activePower in __instance.powersToTerminate)
+                    __instance.TerminatePower(activePower);
             }
         }
     }
