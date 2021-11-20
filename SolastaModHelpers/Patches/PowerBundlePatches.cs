@@ -203,5 +203,112 @@ namespace SolastaModHelpers.Patches.PowerBundlePatches
                     __instance.TerminatePower(activePower);
             }
         }
+
+
+
+        
+        [HarmonyPatch(typeof(CharacterReactionSubitem), "Bind")]
+        internal static class CharacterReactionSubitem_Bind
+        {
+            internal static int SLOT_LEVEL_FOR_POWER_BUNDLE => -37;
+            internal static bool Prefix(CharacterReactionSubitem __instance, RulesetSpellRepertoire spellRepertoire,
+                                        int slotLevel,
+                                        string text,
+                                        bool interactable,
+                                        CharacterReactionSubitem.SubitemSelectedHandler subitemSelected
+                                        )
+            {
+                __instance.toggle.transform.localScale = new Vector3(1, 1, 1);
+                __instance.label.transform.localScale = new Vector3(1, 1, 1);
+                int SLOTS_FOR_TOOLTIP = 5;
+
+                bool is_power_bundle = slotLevel == SLOT_LEVEL_FOR_POWER_BUNDLE;
+                if (!is_power_bundle)
+                {
+                    return true;
+                }
+                var subpower = DatabaseRepository.GetDatabase<FeatureDefinitionPower>().GetElement(text);
+                __instance.label.Text = Gui.Localize(subpower.guiPresentation.Title);
+                __instance.toggle.interactable = interactable;
+                __instance.canvasGroup.interactable = interactable;
+                __instance.SubitemSelected = subitemSelected;
+
+                while (__instance.slotStatusTable.childCount < SLOTS_FOR_TOOLTIP)
+                    Gui.GetPrefabFromPool(__instance.slotStatusPrefab, (Transform)__instance.slotStatusTable);
+                for (int index = 0; index < __instance.slotStatusTable.childCount; ++index)
+                {
+                    var child = __instance.slotStatusTable.GetChild(index);
+                    child.gameObject.SetActive(true);
+                    SlotStatus component = child.GetComponent<SlotStatus>();
+                    component.Used.gameObject.SetActive(false);
+                    component.Available.gameObject.SetActive(false);
+                }
+                for (int index = SLOTS_FOR_TOOLTIP; index < __instance.slotStatusTable.childCount; ++index)
+                {
+                    __instance.slotStatusTable.GetChild(index).gameObject.SetActive(false);
+                }
+                __instance.slotStatusTable.GetComponent<GuiTooltip>().Content = subpower.guiPresentation.Description;
+
+                //float scale = (1 + __instance.label.Text.Length) * 0.33f;
+                float scale = 5.0f;
+                var old_scale = __instance.toggle.transform.localScale;
+                old_scale.x *= scale;
+                __instance.toggle.transform.localScale = old_scale;
+                old_scale = __instance.label.transform.localScale;
+                old_scale.x /= scale;
+                __instance.label.transform.localScale = old_scale;
+                return false;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(CharacterReactionItem), "Bind")]
+        internal static class CharacterReactionItem_Bind
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var load_spell_repertoire = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Ldloc_0);
+                //next ldloc.3 -> load index
+                //     ldc.i4.1 -> load 1
+                //     add      -> add
+                codes[load_spell_repertoire + 2] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_1); //load reactionRequest
+                codes[load_spell_repertoire + 3] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                                  new Func<int, ReactionRequest, int>(getSuboptionIndex).Method
+                                                                                 );
+
+                return codes.AsEnumerable();
+            }
+
+            static int getSuboptionIndex(int index, ReactionRequest reactionRequest)
+            {
+                var power_bundle = reactionRequest.reactionParams?.UsablePower?.PowerDefinition as NewFeatureDefinitions.IPowerBundle;
+                if (power_bundle == null)
+                {
+                    return index + 1;
+                }
+
+                return CharacterReactionSubitem_Bind.SLOT_LEVEL_FOR_POWER_BUNDLE;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(GameLocationActionManager), "ReactToSpendPower")]
+        internal static class GameLocationActionManager_ReactToSpendPower
+        {
+            internal static bool Prefix(GameLocationActionManager __instance, CharacterActionParams reactionParams)
+            {
+                var usable_power = (reactionParams?.RulesetEffect as RulesetEffectPower)?.usablePower;
+                var power_bundle = usable_power?.powerDefinition as NewFeatureDefinitions.IPowerBundle;
+                if (power_bundle == null)
+                {
+                    return true;
+                }
+
+                reactionParams.usablePower = usable_power;
+                __instance.AddInterruptRequest((ReactionRequest)new ReactionRequestSpendPowerFromBundle(reactionParams));
+                return false;
+            }            
+        }
     }
 }

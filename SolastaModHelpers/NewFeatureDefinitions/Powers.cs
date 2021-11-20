@@ -201,9 +201,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         }
     }
 
-    public class RerollFailedSavePower : HiddenPower
+    public class RerollFailedSavePower : PowerWithRestrictions, IHiddenAbility
     {
-
+        public bool isHidden()
+        {
+            return true;
+        }
     }
 
 
@@ -267,7 +270,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
-    public class PowerBundle : FeatureDefinitionPower, IPowerBundle
+    public class PowerBundle : PowerWithRestrictions, IPowerBundle
     {
         private HashSet<FeatureDefinitionPower> availablePowers = new HashSet<FeatureDefinitionPower>();
 

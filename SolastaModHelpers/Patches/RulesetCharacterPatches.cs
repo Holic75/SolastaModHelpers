@@ -133,6 +133,12 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
 
+                if (usablePower?.PowerDefinition is NewFeatureDefinitions.HiddenPower)
+                {
+                    __result = 0;
+                    return;
+                }
+
                 var base_power = (usablePower?.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {

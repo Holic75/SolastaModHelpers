@@ -291,3 +291,74 @@ public class ReactionRequestCastSpellInResponseToAttack : ReactionRequestCastSpe
 }
 
 
+
+
+public class ReactionRequestSpendPowerFromBundle : ReactionRequestSpendPower
+{
+    static public ReactionDefinition reactToSpendPowerFromBundleReactionDefinition;
+
+    static public void initialize()
+    {
+        reactToSpendPowerFromBundleReactionDefinition = SolastaModHelpers.Helpers.CopyFeatureBuilder<ReactionDefinition>
+                    .createFeatureCopy("SpendPowerFromBundl", "7039b596-0ad6-4c13-b64c-ee415e136793", "", "", null, DatabaseHelper.ReactionDefinitions.SpendPower);
+    }
+
+
+    public ReactionRequestSpendPowerFromBundle(CharacterActionParams reactionParams, string name = "SpendPower")
+        : base(reactionParams, name)
+    {
+        BuildSuboptions();
+    }
+
+    public override int SelectedSubOption
+    {
+        get
+        {
+            var spell = SolastaModHelpers.NewFeatureDefinitions.PowerBundleData.findSpellFromPower((this.reactionParams.RulesetEffect as RulesetEffectPower).PowerDefinition);
+
+            return this.reactionParams.spellRepertoire.knownSpells.FindIndex(s => s == spell);
+        }
+    }
+
+
+
+
+    public override void SelectSubOption(int option)
+    {
+        this.ReactionParams.RulesetEffect?.Terminate(false);
+        var spell = this.reactionParams.spellRepertoire.knownSpells[option];
+        var power = SolastaModHelpers.NewFeatureDefinitions.PowerBundleData.findPowerFromSpell(spell);
+        IRulesetImplementationService service1 = ServiceRepository.GetService<IRulesetImplementationService>();
+        var acting_character = this.reactionParams.actingCharacter.RulesetCharacter;
+        var usabale_power = this.reactionParams.actingCharacter.RulesetCharacter.usablePowers.Find(u => u.powerDefinition == power);
+        this.ReactionParams.RulesetEffect = service1.InstantiateEffectPower(acting_character, usabale_power, false);
+    }
+
+    public override void OnSetInvalid()
+    {
+        base.OnSetInvalid();
+        this.ReactionParams.RulesetEffect.Terminate(false);
+    }
+
+
+    public override string SuboptionTag => this.ReactionParams.UsablePower.PowerDefinition.name;
+
+    void BuildSuboptions()
+    {
+        this.subOptionsAvailability = new Dictionary<string, bool>();
+        this.SubOptionsAvailability.Clear();
+        this.reactionParams.SpellRepertoire = new RulesetSpellRepertoire();
+        this.reactionParams.SpellRepertoire.knownSpells = new List<SpellDefinition>();
+        var subpowers = (this.reactionParams.usablePower.powerDefinition as IPowerBundle).getAvailablePowers(this.reactionParams.actingCharacter.RulesetCharacter);
+
+        foreach (var p in subpowers)
+        {
+            this.reactionParams.SpellRepertoire.knownSpells.Add(SolastaModHelpers.NewFeatureDefinitions.PowerBundleData.findSpellFromPower(p.PowerDefinition));
+            this.SubOptionsAvailability.Add(p.powerDefinition.name, true);
+        }
+
+        this.SelectSubOption(0);
+    }
+}
+
+
