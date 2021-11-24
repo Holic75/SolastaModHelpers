@@ -498,5 +498,25 @@ namespace SolastaModHelpers.Patches
                 }
             }
         }
+
+
+        [HarmonyPatch(typeof(RulesetCharacter), "IsSubjectToAttackOfOpportunity")]
+        class RulesetCharacter_IsSubjectToAttackOfOpportunity
+        {
+            internal static void Postfix(RulesetCharacter __instance,
+                                        RulesetCharacter attacker,
+                                        ref bool __result)
+            {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IIgnoreAooImmunity>(attacker);
+                foreach (var f in features)
+                {
+                    if (f.canIgnore(attacker, __instance))
+                    {
+                        __result = true;
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

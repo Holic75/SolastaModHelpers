@@ -11,7 +11,6 @@ namespace SolastaModHelpers.Patches
 {
     class GameLocationBattleManagerPatcher
     {
-
         class GameLocationBattleManagerHandleCharacterMoveEndPatcher
         {
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterMoveEnd")]
@@ -256,8 +255,23 @@ namespace SolastaModHelpers.Patches
                                 yield return __instance.WaitForReactions(attacker, service2, count);
                             }
                         }
+
+                        RulesetAttackMode aoo_attack_mode = null;
+                        ActionModifier aoo_action_modifier = null;
+                        if (attacker != unit && Helpers.Misc.canMakeAoo(__instance, unit, attacker, out aoo_attack_mode, out aoo_action_modifier)
+                            && Helpers.Accessors.extractFeaturesHierarchically<AooIfAllyIsAttacked>(attacker.RulesetCharacter).Count > 0)
+                        {
+                            IGameLocationActionService service = ServiceRepository.GetService<IGameLocationActionService>();
+                            CharacterActionParams reactionParams = new CharacterActionParams(unit, ActionDefinitions.Id.AttackOpportunity, aoo_attack_mode, attacker, aoo_action_modifier);
+                            service.ReactForOpportunityAttack(reactionParams);
+                        }
+
+
                     }
                 }
+
+
+
             }
         }
 
@@ -369,7 +383,7 @@ namespace SolastaModHelpers.Patches
 
                             if (validTrigger)
                             {
-                                __instance.ComputeAndNotifyAdditionalDamage(attacker, defender, provider, actualEffectForms, null);
+                                __instance.ComputeAndNotifyAdditionalDamage(attacker, defender, provider, actualEffectForms, null, null);
                             }
                         }
                         provider = (IAdditionalDamageProvider)null;
@@ -597,7 +611,7 @@ namespace SolastaModHelpers.Patches
                                 if (defender.RulesetCharacter != null && defender.RulesetCharacter.CurrentHitPoints >= defender.RulesetCharacter.GetAttribute("HitPoints").CurrentValue)
                                     continue;
                             }
-                            __instance.ComputeAndNotifyAdditionalDamage(attacker, defender, provider, actualEffectForms, reactionParams);
+                            __instance.ComputeAndNotifyAdditionalDamage(attacker, defender, provider, actualEffectForms, reactionParams, attackMode);
                             if (!attacker.UsedSpecialFeatures.ContainsKey(featureDefinition.Name))
                             {
                                 attacker.UsedSpecialFeatures[featureDefinition.Name] = 0;

@@ -598,12 +598,22 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public RuleDefinitions.TurnOccurenceType turnOccurence;
 
         public bool onlyWeapon;
+        public bool onlyAOO = false;
 
         public void processDamageInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, RulesetAttackMode attackMode, bool rangedAttack, bool isSpell)
         {
             if (onlyWeapon && isSpell)
             {
                 return;
+            }
+
+            if (onlyAOO)
+            {
+                IGameLocationBattleService battle_manager = ServiceRepository.GetService<IGameLocationBattleService>();
+                if (battle_manager?.Battle?.activeContender == attacker)
+                {
+                    return;
+                }              
             }
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
                                                                                        condition, durationType, durationValue, turnOccurence,

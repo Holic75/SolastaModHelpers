@@ -1388,6 +1388,25 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        public static bool canMakeAoo(GameLocationBattleManager battle_manager, GameLocationCharacter attacker, GameLocationCharacter defender,
+                                      out RulesetAttackMode attackMode, out ActionModifier actionModifierBefore)
+        {
+            actionModifierBefore = new ActionModifier();
+            attackMode = null;
+            if (!battle_manager.IsValidAttackerForOpportunityAttackOnCharacter(attacker, defender))
+            {
+                return false;
+            }
+            attackMode = attacker.FindActionAttackMode(ActionDefinitions.Id.AttackOpportunity);
+            if (attackMode == null)
+            {
+                return false;
+            }
+            BattleDefinitions.AttackEvaluationParams attackParams1 = new BattleDefinitions.AttackEvaluationParams();
+            attackParams1.FillForPhysicalReachAttack(attacker, attacker.LocationPosition, attackMode, defender, defender.LocationPosition, actionModifierBefore);
+            return battle_manager.CanAttack(attackParams1, false);
+        }
+
         public static RulesetUsablePower[] getNonOverridenPowers(RulesetCharacter character, Predicate<RulesetUsablePower> filter)
         {
             if (character == null)
