@@ -93,7 +93,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 }
             }
 
-
             RulesetInventorySlot rulesetInventorySlot1 = character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0];
             RulesetInventorySlot rulesetInventorySlot2 = character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeOffHand][0];
             if (rulesetInventorySlot2.EquipedItem != null && rulesetInventorySlot2.EquipedItem.ItemDefinition.IsWeapon && actionType == ActionDefinitions.ActionType.Bonus)
@@ -110,6 +109,63 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                                                                   rulesetInventorySlot1.EquipedItem.ItemDefinition.WeaponDescription, true, true,
                                                                   character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,
                                                                   character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null));
+        }
+    }
+
+
+    public class AddExtraMainWeaponAttackModified : FeatureDefinition, IAddExtraAttacks
+    {
+        public List<IRestriction> restrictions = new List<IRestriction>();
+
+        public ActionDefinitions.ActionType actionType;
+
+        public RuleDefinitions.DieType new_die_type;
+        public int new_dice_number = 1;
+        public string damage_type = "";
+
+        public void tryAddExtraAttack(RulesetCharacterHero character)
+        {
+            foreach (var r in restrictions)
+            {
+                if (r.isForbidden(character))
+                {
+                    return;
+                }
+            }
+
+            RulesetInventorySlot rulesetInventorySlot1 = character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0];
+            RulesetInventorySlot rulesetInventorySlot2 = character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeOffHand][0];
+            if (rulesetInventorySlot2.EquipedItem != null && rulesetInventorySlot2.EquipedItem.ItemDefinition.IsWeapon && actionType == ActionDefinitions.ActionType.Bonus)
+            {
+                //no extra attacks if already have an off-hand weapon
+                return;
+            }
+            if (rulesetInventorySlot1.EquipedItem == null || !rulesetInventorySlot1.EquipedItem.ItemDefinition.IsWeapon)
+            {
+                return;
+            }
+
+            RulesetAttackMode rulesetAttackMode = character.RefreshAttackMode(actionType,
+                                                                              rulesetInventorySlot1.EquipedItem.ItemDefinition,
+                                                                              rulesetInventorySlot1.EquipedItem.ItemDefinition.WeaponDescription,
+                                                                              false,
+                                                                              true,
+                                                                              character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,
+                                                                              character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null);
+
+            DamageForm copy = DamageForm.GetCopy(rulesetAttackMode.EffectDescription.FindFirstDamageForm());
+            rulesetAttackMode.EffectDescription.Clear();
+            EffectForm effectForm = EffectForm.Get();
+            copy.DieType = new_die_type;
+            copy.DiceNumber = 1;
+            if (damage_type != "")
+            {
+                copy.damageType = damage_type;
+            }
+            effectForm.FormType = EffectForm.EffectFormType.Damage;
+            effectForm.DamageForm = copy;
+            rulesetAttackMode.EffectDescription.EffectForms.Add(effectForm);
+            character.AttackModes.Add(rulesetAttackMode);
         }
     }
 }

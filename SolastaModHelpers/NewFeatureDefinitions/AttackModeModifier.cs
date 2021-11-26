@@ -191,7 +191,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return;
             }
 
-            attack_mode.AttacksNumber ++;
+            attack_mode.AttacksNumber++;
         }
     }
 

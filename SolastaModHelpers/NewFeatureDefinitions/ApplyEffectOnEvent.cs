@@ -110,7 +110,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     public interface IInitiatorApplyEffectOnDamageDone
     {
-        void processDamageInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, RulesetAttackMode attackMode, bool rangedAttack, bool isSpell);
+        void processDamageInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, RulesetAttackMode attackMode, bool rangedAttack, bool isCritical, bool isSpell);
     }
 
 
@@ -469,7 +469,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public RuleDefinitions.TurnOccurenceType turnOccurence;
         public FeatureDefinition weaponFeature;
 
-        public void processDamageInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, RulesetAttackMode attackMode, bool rangedAttack, bool isSpell)
+        public void processDamageInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, RulesetAttackMode attackMode, bool rangedAttack, bool isCritical, bool isSpell)
         {
             var item = (attackMode?.SourceObject as RulesetItem);
             if (item == null || !(item.itemDefinition?.isWeapon).GetValueOrDefault() || !Helpers.Misc.itemHasFeature(item, weaponFeature))
@@ -599,27 +599,42 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
         public bool onlyWeapon;
         public bool onlyAOO = false;
+        public bool apply_to_self = false;
+        public bool onlyOnCritical = false;
 
-        public void processDamageInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, RulesetAttackMode attackMode, bool rangedAttack, bool isSpell)
+        public void processDamageInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, RulesetAttackMode attackMode, bool rangedAttack, bool isCritical, bool isSpell)
         {
             if (onlyWeapon && isSpell)
             {
                 return;
             }
 
-            if (onlyAOO)
+            if (onlyOnCritical && !isCritical)
             {
-                IGameLocationBattleService battle_manager = ServiceRepository.GetService<IGameLocationBattleService>();
-                if (battle_manager?.Battle?.activeContender == attacker)
-                {
-                    return;
-                }              
+                return;
             }
-            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
-                                                                                       condition, durationType, durationValue, turnOccurence,
-                                                                                       attacker.RulesetCharacter.Guid,
-                                                                                       attacker.RulesetCharacter.CurrentFaction.Name);
-            defender.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+
+            if (onlyAOO && attackMode.actionType != ActionDefinitions.ActionType.Reaction)
+            {
+                return;
+            }
+
+            if (!apply_to_self)
+            {
+                RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
+                                                                                           condition, durationType, durationValue, turnOccurence,
+                                                                                           attacker.RulesetCharacter.Guid,
+                                                                                           attacker.RulesetCharacter.CurrentFaction.Name);
+                defender.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+            }
+            else
+            {
+                RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid,
+                                                                           condition, durationType, durationValue, turnOccurence,
+                                                                           attacker.RulesetCharacter.Guid,
+                                                                           attacker.RulesetCharacter.CurrentFaction.Name);
+                attacker.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+            }
         }
     }
 

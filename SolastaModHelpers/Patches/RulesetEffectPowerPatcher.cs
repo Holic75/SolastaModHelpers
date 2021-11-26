@@ -56,9 +56,5 @@ namespace SolastaModHelpers.Patches
             }
             return eff;
         }
-
-
-
-
     }
 }
