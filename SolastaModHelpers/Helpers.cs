@@ -1383,11 +1383,83 @@ namespace SolastaModHelpers.Helpers
     }
 
 
+    public class ExtraSpellSelectionFromFeatBuilder : BaseDefinitionBuilderWithGuidStorage<NewFeatureDefinitions.FeatureDefinitionExtraSpellSelectionFromFeat>
+    {
+        protected ExtraSpellSelectionFromFeatBuilder(string name, string guid, string title_string, string description_string,
+                                                      int num_spells, int num_cantrips,
+                                                      SpellListDefinition spell_list)
+                : base(name, guid)
+        {
+
+            Definition.GuiPresentation.Title = title_string;
+            Definition.GuiPresentation.Description = description_string;
+            Definition.max_spells = num_spells;
+            Definition.spell_list = spell_list;
+            Definition.max_cantrips = num_cantrips;
+            Definition.learnCantrips = num_cantrips > 0;
+        }
+
+
+        public static NewFeatureDefinitions.FeatureDefinitionExtraSpellSelectionFromFeat createExtraSpellSelection(string name, string guid, string title_string, string description_string,
+                                                                                                                      int num_spells,
+                                                                                                                      SpellListDefinition spell_list)
+        {
+            return new ExtraSpellSelectionFromFeatBuilder(name, guid, title_string, description_string, num_spells, 0, spell_list).AddToDB();
+        }
+
+
+        public static NewFeatureDefinitions.FeatureDefinitionExtraSpellSelectionFromFeat createExtraCantripSelection(string name, string guid, string title_string, string description_string,
+                                                                                                                      int num_cantrips,
+                                                                                                                      SpellListDefinition spell_list)
+        {
+            return new ExtraSpellSelectionFromFeatBuilder(name, guid, title_string, description_string, 0, num_cantrips, spell_list).AddToDB();
+        }
+    }
+
+
 
 
 
     public static class Misc
     {
+        public static string getFeatTagForFeature(CharacterBuildingManager manager, FeatureDefinition feature)
+        {
+            foreach (var tf in manager.trainedFeats)
+            {
+                foreach (var f in tf.Value)
+                {
+                    if (f.features.Contains(feature))
+                    {
+                        return tf.Key;
+                    }
+                }
+            }
+            return "";
+        }
+
+        public static (CharacterClassDefinition, int) getClassAndLevelFromTag(string tag)
+        {
+            if (!tag.Contains("03Class"))
+            {
+                return (null, 0);
+            }
+
+            string class_and_level = tag.Replace("03Class", "");
+            var classes = DatabaseRepository.GetDatabase<CharacterClassDefinition>().GetAllElements();
+            var cls = classes.FirstOrDefault(c => c.name == class_and_level.Substring(0, class_and_level.Length - 1));
+            int lvl = 0;
+            if (cls != null && int.TryParse(class_and_level.Substring(class_and_level.Length - 1), out lvl))
+            {
+                return (cls, lvl);
+            }
+            cls = classes.FirstOrDefault(c => c.name == class_and_level.Substring(0, class_and_level.Length - 2));
+            if (cls != null && int.TryParse(class_and_level.Substring(class_and_level.Length - 2), out lvl))
+            {
+                return (cls, lvl);
+            }
+            return (null, 0);
+        }
+
         public static bool canMakeAoo(GameLocationBattleManager battle_manager, GameLocationCharacter attacker, GameLocationCharacter defender,
                                       out RulesetAttackMode attackMode, out ActionModifier actionModifierBefore)
         {

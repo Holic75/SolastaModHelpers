@@ -11,6 +11,8 @@ namespace SolastaModHelpers.Patches
     {
         public static bool EnableCombinedSpellCasting = false;
 
+        internal static Dictionary<int, FeatureDefinition> spell_id_extra_spellist_feature = new Dictionary<int, FeatureDefinition>();
+        internal static Dictionary<int, FeatureDefinition> cantrip_id_extra_spellist_feature = new Dictionary<int, FeatureDefinition>();
         class SpellsByLevelGroupBindLearningPatcher
         {
             [HarmonyPatch(typeof(SpellsByLevelGroup), "BindLearning")]
@@ -93,12 +95,47 @@ namespace SolastaModHelpers.Patches
                         return original;
                     }
 
-                    var extra_spell_list = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IReplaceSpellList>(hero)
-                                                .Select(rs => rs.getSpelllist(characterBuildingService, spellLevel == 0)).FirstOrDefault(s => s != null);
+                    CharacterBuildingManager manager = characterBuildingService as CharacterBuildingManager;
+                    if (manager == null)
+                    {
+                        return original;
+                    }
+
+                    int acquired_spells_num = 0;
+                    Dictionary<int, FeatureDefinition> current_map = null;
+                    if (spellLevel == 0)
+                    {
+                        acquired_spells_num = manager.acquiredCantrips.Aggregate(0, (num, a) => num += a.Value.Count());
+                        current_map = cantrip_id_extra_spellist_feature;
+                    }
+                    else
+                    {
+                        acquired_spells_num = manager.acquiredSpells.Aggregate(0, (num, a) => num += a.Value.Count());
+                        current_map = spell_id_extra_spellist_feature;
+                    }
+                    foreach (var k in current_map.Keys.ToArray())
+                    {
+                        if (k >= acquired_spells_num)
+                        {
+                            current_map.Remove(k);
+                        }
+                    }
+
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IReplaceSpellList>(hero).ToList();
+                    var feats = manager.trainedFeats.Aggregate(new List<FeatDefinition>(), (old, next) => { old.AddRange(next.Value); return old; });
+                    var feat_features = feats.Aggregate(new List<NewFeatureDefinitions.IReplaceSpellList>(), (old, next) => { old.AddRange(next.features.OfType<NewFeatureDefinitions.IReplaceSpellList>()); return old; });
+                    features.AddRange(feat_features);
+
+                    var extra_spell_list_feature = features
+                                                .Select(rs => (rs, rs.getSpelllist(characterBuildingService, spellLevel == 0, current_map.Count(kv => kv.Value == rs))))
+                                                .FirstOrDefault(rs2 => rs2.Item2 != null);
+
+                    var extra_spell_list = extra_spell_list_feature.Item2;
                     if (extra_spell_list == null)
                     {
                         return original;
                     }
+                    current_map[acquired_spells_num] = extra_spell_list_feature.rs as FeatureDefinition;
 
                     List<SpellDefinition> new_list = new List<SpellDefinition>();
 
