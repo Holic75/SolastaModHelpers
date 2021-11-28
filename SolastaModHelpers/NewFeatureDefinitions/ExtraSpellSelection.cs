@@ -43,7 +43,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             FeatDefinition feat_origin;
             hero.LookForFeatureOrigin(castSpellFeature, out race_origin, out class_origin, out feat_origin);
 
-            if (race_origin != null)
+            int current_level;
+            CharacterClassDefinition current_class;
+            manager.GetLastAssignedClassAndLevel(out current_class, out current_level);
+
+            if (class_origin != current_class)
             {
                 return false;
             }
@@ -54,6 +58,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return true;
             }
+
             //or we already had it
             return hero.FindFirstFeatHoldingFeature(this) != null;          
         }
@@ -65,7 +70,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return 0;
             }
 
-            if (castSpellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Spellbook)
+            if (castSpellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Spellbook || castSpellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.WholeList)
             {
                 //for wizards we do not need to keep increasing their number of scribed spells after they learn an extra ones
                 if (hero.FindFirstFeatHoldingFeature(this) != null)
@@ -138,7 +143,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return 0;
             }
 
-            if (castSpellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Spellbook)
+            if (castSpellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.Spellbook || castSpellFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.WholeList)
             {
                 //for wizards we do not need to keep increasing their number of scribed spells after they learn an extra one
                 int current_level;

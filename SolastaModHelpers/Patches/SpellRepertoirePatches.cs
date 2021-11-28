@@ -7,12 +7,55 @@ using System.Threading.Tasks;
 
 namespace SolastaModHelpers.Patches
 {
+
+
     public class SpellRepertoirePatches
     {
         public static bool EnableCombinedSpellCasting = false;
 
         internal static Dictionary<int, FeatureDefinition> spell_id_extra_spellist_feature = new Dictionary<int, FeatureDefinition>();
         internal static Dictionary<int, FeatureDefinition> cantrip_id_extra_spellist_feature = new Dictionary<int, FeatureDefinition>();
+
+
+        class SpellsByLevelGroupBindInspectionOrPreparationPatcher
+        {
+            [HarmonyPatch(typeof(SpellsByLevelGroup), "BindInspectionOrPreparation")]
+            internal static class SpellsByLevelGroup_BindInspectionOrPreparation_Patch
+            {
+                static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+                {
+                    var codes = instructions.ToList();
+                    var slot_status_table = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Ldfld && x.operand.ToString().Contains("slotStatusTable"));
+
+                    codes.Insert(slot_status_table + 3 + 1, new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_2)); //load spell repertoire
+                    codes.Insert(slot_status_table + 3 + 2, new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_S, 4)); //spell level
+                    codes.Insert(slot_status_table + 3 + 3,
+                                  new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                 new Action<List<SpellDefinition>, RulesetSpellRepertoire, int>(fixSpelllist).Method
+                                                                 )
+                                );
+                    codes.Insert(slot_status_table +3 + 4, new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldloc_0)); //load spell definition list
+                    return codes.AsEnumerable();
+                }
+
+
+                static void fixSpelllist(List<SpellDefinition> spell_list, RulesetSpellRepertoire spell_repertoire, int level)
+                {
+                    if (spell_repertoire.spellCastingFeature.spellKnowledge == RuleDefinitions.SpellKnowledge.WholeList)
+                    {
+                        foreach (var s in spell_repertoire.knownSpells)
+                        {
+                            if (!spell_list.Contains(s) && s.spellLevel == level)
+                            {
+                                spell_list.Add(s);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
         class SpellsByLevelGroupBindLearningPatcher
         {
             [HarmonyPatch(typeof(SpellsByLevelGroup), "BindLearning")]
@@ -120,7 +163,7 @@ namespace SolastaModHelpers.Patches
                             current_map.Remove(k);
                         }
                     }
-
+                    
                     var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IReplaceSpellList>(hero).ToList();
                     var feats = manager.trainedFeats.Aggregate(new List<FeatDefinition>(), (old, next) => { old.AddRange(next.Value); return old; });
                     var feat_features = feats.Aggregate(new List<NewFeatureDefinitions.IReplaceSpellList>(), (old, next) => { old.AddRange(next.features.OfType<NewFeatureDefinitions.IReplaceSpellList>()); return old; });
@@ -135,6 +178,7 @@ namespace SolastaModHelpers.Patches
                     {
                         return original;
                     }
+
                     current_map[acquired_spells_num] = extra_spell_list_feature.rs as FeatureDefinition;
 
                     List<SpellDefinition> new_list = new List<SpellDefinition>();
@@ -160,6 +204,31 @@ namespace SolastaModHelpers.Patches
 
         class RulesetSpellRepertoirePatcher
         {
+            [HarmonyPatch(typeof(RulesetSpellRepertoire), "HasKnowledgeOfSpell")]
+            internal static class RulesetSpellRepertoire_HasKnowledgeOfSpell_Patch
+            {
+                internal static void Postfix(RulesetSpellRepertoire __instance,
+                                            SpellDefinition consideredSpellDefinition,
+                                            ref bool __result)
+                {
+                    __result = __result || __instance.knownSpells.Contains(consideredSpellDefinition);
+                }
+            }
+
+            [HarmonyPatch(typeof(RulesetSpellRepertoire), "GrantSpell")]
+            internal static class RulesetSpellRepertoire_GrantSpellt_Patch
+            {
+                internal static void Postfix(RulesetSpellRepertoire __instance,
+                                           SpellDefinition grantedSpell)
+                {
+                    if (__instance.spellCastingFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.WholeList)
+                    {
+                        __instance.KnownSpells.Add(grantedSpell);
+                    }
+                }
+            }
+
+
             [HarmonyPatch(typeof(RulesetSpellRepertoire), "SpendSpellSlot")]
             internal static class RulesetSpellRepertoire_SpendSpellSlot_Patch
             {

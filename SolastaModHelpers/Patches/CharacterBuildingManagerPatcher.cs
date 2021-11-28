@@ -54,7 +54,7 @@ namespace SolastaModHelpers.Patches
         }
 
         //Reset extra bonus spells known, when user unselects a subclass
-        class CharacterBuildingManagerGrantFeaturesPatcher
+        class CharacterBuildingManagerUnassignLastSubclasssPatcher
         {
             [HarmonyPatch(typeof(CharacterBuildingManager), "UnassignLastSubclass")]
             internal static class CharacterBuildingManager_UnassignLastSubclass_Patch
@@ -73,6 +73,41 @@ namespace SolastaModHelpers.Patches
         }
 
 
+        class CharacterBuildingManagerEnumerateKnownAndAcquiredSpellsPatcher
+        {
+            [HarmonyPatch(typeof(CharacterBuildingManager), "EnumerateKnownAndAcquiredSpells")]
+            internal static class CharacterBuildingManager_EnumerateKnownAndAcquiredSpells_Patch
+            {
+                internal static void Postfix(CharacterBuildingManager __instance, ref List<SpellDefinition> __result)
+                {
+                    var spells = new HashSet<SpellDefinition>(__result);
+
+                    foreach (RulesetSpellRepertoire spellRepertoire in __instance.HeroCharacter.SpellRepertoires)
+                    {
+                        if (spellRepertoire.SpellCastingFeature.SpellKnowledge == RuleDefinitions.SpellKnowledge.WholeList)
+                        {
+                            foreach (var sl in spellRepertoire.SpellCastingFeature.spellListDefinition.spellsByLevel)
+                            {
+                                if (sl.level == 0)
+                                {
+                                    continue;
+                                }
+                                foreach (var s in sl.spells)
+                                {
+                                    if (!spells.Contains(s))
+                                    {
+                                        spells.Add(s);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    __result.AddRange(spells);
+                }
+            }
+        }
+
+
         class CharacterBuildingManagerTrainFeatPatcher
         {
             [HarmonyPatch(typeof(CharacterBuildingManager), "TrainFeat")]
@@ -86,6 +121,13 @@ namespace SolastaModHelpers.Patches
                                     feat.features.OfType<NewFeatureDefinitions.IKnownSpellNumberIncrease>().OfType<FeatureDefinition>().ToList(),
                                     false,
                                     1);
+                    CharacterBuildingManagerBrowseGrantedFeaturesHierarchicallyPatcher
+                        .CharacterBuildingManager_BrowseGrantedFeaturesHierarchically_Patch.
+                            correctNumberOfSpellsKnown(__instance,
+                                    feat.features.OfType<NewFeatureDefinitions.IKnownSpellNumberIncrease>().OfType<FeatureDefinition>().ToList(),
+                                    true,
+                                    1);
+
                 }
             }
         }
@@ -103,6 +145,13 @@ namespace SolastaModHelpers.Patches
                             correctNumberOfSpellsKnown(__instance,
                                     feat.features.OfType<NewFeatureDefinitions.IKnownSpellNumberIncrease>().OfType<FeatureDefinition>().ToList(),
                                     false,
+                                    -1);
+
+                    CharacterBuildingManagerBrowseGrantedFeaturesHierarchicallyPatcher
+                        .CharacterBuildingManager_BrowseGrantedFeaturesHierarchically_Patch.
+                            correctNumberOfSpellsKnown(__instance,
+                                    feat.features.OfType<NewFeatureDefinitions.IKnownSpellNumberIncrease>().OfType<FeatureDefinition>().ToList(),
+                                    true,
                                     -1);
                 }
             }
@@ -129,6 +178,12 @@ namespace SolastaModHelpers.Patches
                                         f.features.OfType<NewFeatureDefinitions.IKnownSpellNumberIncrease>().OfType<FeatureDefinition>().ToList(),
                                         false,
                                         -1);
+                        CharacterBuildingManagerBrowseGrantedFeaturesHierarchicallyPatcher
+                            .CharacterBuildingManager_BrowseGrantedFeaturesHierarchically_Patch.
+                                correctNumberOfSpellsKnown(__instance,
+                                        f.features.OfType<NewFeatureDefinitions.IKnownSpellNumberIncrease>().OfType<FeatureDefinition>().ToList(),
+                                        true,
+                                        -1);
                     }
                 }
             }
@@ -154,7 +209,8 @@ namespace SolastaModHelpers.Patches
                 //correct bonus number of spells  known for the features granted by subclass at level 1 
                 //Since at this time spell repertoires are not yet created, so they will not be applied until next lvl up
                 internal static void correctNumberOfSpellsKnown(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures, bool only_missing_features, int multiplier = 1)
-                {                 
+                {
+                    addEmptySpellpointPools(__instance);
                     var bonus_known_spells_features = grantedFeatures.OfType<NewFeatureDefinitions.IKnownSpellNumberIncrease>();
 
                     foreach (var f in bonus_known_spells_features)
@@ -164,10 +220,22 @@ namespace SolastaModHelpers.Patches
                             var cantrip_pools = __instance.pointPoolStacks[HeroDefinitions.PointsPoolType.Cantrip];
                             foreach (var cp in cantrip_pools.activePools)
                             {
-                                var sp_features = __instance.heroCharacter.activeFeatures[cp.Key].OfType<FeatureDefinitionCastSpell>();
+                                List<FeatureDefinitionCastSpell> features_cast_spell = new List<FeatureDefinitionCastSpell>(); ;
                                 if (only_missing_features)
+                                {
+                                    if (!__instance.heroCharacter.activeFeatures.ContainsKey(cp.Key))
+                                    {
+                                        continue;
+                                    }
+                                    var sp_features = __instance.heroCharacter.activeFeatures[cp.Key].OfType<FeatureDefinitionCastSpell>();
                                     sp_features = sp_features.Where(sp => !__instance.heroCharacter.spellRepertoires.Any(sr => sr.SpellCastingFeature == sp));
-                                foreach (var sp_f in sp_features)
+                                    features_cast_spell = sp_features.ToList();
+                                }
+                                else
+                                {
+                                    features_cast_spell = __instance.heroCharacter.spellRepertoires.Select(sr => sr.SpellCastingFeature).ToList();
+                                }
+                                foreach (var sp_f in features_cast_spell)
                                 {
                                     var bonus = f.getKnownCantripsBonus(__instance, __instance.heroCharacter, sp_f) * multiplier;
                                     cp.Value.RemainingPoints += bonus;
@@ -181,10 +249,22 @@ namespace SolastaModHelpers.Patches
                             var spell_pools = __instance.pointPoolStacks[HeroDefinitions.PointsPoolType.Spell];
                             foreach (var cp in spell_pools.activePools)
                             {
-                                var sp_features = __instance.heroCharacter.activeFeatures[cp.Key].OfType<FeatureDefinitionCastSpell>();
+                                List<FeatureDefinitionCastSpell> features_cast_spell = new List<FeatureDefinitionCastSpell>(); ;
                                 if (only_missing_features)
+                                {
+                                    if (!__instance.heroCharacter.activeFeatures.ContainsKey(cp.Key))
+                                    {
+                                        continue;
+                                    }
+                                    var sp_features = __instance.heroCharacter.activeFeatures[cp.Key].OfType<FeatureDefinitionCastSpell>();
                                     sp_features = sp_features.Where(sp => !__instance.heroCharacter.spellRepertoires.Any(sr => sr.SpellCastingFeature == sp));
-                                foreach (var sp_f in sp_features)
+                                    features_cast_spell = sp_features.ToList();
+                                }
+                                else
+                                {
+                                    features_cast_spell = __instance.heroCharacter.spellRepertoires.Select(sr => sr.SpellCastingFeature).ToList();
+                                }
+                                foreach (var sp_f in features_cast_spell)
                                 {
                                     var bonus = f.getKnownSpellsBonus(__instance, __instance.heroCharacter, sp_f) * multiplier;
                                     cp.Value.RemainingPoints += bonus;
@@ -193,7 +273,74 @@ namespace SolastaModHelpers.Patches
                             }
                         }
                     }
+
+                    removeEmptySpellpointPools(__instance);
                 }
+
+
+                static void addEmptySpellpointPools(CharacterBuildingManager __instance)
+                {
+                    var features = __instance.HeroCharacter.SpellRepertoires.Select(sr => sr.SpellCastingFeature).ToList();
+                    CharacterClassDefinition lastClassDefinition = (CharacterClassDefinition)null;
+                    int level = 0;
+                    __instance.GetLastAssignedClassAndLevel(out lastClassDefinition, out level);
+
+                    var features_to_get_from_class = lastClassDefinition.featureUnlocks.Where(fu => fu.level == level).Select(f => f.featureDefinition).OfType<FeatureDefinitionCastSpell>();
+                    features.AddRange(features_to_get_from_class);
+
+                    foreach (var f in features)
+                    {
+                        string str = string.Empty;
+                        if (f.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Class)
+                        {
+                            __instance.GetLastAssignedClassAndLevel(out lastClassDefinition, out level);
+                            str = AttributeDefinitions.GetClassTag(lastClassDefinition, level);
+                        }
+                        else if (f.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Subclass)
+                        {
+                            CharacterSubclassDefinition classesAndSubclass = __instance.heroCharacter.ClassesAndSubclasses[lastClassDefinition];
+                            str = AttributeDefinitions.GetSubclassTag(lastClassDefinition, level, classesAndSubclass);
+                        }
+                        else if (f.SpellCastingOrigin == FeatureDefinitionCastSpell.CastingOrigin.Race)
+                            continue;
+
+                        var pools = new List<HeroDefinitions.PointsPoolType>() { HeroDefinitions.PointsPoolType.Cantrip, HeroDefinitions.PointsPoolType.Spell };
+                        foreach (var p in pools)
+                        {
+                            if (__instance.pointPoolStacks.ContainsKey(p)
+                                && !__instance.pointPoolStacks[p].activePools.ContainsKey(str))
+                            {
+                                __instance.SetPointPool(p, str, 1);
+                                __instance.pointPoolStacks[p].activePools[str].remainingPoints = 0;
+                                __instance.pointPoolStacks[p].activePools[str].maxPoints = 0;
+                            }
+                        }
+                    }
+                }
+
+
+
+                static void removeEmptySpellpointPools(CharacterBuildingManager __instance)
+                {
+                    var pools = new List<HeroDefinitions.PointsPoolType>() { HeroDefinitions.PointsPoolType.Cantrip, HeroDefinitions.PointsPoolType.Spell };
+
+                    foreach (var p in pools)
+                    {
+                        if (__instance.pointPoolStacks.ContainsKey(p))
+                        {
+                            foreach (var k in __instance.pointPoolStacks[p].activePools.Keys.ToArray())
+                            {
+                                if (__instance.pointPoolStacks[p].activePools[k].remainingPoints <= 0)
+                                {
+                                    __instance.pointPoolStacks[p].activePools.Remove(k);
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+
 
                 static void grantSpells(CharacterBuildingManager __instance, List<FeatureDefinition> grantedFeatures)
                 {
