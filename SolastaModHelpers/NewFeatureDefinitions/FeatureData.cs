@@ -8,19 +8,19 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 {
     public class FeatureData
     {
-        private static Dictionary<FeatureDefinition, List<NewFeatureDefinitions.IRestriction>> feature_prerequisites = new Dictionary<FeatureDefinition, List<NewFeatureDefinitions.IRestriction>>();
+        private static Dictionary<BaseDefinition, List<NewFeatureDefinitions.IPrerequisite>> feature_prerequisites = new Dictionary<BaseDefinition, List<NewFeatureDefinitions.IPrerequisite>>();
 
-        public static bool isFeatureForbidden(FeatureDefinition feature, RulesetCharacter character)
+        public static bool isFeatureForbidden(BaseDefinition feature, RulesetCharacter character)
         {
             if (!feature_prerequisites.ContainsKey(feature))
             {
                 return false;
             }
 
-            var restrictions = feature_prerequisites[feature];
-            foreach (var r in restrictions)
+            var prerequisites = feature_prerequisites[feature];
+            foreach (var p in prerequisites)
             {
-                if (r.isForbidden(character))
+                if (p.isForbidden(character))
                 {
                     return true;
                 }
@@ -28,13 +28,26 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return false;
         }
 
-        public static void addFeatureRestrictions(FeatureDefinition feature, params IRestriction[] restrictions)
+
+        public static List<NewFeatureDefinitions.IPrerequisite> getFeaturePrerequisites(BaseDefinition feature)
+        {
+            if (feature_prerequisites.ContainsKey(feature))
+            {
+                return feature_prerequisites[feature];
+            }
+            else
+            {
+                return new List<IPrerequisite>();
+            }
+        }
+
+        public static void addFeatureRestrictions(BaseDefinition feature, params IPrerequisite[] prerequisites)
         {
             if (feature_prerequisites.ContainsKey(feature))
             {
                 throw new System.Exception(feature.name + " already has prerequisites");
             }
-            feature_prerequisites[feature] = restrictions.ToList();
+            feature_prerequisites[feature] = prerequisites.ToList();
         }
     }
 }

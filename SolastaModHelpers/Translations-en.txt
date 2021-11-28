@@ -11,3 +11,8 @@ Reaction/&CastSpellInResponseToAttackTitle	Punish Attacker.
 Rules/&WildshapedConditionTitle	Transformed
 Rules/&WildshapedConditionDescription	The character is transformed into another creature.
 Feedback/&RollResultModifiedTitle {0}'s roll result was modified: {1} -> {2}
+Tooltip/&CustomPrerequisiteAbilityToCastSpellTitle	Ability to Cast Spell: {0}
+Tooltip/&CustomPrerequisiteHasFeatureTitle	Requires Feature: {0}
+Tooltip/&CustomPrerequisiteHasFeaturesFromListTitle	Requires Any One of the Following Features: {0}
+Tooltip/&CustomPrerequisiteMinClassLevelListTitle	Minimum {0} class level: {1}
+Tooltip/&CustomPrerequisiteAbilityToCastSpellOfLevelTitle	Ability to Cast Level {0} Spells
