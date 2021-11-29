@@ -14,7 +14,7 @@ namespace SolastaModHelpers.Patches
     {
         internal static bool Prefix(EffectDescription effectDescription, RuleDefinitions.MagicType validType, ref bool __result)
         {
-            if ((validType & RuleDefinitions.MagicType.Buff) != 0
+            if (validType == (RuleDefinitions.MagicType.Defensive | RuleDefinitions.MagicType.Buff)
                 && (effectDescription.targetType == RuleDefinitions.TargetType.Item 
                     || effectDescription.itemSelectionType == ActionDefinitions.ItemSelectionType.Weapon
                     || effectDescription.itemSelectionType == ActionDefinitions.ItemSelectionType.WeaponNonMagical
