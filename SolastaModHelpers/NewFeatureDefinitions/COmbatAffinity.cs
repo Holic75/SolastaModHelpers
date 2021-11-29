@@ -19,6 +19,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public bool IgnoreCover => false;
 
         public bool CanRageToOvercomeSurprise => false;
+        public bool onlyMelee = false;
 
         public void ComputeAttackModifier(RulesetCharacter myself, RulesetCharacter defender, RulesetAttackMode attackMode, ActionModifier attackModifier, RuleDefinitions.FeatureOrigin featureOrigin)
         {
@@ -26,6 +27,10 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 || (attackMode?.sourceDefinition as MonsterAttackDefinition)?.ItemDefinitionOffHand != null
                 || ((attackMode?.sourceDefinition as ItemDefinition)?.IsWeapon).GetValueOrDefault())
             {
+                if (onlyMelee && attackMode.ranged)
+                {
+                    return;
+                }
                 attackModifier.AttackAdvantageTrends.Add(new RuleDefinitions.TrendInfo(-1, featureOrigin.sourceType, featureOrigin.sourceName, featureOrigin.source));
             }
         }

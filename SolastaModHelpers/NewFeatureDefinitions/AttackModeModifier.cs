@@ -149,7 +149,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     break;
                 }
             }
-
         }
     }
 
@@ -346,4 +345,56 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             attack_mode.ToHitBonusTrends.Add(new RuleDefinitions.TrendInfo(value, RuleDefinitions.FeatureSourceType.MonsterFeature, this.Name, this));
         }
     }
+
+
+    public class DoubleDamageOnSpecificWeaponTypes : FeatureDefinition
+    {
+        public List<string> weaponTypes = new List<string>();
+        public List<IRestriction> restrictions = new List<IRestriction>();
+
+        public void apply(RulesetCharacter character, RulesetAttackMode attack_mode, RulesetItem weapon)
+        {
+            var hero = character as RulesetCharacterHero;
+            if (hero == null)
+            {
+                return;
+            }
+            foreach (var r in restrictions)
+            {
+                if (r.isForbidden(character))
+                {
+                    return;
+                }
+            }
+
+            var weapon2 = weapon?.itemDefinition ?? (attack_mode.sourceDefinition as ItemDefinition);
+            if (weapon2 == null || !weapon2.isWeapon)
+            {
+                return;
+            }
+
+            var description = weapon2.WeaponDescription;
+            if (description == null)
+            {
+                return;
+            }
+
+
+            if (!weaponTypes.Empty() && !weaponTypes.Contains(description.WeaponType))
+            {
+                return;
+            }
+
+            var damage = attack_mode?.EffectDescription?.FindFirstDamageForm();
+            if (damage == null)
+            {
+                return;
+            }
+
+            damage.DiceNumber *= 2;
+        }
+    }
+
+
+
 }

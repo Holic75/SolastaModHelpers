@@ -104,9 +104,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return;
             }
-            
+
+            var free_off_hand = rulesetInventorySlot2.EquipedItem == null;
+
             character.AttackModes.Add(character.RefreshAttackMode(actionType, rulesetInventorySlot1.EquipedItem.ItemDefinition,
-                                                                  rulesetInventorySlot1.EquipedItem.ItemDefinition.WeaponDescription, true, true,
+                                                                  rulesetInventorySlot1.EquipedItem.ItemDefinition.WeaponDescription, free_off_hand, true,
                                                                   character.CharacterInventory.InventorySlotsByType[EquipmentDefinitions.SlotTypeMainHand][0].Name,
                                                                   character.attackModifiers, character.FeaturesOrigin, (RulesetItem)null));
         }
@@ -157,6 +159,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             rulesetAttackMode.EffectDescription.Clear();
             EffectForm effectForm = EffectForm.Get();
             copy.DieType = new_die_type;
+            copy.versatile = false;
             copy.DiceNumber = 1;
             if (damage_type != "")
             {

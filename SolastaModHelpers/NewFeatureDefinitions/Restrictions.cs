@@ -155,6 +155,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return true;
             }
+            
             return !weaponTypes.Contains(equipedItem.ItemDefinition.weaponDefinition.WeaponType);
         }
 
@@ -271,6 +272,20 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public NoConditionRestriction(ConditionDefinition forbidden_condition)
         {
             condition = forbidden_condition;
+        }
+    }
+
+
+    public class DownedAnEnemy : IRestriction
+    {
+        public bool isForbidden(RulesetActor character)
+        {
+            var game_location_character = Helpers.Misc.findGameLocationCharacter(character as RulesetCharacter);
+            if (game_location_character == null)
+            {
+                return true;
+            }
+            return game_location_character.EnemiesDownedByAttack > 0;
         }
     }
 

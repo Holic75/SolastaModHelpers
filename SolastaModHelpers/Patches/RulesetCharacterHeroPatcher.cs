@@ -134,6 +134,13 @@ namespace SolastaModHelpers.Patches
                 {
                     f.apply(__instance, __result, weapon);
                 }
+
+
+                var features2 = Helpers.Accessors.extractFeaturesHierarchically<DoubleDamageOnSpecificWeaponTypes>(__instance);
+                foreach (var f in features2)
+                {
+                    f.apply(__instance, __result, weapon);
+                }
             }
         }
 

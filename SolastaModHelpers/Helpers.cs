@@ -134,6 +134,7 @@ namespace SolastaModHelpers.Helpers
         public static string Warhammer = "WarhammerType";
         public static string GreatSword = "GreatswordType";
         public static string GreatAxe = "GreataxeType";
+        public static string Maul = "MaulType";
 
         public static string Longbow = "LongbowType";
         public static string Shortbow = "ShortbowType";

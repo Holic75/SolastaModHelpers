@@ -601,9 +601,21 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public bool onlyAOO = false;
         public bool apply_to_self = false;
         public bool onlyOnCritical = false;
+        public bool onlyMelee = false;
+        public bool onlyRanged = false;
 
         public void processDamageInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier modifier, RulesetAttackMode attackMode, bool rangedAttack, bool isCritical, bool isSpell)
         {
+            if (onlyRanged && !rangedAttack)
+            {
+                return;
+            }
+
+            if (onlyMelee && rangedAttack)
+            {
+                return;
+            }
+
             if (onlyWeapon && isSpell)
             {
                 return;

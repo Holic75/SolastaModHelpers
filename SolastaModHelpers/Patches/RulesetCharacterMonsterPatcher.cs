@@ -24,6 +24,12 @@ namespace SolastaModHelpers.Patches
                     f.apply(__instance, __result, null);
                 }
 
+                var features2 = Helpers.Accessors.extractFeaturesHierarchically<DoubleDamageOnSpecificWeaponTypes>(__instance);
+                foreach (var f in features2)
+                {
+                    f.apply(__instance, __result, null);
+                }
+
                 //no longer necessary fo 1.2.x
                 /*var attack_modifiers = Helpers.Accessors.extractFeaturesHierarchically<IAttackModificationProvider>(__instance);
                 foreach (var f in attack_modifiers)
