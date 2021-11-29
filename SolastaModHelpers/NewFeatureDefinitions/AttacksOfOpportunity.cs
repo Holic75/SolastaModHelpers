@@ -39,6 +39,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class Warcaster : FeatureDefinition
+    {
+
+    }
+
+
     public class AooWhenEnemyEntersReachWithSpecifiedWeaponGroup : FeatureDefinition, IMakeAooOnEnemyMoveEnd
     {
         public List<string> weaponTypes = new List<string>();

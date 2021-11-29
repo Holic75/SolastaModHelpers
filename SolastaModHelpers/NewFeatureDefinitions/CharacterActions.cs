@@ -362,3 +362,168 @@ public class ReactionRequestSpendPowerFromBundle : ReactionRequestSpendPower
 }
 
 
+public class ReactionRequestWarcaster : ReactionRequest
+{
+    static public ReactionDefinition reactWarcasterDefinition;
+
+    static public void initialize()
+    {
+        reactWarcasterDefinition = SolastaModHelpers.Helpers.CopyFeatureBuilder<ReactionDefinition>
+                    .createFeatureCopy("WarcasterReaction", "2c160230-519e-4c47-a5e3-7f309687f54c", "Reaction/&WarcasterTitle", "Reaction/&WarcasterDescription", null, DatabaseHelper.ReactionDefinitions.OpportunityAttack);
+    }
+
+    public const string Name = "WarcasterReaction";
+
+
+    public ReactionRequestWarcaster(
+      CharacterActionParams reactionParams)
+      : base("WarcasterReaction", reactionParams)
+    {
+        BuildSuboptions();
+        this.reactionParams.StringParameter2 = "Warcaster";
+    }
+
+    void BuildSuboptions()
+    {
+        this.subOptionsAvailability = new Dictionary<string, bool>();
+        this.SubOptionsAvailability.Clear();
+        var cantrips = new List<SpellDefinition>();
+        this.reactionParams.ActingCharacter.RulesetCharacter.EnumerateReadyAttackCantrips(cantrips);
+        cantrips.RemoveAll(c => c.ActivationTime != RuleDefinitions.ActivationTime.Action);
+
+        foreach (SpellDefinition cantrip in cantrips.ToList())
+        {
+            BattleDefinitions.AttackEvaluationParams attackParams = new BattleDefinitions.AttackEvaluationParams();
+            ActionModifier action_modifier = new ActionModifier();
+            attackParams.FillForMagic(this.reactionParams.ActingCharacter, 
+                                      this.reactionParams.ActingCharacter.LocationPosition,
+                                      cantrip.EffectDescription, 
+                                      cantrip.Name, 
+                                      this.reactionParams.targetCharacters[0], 
+                                      this.reactionParams.targetCharacters[0].locationPosition,
+                                      action_modifier);
+
+            var game_location_battle_manager = ServiceRepository.GetService<IGameLocationBattleService>();
+            if (!game_location_battle_manager.CanAttack(attackParams, false))
+            {
+                cantrips.Remove(cantrip);
+            }
+
+            if (cantrip.effectDescription.rangeType == RuleDefinitions.RangeType.Self)
+            {
+                cantrips.Remove(cantrip);
+            }
+        }
+        this.reactionParams.SpellRepertoire = new RulesetSpellRepertoire();
+        this.reactionParams.SpellRepertoire.knownSpells = new List<SpellDefinition>();
+
+        this.SubOptionsAvailability.Add("OpportunityAttack", true);
+        foreach (var c in cantrips)
+        {
+            this.reactionParams.SpellRepertoire.knownSpells.Add(c);
+            this.SubOptionsAvailability.Add(c.name, true);
+        }
+
+        this.SelectSubOption(0);
+    }
+
+    public override int SelectedSubOption
+    {
+        get
+        {
+            var spell = (this.reactionParams.RulesetEffect as RulesetEffectSpell)?.SpellDefinition;
+            if (spell == null)
+            {
+                return 0;
+            }
+            return this.reactionParams.spellRepertoire.knownSpells.FindIndex(s => s == spell) + 1;
+        }
+    }
+
+
+    public override void SelectSubOption(int option)
+    {
+        this.ReactionParams.RulesetEffect?.Terminate(false);
+        while (this.reactionParams.targetCharacters.Count > 1)
+        {
+            this.reactionParams.TargetCharacters.RemoveAt(this.reactionParams.targetCharacters.Count - 1);
+            this.reactionParams.ActionModifiers.RemoveAt(this.reactionParams.ActionModifiers.Count - 1);
+        }
+
+        if (option == 0)
+        {
+            this.reactionParams.actionDefinition = ServiceRepository.GetService<IGameLocationActionService>().AllActionDefinitions[ActionDefinitions.Id.AttackOpportunity];
+            this.reactionParams.RulesetEffect = null;
+            var attackParams = new BattleDefinitions.AttackEvaluationParams();
+            var action_modifier = new ActionModifier();
+            attackParams.FillForPhysicalReachAttack(this.reactionParams.actingCharacter, 
+                                                    this.reactionParams.actingCharacter.locationPosition, 
+                                                    this.reactionParams.AttackMode, 
+                                                    this.reactionParams.TargetCharacters[0], 
+                                                    this.reactionParams.TargetCharacters[0].locationPosition, action_modifier);
+            this.reactionParams.actionModifiers[0] = action_modifier;
+        }
+        else
+        {
+            this.reactionParams.actionDefinition = ServiceRepository.GetService<IGameLocationActionService>().AllActionDefinitions[ActionDefinitions.Id.CastReaction];
+            var spell = this.reactionParams.spellRepertoire.knownSpells[option - 1];
+            IRulesetImplementationService service1 = ServiceRepository.GetService<IRulesetImplementationService>();
+            var acting_character = this.reactionParams.actingCharacter.RulesetCharacter;
+            RulesetSpellRepertoire spell_repertoire = null;
+            acting_character.CanCastSpell(spell, true, out spell_repertoire);
+            this.ReactionParams.RulesetEffect = service1.InstantiateEffectSpell(acting_character, spell_repertoire, spell, spell.spellLevel, false);
+
+            int beams = 1;
+            if (this.ReactionParams.RulesetEffect.EffectDescription.targetType == RuleDefinitions.TargetType.Individuals)
+            {
+                beams = this.ReactionParams.RulesetEffect.ComputeTargetParameter();
+                for (int i = 1; i < beams; i++)
+                {
+                    this.reactionParams.TargetCharacters.Add(this.reactionParams.targetCharacters[0]);
+                    this.reactionParams.ActionModifiers.Add(this.reactionParams.ActionModifiers[0]);
+                }
+            }
+
+            for (int i = 0; i < beams; i++)
+            {
+                var attackParams = new BattleDefinitions.AttackEvaluationParams();
+                var action_modifier = new ActionModifier();
+                attackParams.FillForMagic(this.reactionParams.actingCharacter,
+                                          this.reactionParams.actingCharacter.locationPosition,
+                                          this.ReactionParams.RulesetEffect.EffectDescription, spell.Name,
+                                          this.reactionParams.TargetCharacters[0],
+                                          this.reactionParams.TargetCharacters[0].locationPosition, action_modifier);
+                this.reactionParams.actionModifiers[i] = action_modifier;
+            }
+        }
+    }
+
+
+    public override string SuboptionTag => "Warcaster";
+
+    public override bool IsStillValid
+    {
+        get
+        {
+            GameLocationCharacter targetCharacter = this.ReactionParams.TargetCharacters[0];
+            return ServiceRepository.GetService<IGameLocationCharacterService>().ValidCharacters.Contains(targetCharacter) && !targetCharacter.RulesetCharacter.IsDeadOrDyingOrUnconscious;
+        }
+    }
+
+    public override string FormatDescription()
+    {
+        GuiCharacter guiCharacter1 = new GuiCharacter(this.Character);
+        GuiCharacter guiCharacter2 = new GuiCharacter(this.ReactionParams.TargetCharacters[0]);
+        return Gui.Format(base.FormatDescription(), guiCharacter1.Name, guiCharacter2.Name, "");
+    }
+
+    public override string FormatReactDescription() => Gui.Format(base.FormatReactDescription(), "");
+
+    public override void OnSetInvalid()
+    {
+        base.OnSetInvalid();
+        this.ReactionParams.RulesetEffect.Terminate(false);
+    }
+}
+
+

@@ -25,7 +25,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     public interface IPerformAttackAfterMagicEffectUse
     {
-        void performAttackAfterUse(CharacterActionMagicEffect action_magic_effect);
+        CharacterActionParams performAttackAfterUse(CharacterActionMagicEffect action_magic_effect);
         bool canUse(GameLocationCharacter character, GameLocationCharacter target);
     }
 
@@ -140,35 +140,35 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return false;
         }
 
-        public void performAttackAfterUse(CharacterActionMagicEffect action_magic_effect)
+        public CharacterActionParams performAttackAfterUse(CharacterActionMagicEffect action_magic_effect)
         {
             var action_params = action_magic_effect?.actionParams;
             if (action_params == null)
             {
-                return;
+                return null;
             }
 
             if (action_magic_effect.Countered || action_magic_effect.ExecutionFailed)
             {
-                return;
+                return null;
             }
             var caster = action_params.actingCharacter;
             if (caster == null || action_params.targetCharacters.Count != 1)
             {
-                return;
+                return null;
             }
 
             var target = action_params.targetCharacters[0];
             if (target == null)
             {
-                return;
+                return null;
             }
 
 
             var attack_mode = caster.FindActionAttackMode(ActionDefinitions.Id.AttackMain);
             if (attack_mode == null)
             {
-                return;
+                return null;
             }
 
             IGameLocationBattleService gameLocationBattleService = ServiceRepository.GetService<IGameLocationBattleService>();
@@ -182,12 +182,10 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 attackActionParams.TargetCharacters.Add(target);
                 attackActionParams.ActionModifiers.Add(attackModifier);
-                gameLocationActionService.ExecuteAction(attackActionParams, (CharacterAction.ActionExecutedHandler)null, true);
+                return attackActionParams;
             }
-            target = (GameLocationCharacter)null;
-            attackActionParams = (CharacterActionParams)null;
-            attackModifier = (ActionModifier)null;
-            attackEvalParams = new BattleDefinitions.AttackEvaluationParams();
+
+            return null;
         }
     }
 

@@ -210,7 +210,8 @@ namespace SolastaModHelpers.Patches.PowerBundlePatches
         [HarmonyPatch(typeof(CharacterReactionSubitem), "Bind")]
         internal static class CharacterReactionSubitem_Bind
         {
-            internal static int SLOT_LEVEL_FOR_POWER_BUNDLE => -37;
+            internal const int SLOT_LEVEL_FOR_POWER_BUNDLE = -37;
+            internal const int SLOT_LEVEL_FOR_WARCSTER = -38;
             internal static bool Prefix(CharacterReactionSubitem __instance, RulesetSpellRepertoire spellRepertoire,
                                         int slotLevel,
                                         string text,
@@ -221,14 +222,38 @@ namespace SolastaModHelpers.Patches.PowerBundlePatches
                 __instance.toggle.transform.localScale = new Vector3(1, 1, 1);
                 __instance.label.transform.localScale = new Vector3(1, 1, 1);
                 int SLOTS_FOR_TOOLTIP = 5;
+                string title = "";
+                string description = "";
 
-                bool is_power_bundle = slotLevel == SLOT_LEVEL_FOR_POWER_BUNDLE;
-                if (!is_power_bundle)
+                switch (slotLevel)
                 {
-                    return true;
+                    case SLOT_LEVEL_FOR_POWER_BUNDLE:
+                        {
+                            var subpower = DatabaseRepository.GetDatabase<FeatureDefinitionPower>().GetElement(text);
+                            title = subpower.guiPresentation.title;
+                            description = subpower.guiPresentation.description;
+                            break;
+                        }
+                    case SLOT_LEVEL_FOR_WARCSTER:
+                        {
+                            if (text == "OpportunityAttack")
+                            {
+                                title = "Reaction/&WarcasterAttackTitle";
+                                description = "Reaction/&WarcasterAttackDescription";
+                            }
+                            else
+                            {
+                                var spell = DatabaseRepository.GetDatabase<SpellDefinition>().GetElement(text);
+                                title = spell.guiPresentation.title;
+                                description = spell.guiPresentation.description;
+                            }
+                            break;
+                        }
+                    default:
+                        return true;
                 }
-                var subpower = DatabaseRepository.GetDatabase<FeatureDefinitionPower>().GetElement(text);
-                __instance.label.Text = Gui.Localize(subpower.guiPresentation.Title);
+       
+                __instance.label.Text = Gui.Localize(title);
                 __instance.toggle.interactable = interactable;
                 __instance.canvasGroup.interactable = interactable;
                 __instance.SubitemSelected = subitemSelected;
@@ -247,9 +272,9 @@ namespace SolastaModHelpers.Patches.PowerBundlePatches
                 {
                     __instance.slotStatusTable.GetChild(index).gameObject.SetActive(false);
                 }
-                __instance.slotStatusTable.GetComponent<GuiTooltip>().Content = subpower.guiPresentation.Description;
+                __instance.slotStatusTable.GetComponent<GuiTooltip>().Content = description;
 
-                //float scale = (1 + __instance.label.Text.Length) * 0.33f;
+
                 float scale = 5.0f;
                 var old_scale = __instance.toggle.transform.localScale;
                 old_scale.x *= scale;
@@ -283,12 +308,16 @@ namespace SolastaModHelpers.Patches.PowerBundlePatches
             static int getSuboptionIndex(int index, ReactionRequest reactionRequest)
             {
                 var power_bundle = reactionRequest.reactionParams?.UsablePower?.PowerDefinition as NewFeatureDefinitions.IPowerBundle;
-                if (power_bundle == null)
+                if (power_bundle != null)
                 {
-                    return index + 1;
+                    return CharacterReactionSubitem_Bind.SLOT_LEVEL_FOR_POWER_BUNDLE;
                 }
 
-                return CharacterReactionSubitem_Bind.SLOT_LEVEL_FOR_POWER_BUNDLE;
+                if (reactionRequest.reactionParams.StringParameter2 == "Warcaster")
+                {
+                    return CharacterReactionSubitem_Bind.SLOT_LEVEL_FOR_WARCSTER;
+                }
+                return index + 1;
             }
         }
 

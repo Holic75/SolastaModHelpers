@@ -47,6 +47,7 @@ namespace SolastaModHelpers
             CharacterActionConsumePowerUse.initialize();
             ReactionRequestCastSpellInResponseToAttack.initialize();
             ReactionRequestSpendPowerFromBundle.initialize();
+            ReactionRequestWarcaster.initialize();
             DatabaseHelper.SpellDefinitions.MageArmor.EffectDescription.SetTargetFilteringTag(RuleDefinitions.TargetFilteringTag.Unarmored); //fix mage armor tag to unarmored
 
 

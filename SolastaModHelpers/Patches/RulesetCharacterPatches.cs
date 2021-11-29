@@ -68,6 +68,21 @@ namespace SolastaModHelpers.Patches
         }
 
 
+        [HarmonyPatch(typeof(RulesetCharacter), "IsValidReadyCantrip")]
+        class RulesetCharacter_IsValidReadyCantripr
+        {
+            internal static void Postfix(RulesetCharacter __instance,
+                                        SpellDefinition cantrip,
+                                        ref bool __result)
+            {
+                if (cantrip.name == "SunlightBladeSpell")
+                {
+                    __result =  __instance.AreSpellComponentsValid(cantrip);
+                }
+            }
+        }
+
+
         [HarmonyPatch(typeof(RulesetCharacter), "GetMaxUsesOfPower")]
         class RulesetCharacter_GetMaxUsesOfPower
         {

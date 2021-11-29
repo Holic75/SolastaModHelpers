@@ -16,12 +16,22 @@ namespace SolastaModHelpers.Patches
         {
             internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result, CharacterActionMagicEffect __instance)
             {
+                
                 while (__result.MoveNext())
                 {
                     yield return __result.Current;
                 }
 
-                (__instance.GetBaseDefinition() as NewFeatureDefinitions.IPerformAttackAfterMagicEffectUse)?.performAttackAfterUse(__instance);            
+                var attack_params = (__instance.GetBaseDefinition() as NewFeatureDefinitions.IPerformAttackAfterMagicEffectUse)?.performAttackAfterUse(__instance);
+                if (attack_params != null)
+                {
+                    var attack_action = new CharacterActionAttack(attack_params);
+                    var enums = attack_action.Execute();
+                    while (enums.MoveNext())
+                    {
+                        yield return enums.Current;
+                    }
+                }
             }
         }
 
