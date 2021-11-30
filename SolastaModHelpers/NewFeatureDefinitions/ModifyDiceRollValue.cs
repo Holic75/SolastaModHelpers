@@ -45,4 +45,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return res;
         }
     }
+
+
+
+    public class ModifyDamageRollTypeDependent: FeatureDefinitionDieRollModifier
+    {
+        public List<string> damageTypes = new List<string>();
+    }
 }

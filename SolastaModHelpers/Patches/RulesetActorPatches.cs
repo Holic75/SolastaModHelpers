@@ -9,6 +9,46 @@ namespace SolastaModHelpers.Patches
 {
     class RuleActorPatcher
     {
+        [HarmonyPatch(typeof(RulesetActor), "RollDamage")]
+        internal class RulesetActor_RollDamage
+        {
+            internal static DamageForm currentDamageForm = null;
+            internal static void Prefix(DamageForm damageForm)
+            {
+                currentDamageForm = damageForm;
+            }
+
+
+            internal static void Postfix()
+            {
+                currentDamageForm = null;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetActor), "RerollDieAsNeeded")]
+        class RulesetActor_RerollDieAsNeeded
+        {
+            internal static bool Prefix(FeatureDefinitionDieRollModifier dieRollModifier,
+                                        RuleDefinitions.DieType dieType,
+                                        int rollScore,
+                                        ref int __result)
+            {
+                NewFeatureDefinitions.ModifyDamageRollTypeDependent roll_modifier = dieRollModifier as NewFeatureDefinitions.ModifyDamageRollTypeDependent;
+                if (roll_modifier == null 
+                    || RulesetActor_RollDamage.currentDamageForm == null
+                    || roll_modifier.damageTypes.Contains(RulesetActor_RollDamage.currentDamageForm.damageType))
+                {
+                    return true;
+                }
+
+                __result = rollScore;
+                return false;
+            }
+        }
+
+
+
         [HarmonyPatch(typeof(RulesetActor), "RollDiceAndSum")]
         class RulesetActor_RollDiceAndSum
         {
@@ -142,6 +182,49 @@ namespace SolastaModHelpers.Patches
                 {
                     (__instance as RulesetCharacter)?.RefreshAttackModes();
                 }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(RulesetActor), "ModulateSustainedDamage")]
+        class RulesetActor_ModulateSustainedDamage
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var modulate_sustained_damage = codes.FindLastIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("ModulateSustainedDamage"));
+
+                codes[modulate_sustained_damage] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                                                  new Func<IDamageAffinityProvider, string, float, List<string>, string, ulong, float>(maybeModulateSustainedDamage).Method
+                                                                                  );
+                codes.Insert(modulate_sustained_damage, new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_3));
+                return codes.AsEnumerable();
+            }
+
+            static float maybeModulateSustainedDamage(IDamageAffinityProvider affinityProvider,
+                                                      string damageType,
+                                                      float multiplier,
+                                                      List<string> sourceTags,
+                                                      string ancestryDamageType,
+                                                      ulong sourceGuid)
+            {
+                RulesetEntity rulesetEntity = (RulesetEntity)null;
+                ServiceRepository.GetService<IRulesetEntityService>().TryGetEntityByGuid(sourceGuid, out rulesetEntity);
+                RulesetCharacter caster = rulesetEntity as RulesetCharacter;
+
+                if (caster != null)
+                {
+                    var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IIgnoreDamageAffinity>(caster);
+                    foreach (var f in features)
+                    {
+                        if (f.canIgnoreDamageAffinity(affinityProvider, damageType))
+                        {
+                            return multiplier;
+                        }
+                    }
+                }
+
+                return affinityProvider.ModulateSustainedDamage(damageType, multiplier, sourceTags, ancestryDamageType);
             }
         }
 
