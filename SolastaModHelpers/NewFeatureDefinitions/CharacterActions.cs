@@ -522,7 +522,7 @@ public class ReactionRequestWarcaster : ReactionRequest
     public override void OnSetInvalid()
     {
         base.OnSetInvalid();
-        this.ReactionParams.RulesetEffect.Terminate(false);
+        this.ReactionParams.RulesetEffect?.Terminate(false);
     }
 }
 
