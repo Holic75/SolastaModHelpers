@@ -63,7 +63,7 @@ namespace SolastaModHelpers.Patches
                     if (prev_position.HasValue)
                     {
                         //int count = service.PendingReactionRequestGroups.Count;
-                        var units = __instance.Battle.AllContenders.Where(u => u.RulesetCharacter.IsOppositeSide(mover.Side));
+                        var units = __instance.Battle.AllContenders.Where(u => u.RulesetCharacter.IsOppositeSide(mover.Side)).ToArray();
                         foreach (GameLocationCharacter unit in units)
                         {
                             var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IMakeAooOnEnemyMoveEnd>(unit.RulesetCharacter);
@@ -269,7 +269,7 @@ namespace SolastaModHelpers.Patches
                         yield break;
                     }
 
-                    var units = __instance.Battle.AllContenders.Where(u => !u.RulesetCharacter.IsDeadOrDyingOrUnconscious);
+                    var units = __instance.Battle.AllContenders.Where(u => !u.RulesetCharacter.IsDeadOrDyingOrUnconscious).ToArray();
                     IGameLocationActionService service = ServiceRepository.GetService<IGameLocationActionService>();
                     int count = service.PendingReactionRequestGroups.Count;
                     foreach (GameLocationCharacter unit in units)
@@ -348,7 +348,7 @@ namespace SolastaModHelpers.Patches
                         f.processAttackInitiator(attacker, defender, attackModifier, attackerAttackMode);
                     }
 
-                    var units = __instance.Battle.AllContenders.Where(u => !u.RulesetCharacter.IsDeadOrDyingOrUnconscious);
+                    var units = __instance.Battle.AllContenders.Where(u => !u.RulesetCharacter.IsDeadOrDyingOrUnconscious).ToArray();
                     foreach (GameLocationCharacter unit in units)
                     {
                         var powers = Helpers.Misc.getNonOverridenPowers(unit.RulesetCharacter,
@@ -545,7 +545,7 @@ namespace SolastaModHelpers.Patches
                         yield break;
                     }
 
-                    var units = __instance.Battle.AllContenders;
+                    var units = __instance.Battle.AllContenders.ToArray();
                     foreach (GameLocationCharacter unit in units)
                     {
                         if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious)
@@ -766,7 +766,7 @@ namespace SolastaModHelpers.Patches
                         yield return __instance.WaitForReactions(attacker, service, count);
                     }
 
-                    var units = __instance.Battle.AllContenders;
+                    var units = __instance.Battle.AllContenders.ToArray();
                     foreach (GameLocationCharacter unit in units)
                     {
                         if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious
@@ -780,6 +780,8 @@ namespace SolastaModHelpers.Patches
                                                                                     .canBeUsedOnDamage(unit, attacker, defender, attackMode, false));
                             foreach (var p in powers)
                             {
+                                var contextual_camera =  ServiceRepository.GetService<IGameSettingsService>().ContextualCameraFrequencyLevel;
+                                ServiceRepository.GetService<IGameSettingsService>().ContextualCameraFrequencyLevel = 0;
                                 CharacterActionParams reactionParams = new CharacterActionParams(unit, ActionDefinitions.Id.PowerReaction);
                                 reactionParams.TargetCharacters.Add(attacker);
                                 reactionParams.ActionModifiers.Add(new ActionModifier());
@@ -791,6 +793,7 @@ namespace SolastaModHelpers.Patches
                                 int count = service2.PendingReactionRequestGroups.Count;
                                 service2.ReactToUsePower(reactionParams, /*p.PowerDefinition.Name*/ "");
                                 yield return __instance.WaitForReactions(attacker, service2, count);
+                                ServiceRepository.GetService<IGameSettingsService>().ContextualCameraFrequencyLevel = contextual_camera;
                             }
                         }
                     }
@@ -842,10 +845,10 @@ namespace SolastaModHelpers.Patches
                                                                         ActionModifier saveModifier,
                                                                         bool hasHitVisual)
                 {
-                    var units = __instance.Battle?.AllContenders;
+                    var units = __instance.Battle?.AllContenders.ToArray();
                     if (units == null)
                     {
-                        units = new List<GameLocationCharacter>() {caster, defender};
+                        units = new GameLocationCharacter[] {caster, defender};
                     }
 
                     var save_data = NewFeatureDefinitions.SavingthrowRollsData.getPrerolledData(defender);

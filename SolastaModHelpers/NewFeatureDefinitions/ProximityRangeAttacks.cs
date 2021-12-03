@@ -46,7 +46,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 ItemDefinition itemDefinition = rulesetInventorySlot1.EquipedItem.ItemDefinition;
                 WeaponDescription weaponDescription = itemDefinition.WeaponDescription;
 
-                if (weaponCategories.Contains(weaponDescription.weaponType))
+                if (weaponCategories.Empty() || weaponCategories.Contains(weaponDescription.weaponType))
                 {
                     return true;
                 }
