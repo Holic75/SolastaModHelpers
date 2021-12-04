@@ -13,7 +13,41 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         ModifyAttackRollViaPower = 128,
         DeflectMissileCustom = 129,
-        ConsumePowerUse = 130
+        ConsumePowerUse = 130,
+        Furious = 131,
+    }
+}
+
+public abstract class CharacterActionApplyConditionsToSelfUntilRoundEnd : CharacterAction
+{
+    public CharacterActionApplyConditionsToSelfUntilRoundEnd(CharacterActionParams actionParams)
+      : base(actionParams)
+    {
+    }
+
+    public abstract string[] getConditions();
+
+    public override IEnumerator ExecuteImpl()
+    {
+        var conditions = getConditions();
+
+        CharacterActionApplyConditionsToSelfUntilRoundEnd currentAction = this;
+        if (!currentAction.ActingCharacter.RulesetCharacter.HasConditionOfType(conditions[0]))
+        {
+            foreach (var c in conditions)
+            {
+                ConditionDefinition element1 = DatabaseRepository.GetDatabase<ConditionDefinition>().GetElement(c);
+                RulesetCondition activeCondition1 = RulesetCondition.CreateActiveCondition(currentAction.ActingCharacter.RulesetCharacter.Guid, 
+                                                                                           element1,
+                                                                                           RuleDefinitions.DurationType.Round,
+                                                                                           0,
+                                                                                           RuleDefinitions.TurnOccurenceType.EndOfTurn,
+                                                                                           currentAction.ActingCharacter.Guid,
+                                                                                           currentAction.ActingCharacter.RulesetCharacter.CurrentFaction.Name);
+                currentAction.ActingCharacter.RulesetCharacter.AddConditionOfCategory("10Combat", activeCondition1);
+            }
+            yield return (object)null;
+        }
     }
 }
 

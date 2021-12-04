@@ -120,7 +120,28 @@ namespace SolastaModHelpers.Patches
 
                 return true;
             }
+        }
 
+
+        [HarmonyPatch(typeof(GameLocationCharacter), "GetActionStatus")]
+        class GameLocationCharacter_GetActionStatus
+        {
+            internal static bool Prefix(GameLocationCharacter __instance, ActionDefinitions.Id actionId, ref ActionDefinitions.ActionStatus __result)
+            {
+                ActionDefinition actionDefinition = ServiceRepository.GetService<IGameLocationActionService>().AllActionDefinitions[actionId];
+
+                var restrictions = ActionData.getActionPrerequisites(actionDefinition);
+
+                foreach (var r in restrictions)
+                {
+                    if (r.isForbidden(__instance.RulesetCharacter))
+                    {
+                        __result = ActionDefinitions.ActionStatus.Unavailable;
+                        return false;
+                    }
+                }
+                return true;
+            }
         }
 
     }

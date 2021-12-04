@@ -1800,6 +1800,13 @@ namespace SolastaModHelpers.Helpers
 
     public class Accessors
     {
+        static public T memberwiseClone<T>(T base_object)
+        {
+            MethodInfo memberwiseCloneMethod = typeof(T).GetMethod("MemberwiseClone", BindingFlags.Instance | BindingFlags.NonPublic);
+            var copy = (T)memberwiseCloneMethod.Invoke(base_object, null);
+            return copy;
+        }
+       
 
         public class EnumeratorCombiner: System.Collections.IEnumerator
         {
