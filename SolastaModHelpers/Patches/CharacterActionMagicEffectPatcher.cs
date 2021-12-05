@@ -32,6 +32,16 @@ namespace SolastaModHelpers.Patches
                         yield return enums.Current;
                     }
                 }
+
+                var chain_action = (__instance.GetBaseDefinition() as NewFeatureDefinitions.IChainMagicEffect)?.getNextMagicEffect(__instance);
+                if (chain_action != null)
+                {
+                    var enums = chain_action.Execute();
+                    while (enums.MoveNext())
+                    {
+                        yield return enums.Current;
+                    }
+                }
             }
         }
 

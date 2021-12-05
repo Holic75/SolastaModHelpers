@@ -30,6 +30,12 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public interface IChainMagicEffect
+    {
+        CharacterActionMagicEffect getNextMagicEffect(CharacterActionMagicEffect action_magic_effect);
+    }
+
+
     public class SpellWithSlotLevelDependentEffects : SpellWithRestrictions, ICustomMagicEffectBasedOnCaster
     {
         public List<(int, EffectDescription)> levelEffectList = new List<(int, EffectDescription)>();

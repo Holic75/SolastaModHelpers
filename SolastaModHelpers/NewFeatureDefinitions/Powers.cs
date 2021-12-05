@@ -321,4 +321,22 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return availablePowers.ToList();
         }
     }
+
+
+    public class ChainedPower : PowerWithRestrictions, IChainMagicEffect
+    {
+        public FeatureDefinitionPower next_power;
+
+        public CharacterActionMagicEffect getNextMagicEffect(CharacterActionMagicEffect action_magic_effect)
+        {
+            var action_params = Helpers.Accessors.memberwiseClone(action_magic_effect.actionParams);
+            action_params.actionDefinition = ServiceRepository.GetService<IGameLocationActionService>().AllActionDefinitions[ActionDefinitions.Id.PowerNoCost];
+
+            RulesetUsablePower usablePower = action_params.ActingCharacter.RulesetCharacter?.UsablePowers?.Find(p => p.powerDefinition == next_power) ?? new RulesetUsablePower(next_power, (CharacterRaceDefinition)null, (CharacterClassDefinition)null);
+            IRulesetImplementationService service = ServiceRepository.GetService<IRulesetImplementationService>();
+            action_params.RulesetEffect = (RulesetEffect)service.InstantiateEffectPower(action_params.ActingCharacter.RulesetCharacter, usablePower, false);
+            action_params.StringParameter = next_power.Name;
+            return new CharacterActionUsePower(action_params);
+        }
+    }
 }
