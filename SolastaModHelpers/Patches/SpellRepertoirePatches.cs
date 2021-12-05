@@ -117,15 +117,16 @@ namespace SolastaModHelpers.Patches
                     codes.Insert(all_spells_loaded_idx + 1, new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_1)); //put characterBuildingService on stack
                     codes.Insert(all_spells_loaded_idx + 2, new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_S, 10)); //put unlearn on stack
                     codes.Insert(all_spells_loaded_idx + 3, new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_S, 4)); //put spell level on stack
-                    codes.Insert(all_spells_loaded_idx + 4,
+                    codes.Insert(all_spells_loaded_idx + 4, new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_S, 8)); //put spellTag on stack
+                    codes.Insert(all_spells_loaded_idx + 5,
                                   new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
-                                                                 new Func<List<SpellDefinition>, ICharacterBuildingService, bool, int, List<SpellDefinition>>(overwriteSpellList).Method
+                                                                 new Func<List<SpellDefinition>, ICharacterBuildingService, bool, int, string, List<SpellDefinition>>(overwriteSpellList).Method
                                                                  )
                                 );
                     return codes.AsEnumerable();
                 }
 
-                static List<SpellDefinition> overwriteSpellList(List<SpellDefinition> original, ICharacterBuildingService characterBuildingService, bool unlearn, int spellLevel)
+                static List<SpellDefinition> overwriteSpellList(List<SpellDefinition> original, ICharacterBuildingService characterBuildingService, bool unlearn, int spellLevel, string spellTag)
                 {
                     if (unlearn)
                     {
@@ -170,7 +171,7 @@ namespace SolastaModHelpers.Patches
                     features.AddRange(feat_features);
 
                     var extra_spell_list_feature = features
-                                                .Select(rs => (rs, rs.getSpelllist(characterBuildingService, spellLevel == 0, current_map.Count(kv => kv.Value == rs))))
+                                                .Select(rs => (rs, rs.getSpelllist(characterBuildingService, spellLevel == 0, current_map.Count(kv => kv.Value == rs), spellTag)))
                                                 .FirstOrDefault(rs2 => rs2.Item2 != null);
 
                     var extra_spell_list = extra_spell_list_feature.Item2;

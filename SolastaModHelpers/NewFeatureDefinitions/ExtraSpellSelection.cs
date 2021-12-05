@@ -16,7 +16,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
     public interface IReplaceSpellList
     {
-        SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService, bool is_cantrip, int num_spells_from_feature);
+        SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService, bool is_cantrip, int num_spells_from_feature, string spellTag);
     }
 
 
@@ -164,8 +164,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public SpellListDefinition spell_list;
         public bool learnCantrips = false;
 
-        public SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService, bool is_cantrip, int num_spells_from_feature)
+        public SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService, bool is_cantrip, int num_spells_from_feature, string spellTag)
         {
+            if (spellTag == "02Race")
+            {
+                //no extra spells for racial cantrips
+                return null;
+            }
+
             if (is_cantrip != learnCantrips)
             {
                 return null;
@@ -198,8 +204,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public SpellListDefinition spell_list;
         public bool learnCantrips = false;
 
-        public SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService, bool is_cantrip, int num_spells_from_feature)
+        public SpellListDefinition getSpelllist(ICharacterBuildingService characterBuildingService, bool is_cantrip, int num_spells_from_feature, string spellTag)
         {
+            if (spellTag == "02Race")
+            {
+                //no extra spells for racial cantrips
+                return null;
+            }
+
             if (is_cantrip != learnCantrips)
             {
                 return null;

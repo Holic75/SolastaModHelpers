@@ -62,6 +62,12 @@ namespace SolastaModHelpers.Patches
                 internal static bool Prefix(CharacterBuildingManager __instance)
                 {
                     CharacterBuildingManagerBrowseGrantedFeaturesHierarchicallyPatcher
+                    .CharacterBuildingManager_BrowseGrantedFeaturesHierarchically_Patch.
+                        correctNumberOfSpellsKnown(__instance,
+                                                    Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.heroCharacter).OfType<FeatureDefinition>().ToList(),
+                                                    true,
+                                                    -1);
+                    CharacterBuildingManagerBrowseGrantedFeaturesHierarchicallyPatcher
                         .CharacterBuildingManager_BrowseGrantedFeaturesHierarchically_Patch.
                             correctNumberOfSpellsKnown(__instance, 
                                                         Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.heroCharacter).OfType<FeatureDefinition>().ToList(),
