@@ -553,6 +553,37 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+
+    public class InitiatorApplyConditionOnAttackToTarget : FeatureDefinition, IInitiatorApplyEffectOnAttack
+    {
+        public ConditionDefinition condition;
+        public int durationValue;
+        public RuleDefinitions.DurationType durationType;
+        public RuleDefinitions.TurnOccurenceType turnOccurence;
+        public bool onlyMelee = false;
+        public bool onlyRanged = false;
+
+        public void processAttackInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
+        {
+            if (onlyRanged && !attack_mode.ranged)
+            {
+                return;
+            }
+
+            if (onlyMelee && attack_mode.ranged)
+            {
+                return;
+            }
+
+            RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(defender.RulesetCharacter.Guid,
+                                                                                       condition, durationType, durationValue, turnOccurence,
+                                                                                       attacker.RulesetCharacter.Guid,
+                                                                                       attacker.RulesetCharacter.CurrentFaction.Name);
+            defender.RulesetCharacter.AddConditionOfCategory("10Combat", active_condition, true);
+        }
+    }
+
+
     public class InitiatorApplyConditionOnAttackToAttacker : FeatureDefinition, IInitiatorApplyEffectOnAttack
     {
         public ConditionDefinition condition;
@@ -894,6 +925,9 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         public ConditionDefinition requiredCondition;
         public ConditionDefinition extraCondition;
+        public int durationValue;
+        public RuleDefinitions.DurationType durationType;
+        public RuleDefinitions.TurnOccurenceType turnOccurence = RuleDefinitions.TurnOccurenceType.EndOfTurn;
 
         public void processCasterConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition condition)
         {
@@ -903,7 +937,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(target.Guid,
-                                                               this.extraCondition, RuleDefinitions.DurationType.Permanent, 1, RuleDefinitions.TurnOccurenceType.EndOfTurn,
+                                                               this.extraCondition, durationType, durationValue, turnOccurence,
                                                                condition.sourceGuid,
                                                                condition.sourceFactionName);
             target.AddConditionOfCategory("CustomCondition", active_condition, true);
