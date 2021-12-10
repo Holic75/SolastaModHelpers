@@ -10,13 +10,21 @@ namespace SolastaModHelpers.Patches
 {
     class CharacterActionMagicEffectPatcher
     {
-        //enable to performing automatic attacks after spell cast (like for sunlight blade cantrip)
+        //enable to performing automatic attacks after spell cast (like for sunlight blade cantrip) and chain effects
         [HarmonyPatch(typeof(CharacterActionMagicEffect), "ExecuteImpl")]
         internal static class CharacterActionMagicEffect_ExecuteImpl_Patch
         {
-            internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result, CharacterActionMagicEffect __instance)
+            internal static void Prefix(CharacterActionMagicEffect __instance)
             {
-                
+                if ((__instance.GetBaseDefinition() as NewFeatureDefinitions.IPerformAttackAfterMagicEffectUse) != null)
+                {
+                    __instance.ActionParams.skipAnimationsAndVFX = true;
+                }
+            }
+
+
+            internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result, CharacterActionMagicEffect __instance)
+            {                
                 while (__result.MoveNext())
                 {
                     yield return __result.Current;
