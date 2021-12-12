@@ -28,7 +28,7 @@ namespace SolastaModHelpers.Patches
                                         bool hasHitVisual)
             {
                 var game_location_character = Helpers.Misc.findGameLocationCharacter(character as RulesetCharacter);
-                if (outcome == RuleDefinitions.RollOutcome.Failure && game_location_character != null)
+                if (game_location_character != null)
                 {
                     NewFeatureDefinitions.SavingthrowRollsData.storePrerolledData(game_location_character, new NewFeatureDefinitions.SavingthrowRollInfo(totalRoll, saveDC, outcome));
                 }

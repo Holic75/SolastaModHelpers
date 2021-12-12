@@ -103,6 +103,21 @@ namespace SolastaModHelpers.Patches
             }
         }
 
+        //prevent extra damage application if no damage is expected to be done (like in case of successful save on cantrips)
+        class GameLocationBattleManager_ComputeAndNotifyAdditionalDamage_Patch
+        {
+            [HarmonyPatch(typeof(GameLocationBattleManager), "ComputeAndNotifyAdditionalDamage")]
+            internal static class GameLocationBattleManager_ComputeAndNotifyAdditionalDamage
+            {
+                static internal Dictionary<GameLocationCharacter, int3> starting_positions_map = new Dictionary<GameLocationCharacter, int3>();
+
+                internal static bool Prefix()
+                {
+                    return !GameLocationBattleManagerHandleCharacterMagicalDamagePatcher.GameLocationBattleManager_HandleCharacterMagicalAttackDamage_Patch.ignore_extra_damage;
+                }
+            }
+        }
+
 
         class GameLocationBattleManagerHandleReactionToDamagePatcher
         {
@@ -456,11 +471,30 @@ namespace SolastaModHelpers.Patches
         }
 
 
-        class GameLocationBattleManagerHandleCharacterMagicalDamagePatcher
+        internal class GameLocationBattleManagerHandleCharacterMagicalDamagePatcher
         {
             [HarmonyPatch(typeof(GameLocationBattleManager), "HandleCharacterMagicalAttackDamage")]
             internal static class GameLocationBattleManager_HandleCharacterMagicalAttackDamage_Patch
             {
+                static public bool ignore_extra_damage = false;
+
+                internal static void Prefix(GameLocationBattleManager __instance,
+                                     GameLocationCharacter attacker,
+                                     GameLocationCharacter defender,
+                                     ActionModifier magicModifier,
+                                     RulesetEffect activeEffect,
+                                     List<EffectForm> actualEffectForms,
+                                     bool firstTarget)
+                {
+                    //do not apply extra damage if the spell in effect was a cantrip and the save was sucessful (since all cantrips seem to not have any effect on failed save)
+                    var save_data = NewFeatureDefinitions.SavingthrowRollsData.getPrerolledData(defender);
+                    ignore_extra_damage = save_data != null
+                                        && (save_data.outcome == RollOutcome.Failure || save_data.outcome == RollOutcome.CriticalSuccess)
+                                        && (activeEffect as RulesetEffectSpell).spellDefinition != null
+                                        && (activeEffect as RulesetEffectSpell).spellDefinition.spellLevel == 0
+                                        && !attacker.RulesetCharacter.CanForceHalfDamage((activeEffect as RulesetEffectSpell).spellDefinition);
+                }
+
                 internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result,
                                                                          GameLocationBattleManager __instance,
                                                                         GameLocationCharacter attacker,
@@ -470,6 +504,8 @@ namespace SolastaModHelpers.Patches
                                                                         List<EffectForm> actualEffectForms,
                                                                         bool firstTarget)
                 {
+
+
                     var features = Helpers.Accessors.extractFeaturesHierarchically<IAdditionalDamageProvider>(attacker.RulesetCharacter);
                     foreach (FeatureDefinition featureDefinition1 in features)
                     {
@@ -511,7 +547,7 @@ namespace SolastaModHelpers.Patches
 
                             if (validTrigger)
                             {
-                                __instance.ComputeAndNotifyAdditionalDamage(attacker, defender, provider, actualEffectForms, null, null);
+                                 __instance.ComputeAndNotifyAdditionalDamage(attacker, defender, provider, actualEffectForms, null, null);
                             }
                         }
                         provider = (IAdditionalDamageProvider)null;
@@ -528,7 +564,7 @@ namespace SolastaModHelpers.Patches
                     {
                         yield return extra_events.Current;
                     }
-
+                    ignore_extra_damage = false;
                 }
 
 
@@ -780,7 +816,7 @@ namespace SolastaModHelpers.Patches
                                                                                     .canBeUsedOnDamage(unit, attacker, defender, attackMode, false));
                             foreach (var p in powers)
                             {
-                                var contextual_camera =  ServiceRepository.GetService<IGameSettingsService>().ContextualCameraFrequencyLevel;
+                                var contextual_camera_level =  ServiceRepository.GetService<IGameSettingsService>().ContextualCameraFrequencyLevel;
                                 ServiceRepository.GetService<IGameSettingsService>().ContextualCameraFrequencyLevel = 0;
                                 CharacterActionParams reactionParams = new CharacterActionParams(unit, ActionDefinitions.Id.PowerReaction);
                                 reactionParams.TargetCharacters.Add(attacker);
@@ -793,7 +829,7 @@ namespace SolastaModHelpers.Patches
                                 int count = service2.PendingReactionRequestGroups.Count;
                                 service2.ReactToUsePower(reactionParams, /*p.PowerDefinition.Name*/ "");
                                 yield return __instance.WaitForReactions(attacker, service2, count);
-                                ServiceRepository.GetService<IGameSettingsService>().ContextualCameraFrequencyLevel = contextual_camera;
+                                ServiceRepository.GetService<IGameSettingsService>().ContextualCameraFrequencyLevel = contextual_camera_level;
                             }
                         }
                     }
@@ -823,10 +859,10 @@ namespace SolastaModHelpers.Patches
                     }
 
 
-                    if (action.SaveOutcome != RuleDefinitions.RollOutcome.CriticalFailure || action.SaveOutcome != RuleDefinitions.RollOutcome.Failure)
+                    /*if (action.SaveOutcome != RuleDefinitions.RollOutcome.CriticalFailure || action.SaveOutcome != RuleDefinitions.RollOutcome.Failure)
                     {
-                        yield return null;
-                    }
+                        yield break;
+                    }*/
 
                     var extra_events = Process(__instance, action, caster, defender, rulesetEffect, saveModifier, hasHitVisual);
 
@@ -895,7 +931,7 @@ namespace SolastaModHelpers.Patches
                                 GameLocationActionManager service = ServiceRepository.GetService<IGameLocationActionService>() as GameLocationActionManager;
                                 if (service == null)
                                 {
-                                    yield return null;
+                                    continue;
                                 }
                                 int count = service.PendingReactionRequestGroups.Count;
                                 service.AddInterruptRequest(new ReactionRequestConsumePowerUse(reactionParams));
@@ -923,7 +959,7 @@ namespace SolastaModHelpers.Patches
                     }
                     NewFeatureDefinitions.SavingthrowRollsData.removePrerolledData(defender);
 
-                   var power = Helpers.Misc.getNonOverridenPowers(defender.RulesetCharacter, 
+                    var power = Helpers.Misc.getNonOverridenPowers(defender.RulesetCharacter, 
                                                                   u => u.PowerDefinition is NewFeatureDefinitions.RerollFailedSavePower
                                                                   && defender.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
                                                                  ).FirstOrDefault();
@@ -934,18 +970,17 @@ namespace SolastaModHelpers.Patches
                         reactionParams.UsablePower = power;
                         reactionParams.targetCharacters.Add(defender);
                         GameLocationActionManager service = ServiceRepository.GetService<IGameLocationActionService>() as GameLocationActionManager;
-                        if (service == null)
+                        if (service != null)
                         {
-                            yield return null;
-                        }
-                        int count = service.PendingReactionRequestGroups.Count;
-                        service.AddInterruptRequest(new ReactionRequestConsumePowerUse(reactionParams));
-                        yield return __instance.WaitForReactions(defender, service, count);
-                        if (reactionParams.ReactionValidated)
-                        {
-                            RuleDefinitions.RollOutcome saveOutcome = RuleDefinitions.RollOutcome.Neutral;
-                            action.RolledSaveThrow = rulesetEffect.TryRollSavingThrow(action.ActingCharacter.RulesetCharacter, action.ActingCharacter.Side, defender.RulesetActor, saveModifier, hasHitVisual, out saveOutcome);
-                            action.SaveOutcome = saveOutcome;
+                            int count = service.PendingReactionRequestGroups.Count;
+                            service.AddInterruptRequest(new ReactionRequestConsumePowerUse(reactionParams));
+                            yield return __instance.WaitForReactions(defender, service, count);
+                            if (reactionParams.ReactionValidated)
+                            {
+                                RuleDefinitions.RollOutcome saveOutcome = RuleDefinitions.RollOutcome.Neutral;
+                                action.RolledSaveThrow = rulesetEffect.TryRollSavingThrow(action.ActingCharacter.RulesetCharacter, action.ActingCharacter.Side, defender.RulesetActor, saveModifier, hasHitVisual, out saveOutcome);
+                                action.SaveOutcome = saveOutcome;
+                            }
                         }
                     }
                 }
