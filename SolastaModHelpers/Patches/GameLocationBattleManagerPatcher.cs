@@ -109,7 +109,6 @@ namespace SolastaModHelpers.Patches
             [HarmonyPatch(typeof(GameLocationBattleManager), "ComputeAndNotifyAdditionalDamage")]
             internal static class GameLocationBattleManager_ComputeAndNotifyAdditionalDamage
             {
-                static internal Dictionary<GameLocationCharacter, int3> starting_positions_map = new Dictionary<GameLocationCharacter, int3>();
 
                 internal static bool Prefix()
                 {
@@ -489,7 +488,7 @@ namespace SolastaModHelpers.Patches
                     //do not apply extra damage if the spell in effect was a cantrip and the save was sucessful (since all cantrips seem to not have any effect on failed save)
                     var save_data = NewFeatureDefinitions.SavingthrowRollsData.getPrerolledData(defender);
                     ignore_extra_damage = save_data != null
-                                        && (save_data.outcome == RollOutcome.Failure || save_data.outcome == RollOutcome.CriticalSuccess)
+                                        && (save_data.outcome == RollOutcome.Success || save_data.outcome == RollOutcome.CriticalSuccess)
                                         && (activeEffect as RulesetEffectSpell).spellDefinition != null
                                         && (activeEffect as RulesetEffectSpell).spellDefinition.spellLevel == 0
                                         && !attacker.RulesetCharacter.CanForceHalfDamage((activeEffect as RulesetEffectSpell).spellDefinition);

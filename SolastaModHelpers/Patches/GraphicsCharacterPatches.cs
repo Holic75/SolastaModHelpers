@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace SolastaModHelpers.Patches
 {
@@ -33,6 +34,30 @@ namespace SolastaModHelpers.Patches
                     NewFeatureDefinitions.SavingthrowRollsData.storePrerolledData(game_location_character, new NewFeatureDefinitions.SavingthrowRollInfo(totalRoll, saveDC, outcome));
                 }
                 return true;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(GraphicsCharacter), "ResetScale")]
+        class GraphicsCharacter_ResetScale
+        {
+            internal static void Postfix(GraphicsCharacter __instance, ref float __result)
+            {
+                var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.ModelSizeScaleDefinition>(__instance.rulesetCharacter);
+
+                var race = (__instance.rulesetCharacter as RulesetCharacterHero)?.raceDefinition;
+
+                if (race != null && NewFeatureDefinitions.RaceData.raceScaleMap.ContainsKey(race))
+                {
+                    __result *= NewFeatureDefinitions.RaceData.raceScaleMap[race];
+                }
+
+                foreach (var f in features)
+                {
+                    __result *= f.scaleFactor;
+                }
+                __instance.transform.localScale = new Vector3(__result, __result, __result);
+
             }
         }
     }
