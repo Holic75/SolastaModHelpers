@@ -18,7 +18,9 @@ namespace SolastaModHelpers.Patches
                                ref RulesetImplementationDefinitions.ApplyFormsParams formsParams
                               )
             {
-                if (formsParams.activeEffect?.EffectDescription == null)
+                if (formsParams.activeEffect?.EffectDescription == null 
+                    || formsParams.activeEffect?.EffectDescription.targetType == RuleDefinitions.TargetType.Item 
+                    || formsParams.activeEffect?.EffectDescription.targetType == RuleDefinitions.TargetType.FreeSlot)
                 {
                     return true;
                 }
