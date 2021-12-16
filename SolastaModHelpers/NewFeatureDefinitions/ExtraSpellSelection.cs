@@ -60,7 +60,17 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             }
 
             //or we already had it
-            return hero.FindFirstFeatHoldingFeature(this) != null;          
+            var feat = hero.FindFirstFeatHoldingFeature(this);
+            if  (feat != null)
+            {
+                int lvl = Helpers.Misc.getFeatAcquisitonLevel(hero, feat);
+                if (lvl > 1 && lvl <= hero.classesHistory.Count)
+                {                
+                    return hero.classesHistory[lvl - 1] == current_class;
+                }
+            }
+
+            return false;
         }
 
         public int getKnownSpellsBonus(CharacterBuildingManager manager, RulesetCharacterHero hero, FeatureDefinitionCastSpell castSpellFeature)

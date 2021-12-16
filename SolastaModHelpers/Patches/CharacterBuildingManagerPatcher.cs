@@ -33,7 +33,6 @@ namespace SolastaModHelpers.Patches
                     int current_level;
                     __instance.GetLastAssignedClassAndLevel(out current_class, out current_level);
 
-
                     int bonus_known_spells = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
                                                                          .Aggregate(0, (old, next) => old += next.getKnownSpellsBonus(__instance, hero, feature_cast_spell));
                     int bonus_known_cantrips = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IKnownSpellNumberIncrease>(__instance.HeroCharacter)
@@ -41,7 +40,7 @@ namespace SolastaModHelpers.Patches
 
                     if (current_class == class_origin)
                     {
-                        //fix vanilla bonus cantrip features not to acount against total number of cantrips character knows
+                        //fix vanilla bonus cantrip features not to count against total number of cantrips character knows
                         bonus_known_cantrips += Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinitionBonusCantrips>(__instance.HeroCharacter)
                                                          .Aggregate(0, (old, next) => old += next.bonusCantrips.Count()) - __instance.bonusCantrips.Count;
                     }

@@ -1438,6 +1438,43 @@ namespace SolastaModHelpers.Helpers
             return "";
         }
 
+        public static int getFeatAcquisitonLevel(RulesetCharacterHero hero, FeatDefinition feat)
+        {
+            int idx = hero.trainedFeats.FindIndex(f => f == feat);
+            if (idx < 0)
+            {
+                return idx;
+            }
+
+            var bonus_feat_tags = hero.activeFeatures.Where(kv => kv.Value.OfType<FeatureDefinitionPointPool>().Any(pp => pp.PoolType == HeroDefinitions.PointsPoolType.Feat)).ToList();
+            List<int> feat_acquire_levels = new List<int>();
+
+            foreach (var bt in bonus_feat_tags)
+            {
+                if (bt.Key == "02Race")
+                {
+                    feat_acquire_levels.Add(1);
+                }
+                var info = Helpers.Misc.getClassAndLevelFromTag(bt.Key);
+                if (info.Item1 != null)
+                {
+                    feat_acquire_levels.Add(info.Item2);
+                }
+            }
+
+            feat_acquire_levels.Sort();
+
+            if (feat_acquire_levels.Count <= idx)
+            {
+                return -1;
+            }
+            else
+            {
+                return feat_acquire_levels[idx];
+            }
+        }
+
+
         public static (CharacterClassDefinition, int) getClassAndLevelFromTag(string tag)
         {
             if (!tag.Contains("03Class"))
