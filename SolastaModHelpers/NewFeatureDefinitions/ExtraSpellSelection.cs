@@ -164,7 +164,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                     return 0;
                 }
             }
-
             return max_spells;
         }
     }

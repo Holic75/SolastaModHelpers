@@ -45,8 +45,8 @@ namespace SolastaModHelpers.Patches
                                                          .Aggregate(0, (old, next) => old += next.bonusCantrips.Count()) - __instance.bonusCantrips.Count;
                     }
 
-                    __instance.tempAcquiredSpellsNumber = __instance.tempAcquiredSpellsNumber + bonus_known_spells;
-                    __instance.tempAcquiredCantripsNumber = __instance.tempAcquiredCantripsNumber + bonus_known_cantrips;
+                    __instance.tempAcquiredSpellsNumber += bonus_known_spells;
+                    __instance.tempAcquiredCantripsNumber += bonus_known_cantrips;
                     return;
                 }
             }
@@ -120,6 +120,7 @@ namespace SolastaModHelpers.Patches
             {
                 internal static void Postfix(CharacterBuildingManager __instance, FeatDefinition feat)
                 {
+                    Main.Logger.Log("Training Feat: " + feat.Name);
                     CharacterBuildingManagerBrowseGrantedFeaturesHierarchicallyPatcher
                         .CharacterBuildingManager_BrowseGrantedFeaturesHierarchically_Patch.
                             correctNumberOfSpellsKnown(__instance,
@@ -284,14 +285,25 @@ namespace SolastaModHelpers.Patches
 
 
                 static void addEmptySpellpointPools(CharacterBuildingManager __instance)
-                {
-                    var features = __instance.HeroCharacter.SpellRepertoires.Select(sr => sr.SpellCastingFeature).ToList();
+                {                
                     CharacterClassDefinition lastClassDefinition = (CharacterClassDefinition)null;
                     int level = 0;
                     __instance.GetLastAssignedClassAndLevel(out lastClassDefinition, out level);
+                    CharacterSubclassDefinition subclass = null;
+                    if (lastClassDefinition != null && (__instance.HeroCharacter?.ClassesAndSubclasses?.ContainsKey(lastClassDefinition)).GetValueOrDefault())
+                    {
+                        subclass = __instance.HeroCharacter?.ClassesAndSubclasses[lastClassDefinition];
+                    }
 
-                    var features_to_get_from_class = lastClassDefinition.featureUnlocks.Where(fu => fu.level == level).Select(f => f.featureDefinition).OfType<FeatureDefinitionCastSpell>();
+                    var features = __instance.HeroCharacter.SpellRepertoires.Where(sr => sr.spellCastingClass == lastClassDefinition || (subclass != null && sr.spellCastingSubclass == subclass))
+                                                                            .Select(sr => sr.SpellCastingFeature).ToList();
+                    var features_to_get_from_class = lastClassDefinition.featureUnlocks.Where(fu => fu.level == level ).Select(f => f.featureDefinition).OfType<FeatureDefinitionCastSpell>();
                     features.AddRange(features_to_get_from_class);
+                    if (subclass != null)
+                    {
+                        var features_to_get_from_subclass = subclass.featureUnlocks.Where(fu => fu.level == level).Select(f => f.featureDefinition).OfType<FeatureDefinitionCastSpell>();
+                        features.AddRange(features_to_get_from_subclass);
+                    }
 
                     foreach (var f in features)
                     {
