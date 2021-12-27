@@ -42,6 +42,21 @@ namespace SolastaModHelpers.Patches
                     {
                         //fix vanilla bonus cantrip features not to count against total number of cantrips character knows
                         bonus_known_cantrips += Helpers.Accessors.extractFeaturesHierarchically<FeatureDefinitionBonusCantrips>(__instance.HeroCharacter)
+                                                        .Where(f =>
+                                                            {
+                                                                CharacterClassDefinition class_origin2;
+                                                                CharacterRaceDefinition race_origin2;
+                                                                FeatDefinition feat_origin2;
+                                                                __instance.HeroCharacter.LookForFeatureOrigin(f, out race_origin2, out class_origin2, out feat_origin2);
+
+                                                                var feat_lvl = Helpers.Misc.getFeatAcquisitonLevel(__instance.heroCharacter, feat_origin2);
+                                                                if (feat_lvl >= 1 && feat_lvl <= hero.classesHistory.Count)
+                                                                {
+                                                                    return hero.classesHistory[feat_lvl - 1] == current_class;
+                                                                }
+                                                                
+                                                                return class_origin2 == current_class;
+                                                            })
                                                          .Aggregate(0, (old, next) => old += next.bonusCantrips.Count()) - __instance.bonusCantrips.Count;
                     }
 

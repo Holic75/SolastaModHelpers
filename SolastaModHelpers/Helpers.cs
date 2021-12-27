@@ -1440,6 +1440,10 @@ namespace SolastaModHelpers.Helpers
 
         public static int getFeatAcquisitonLevel(RulesetCharacterHero hero, FeatDefinition feat)
         {
+            if (feat == null || hero == null)
+            {
+                return - 1;
+            }
             int idx = hero.trainedFeats.FindIndex(f => f == feat);
             if (idx < 0)
             {

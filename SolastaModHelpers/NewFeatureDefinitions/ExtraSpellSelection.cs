@@ -64,7 +64,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             if  (feat != null)
             {
                 int lvl = Helpers.Misc.getFeatAcquisitonLevel(hero, feat);
-                if (lvl > 1 && lvl <= hero.classesHistory.Count)
+                if (lvl >= 1 && lvl <= hero.classesHistory.Count)
                 {                
                     return hero.classesHistory[lvl - 1] == current_class;
                 }
