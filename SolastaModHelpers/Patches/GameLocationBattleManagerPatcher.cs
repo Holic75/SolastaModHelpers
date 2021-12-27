@@ -489,9 +489,9 @@ namespace SolastaModHelpers.Patches
                     var save_data = NewFeatureDefinitions.SavingthrowRollsData.getPrerolledData(defender);
                     ignore_extra_damage = save_data != null
                                         && (save_data.outcome == RollOutcome.Success || save_data.outcome == RollOutcome.CriticalSuccess)
-                                        && (activeEffect as RulesetEffectSpell).spellDefinition != null
-                                        && (activeEffect as RulesetEffectSpell).spellDefinition.spellLevel == 0
-                                        && !attacker.RulesetCharacter.CanForceHalfDamage((activeEffect as RulesetEffectSpell).spellDefinition);
+                                        && (activeEffect as RulesetEffectSpell)?.spellDefinition != null
+                                        && (activeEffect as RulesetEffectSpell)?.spellDefinition.spellLevel == 0
+                                        && !(attacker.RulesetCharacter?.CanForceHalfDamage((activeEffect as RulesetEffectSpell).spellDefinition)).GetValueOrDefault();
                 }
 
                 internal static System.Collections.IEnumerator Postfix(System.Collections.IEnumerator __result,

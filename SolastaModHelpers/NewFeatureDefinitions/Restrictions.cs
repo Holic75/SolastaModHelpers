@@ -285,7 +285,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return true;
             }
-            return game_location_character.EnemiesDownedByAttack > 0;
+            return game_location_character.EnemiesDownedByAttack <= 0;
         }
     }
 
