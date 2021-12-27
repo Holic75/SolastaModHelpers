@@ -114,15 +114,12 @@ namespace SolastaModHelpers.Patches
                                 }
                                 foreach (var s in sl.spells)
                                 {
-                                    if (!spells.Contains(s))
-                                    {
-                                        spells.Add(s);
-                                    }
+                                    spells.Add(s);
                                 }
                             }
                         }
                     }
-                    __result.AddRange(spells);
+                    __result = spells.ToList();
                 }
             }
         }
