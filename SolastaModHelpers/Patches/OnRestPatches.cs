@@ -29,7 +29,6 @@ namespace SolastaModHelpers.Patches
 
                     foreach (NewFeatureDefinitions.FeatureDefinitionExtraHealingDieOnShortRest f in h.FeaturesToBrowse)
                     {
-                        //Main.Logger.Log("Found Extra Healing Die feature: " + f.name + " on " + h.Name);
                         if (f.ApplyToParty)
                         {
                             foreach (var hh in __instance.Heroes)

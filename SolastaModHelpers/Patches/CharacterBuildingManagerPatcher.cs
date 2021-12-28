@@ -132,7 +132,6 @@ namespace SolastaModHelpers.Patches
             {
                 internal static void Postfix(CharacterBuildingManager __instance, FeatDefinition feat)
                 {
-                    Main.Logger.Log("Training Feat: " + feat.Name);
                     CharacterBuildingManagerBrowseGrantedFeaturesHierarchicallyPatcher
                         .CharacterBuildingManager_BrowseGrantedFeaturesHierarchically_Patch.
                             correctNumberOfSpellsKnown(__instance,

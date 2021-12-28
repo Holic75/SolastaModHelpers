@@ -156,7 +156,6 @@ namespace SolastaModHelpers.Patches
                             RulesetUsablePower usablePower,
                             ref int __result)
             {
-
                 if (__instance == null)
                 {
                     return;

@@ -886,7 +886,7 @@ namespace SolastaModHelpers.Patches
                                                                         ActionModifier saveModifier,
                                                                         bool hasHitVisual)
                 {
-                    var units = __instance.Battle?.AllContenders.ToArray();
+                    var units = __instance.Battle?.AllContenders?.ToArray();
                     if (units == null)
                     {
                         units = new GameLocationCharacter[] {caster, defender};
@@ -901,23 +901,15 @@ namespace SolastaModHelpers.Patches
                         {
                             break;
                         }
+                        
                         if (!unit.RulesetCharacter.IsDeadOrDyingOrUnconscious)
                         {
-                            var powers = unit.RulesetCharacter.UsablePowers.Where(u => u.PowerDefinition is NewFeatureDefinitions.IModifyFailedSavePower
-                                                                                  && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
-                                                                                  && (u.PowerDefinition as NewFeatureDefinitions.IModifyFailedSavePower)
-                                                                                    .canBeUsedOnFailedSave(unit, caster, defender, saveModifier, rulesetEffect)
-                                                                                 ).ToArray();
-                            var overriden_powers = powers.Aggregate(new List<FeatureDefinitionPower>(), (old, next) =>
-                            {
-                                if (next.PowerDefinition?.overriddenPower != null)
-                                {
-                                    old.Add(next.PowerDefinition?.overriddenPower);
-                                }
-                                return old;
-                            });
-                            powers = powers.Where(pp => !overriden_powers.Contains(pp.powerDefinition)).ToArray();
-
+                            var powers = Helpers.Misc.getNonOverridenPowers(unit.RulesetCharacter, 
+                                                                            u => u.PowerDefinition is NewFeatureDefinitions.IModifyFailedSavePower
+                                                                            && unit.RulesetCharacter.GetRemainingUsesOfPower(u) > 0
+                                                                            && (u.PowerDefinition as NewFeatureDefinitions.IModifyFailedSavePower)
+                                                                            .canBeUsedOnFailedSave(unit, caster, defender, saveModifier, rulesetEffect)
+                                                                           );
                             foreach (var p in powers)
                             {
                                 if (p.powerDefinition.activationTime == RuleDefinitions.ActivationTime.Reaction &&

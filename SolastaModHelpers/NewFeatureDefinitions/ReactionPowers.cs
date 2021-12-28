@@ -114,7 +114,6 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             {
                 return false;
             }
-
             return true;
         }
 
