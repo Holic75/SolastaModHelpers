@@ -398,6 +398,72 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     }
 
 
+    public class HasAvailableSpellSlot : IRestriction
+    {
+        private int slot_level;
+        private FeatureDefinitionCastSpell feature;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            var ruleset_character = character as RulesetCharacter;
+            if (ruleset_character == null)
+            {
+                return true;
+            }
+
+            var repertoires = new List<RulesetSpellRepertoire>();
+            repertoires.AddRange(ruleset_character.SpellRepertoires);
+            if ((ruleset_character as RulesetCharacterMonster)?.originalFormCharacter != null)
+            {
+                repertoires.AddRange((ruleset_character as RulesetCharacterMonster).originalFormCharacter.SpellRepertoires);
+            }
+            var repertoire = repertoires.FirstOrDefault(sr => sr.spellCastingFeature == feature);
+            if (repertoire == null)
+            {
+                return true;
+            }
+
+            return Helpers.Accessors.getLowestAvailableSlotLevelFromRepertoire(slot_level, repertoire) == 0;
+        }
+
+        public HasAvailableSpellSlot(int level, FeatureDefinitionCastSpell feature_cast_spell)
+        {
+            slot_level = level;
+            feature = feature_cast_spell;
+        }
+    }
+
+
+    public class HasAvailablePowerUses : IRestriction
+    {
+        private int min_value;
+        private FeatureDefinitionPower power;
+
+        public bool isForbidden(RulesetActor character)
+        {
+            var ruleset_character = character as RulesetCharacter;
+            if (ruleset_character == null)
+            {
+                return true;
+            }
+
+            var usable_power = ruleset_character.GetPowerFromDefinition(power);
+            if (usable_power == null)
+            {
+                return true;
+            }
+
+            return usable_power.RemainingUses < min_value;
+        }
+
+        public HasAvailablePowerUses(FeatureDefinitionPower power_to_check, int min_uses = 1)
+        {
+            min_value = min_uses;
+            power = power_to_check;
+        }
+    }
+
+
 
     public class HasAtLeastOneConditionFromListRestriction : IRestriction
     {

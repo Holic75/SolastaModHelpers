@@ -16,6 +16,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         ConsumePowerUse = 130,
         Furious = 131,
         RapidShot = 132,
+        ElementalForm = 133,
     }
 }
 

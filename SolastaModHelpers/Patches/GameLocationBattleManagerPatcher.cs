@@ -713,8 +713,14 @@ namespace SolastaModHelpers.Patches
                             }
                             else if (provider.TriggerCondition == RuleDefinitions.AdditionalDamageTriggerCondition.SpendSpellSlot && attackModifier != null)
                             {
+                                var repertoires = new List<RulesetSpellRepertoire>();
+                                repertoires.AddRange(attacker.RulesetCharacter.SpellRepertoires);
+                                if ((attacker.RulesetCharacter as RulesetCharacterMonster)?.originalFormCharacter != null)
+                                {
+                                    repertoires.AddRange((attacker.RulesetCharacter as RulesetCharacterMonster).originalFormCharacter.spellRepertoires);
+                                }
                                 RulesetSpellRepertoire selectedSpellRepertoire = null;
-                                foreach (RulesetSpellRepertoire spellRepertoire in attacker.RulesetCharacter.SpellRepertoires)
+                                foreach (RulesetSpellRepertoire spellRepertoire in repertoires)
                                 {
                                     if ((BaseDefinition)spellRepertoire.SpellCastingFeature == provider.spellcastingFeature)
                                     {

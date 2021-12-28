@@ -93,6 +93,10 @@ namespace SolastaModHelpers.Patches
                 var base_power = (usablePower.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {
+                    if (usablePower.PowerDefinition.rechargeRate == RuleDefinitions.RechargeRate.SpellSlot && usablePower.PowerDefinition.CostPerUse > 1)
+                    {
+                        __result = Helpers.Accessors.getNumberOfSpellsFromRepertoire(usablePower.PowerDefinition.CostPerUse, __instance.FindSpellRepertoireOfPower(usablePower)).total;
+                    }
                     return;
                 }
                 __result = Math.Min(__instance.GetMaxUsesOfPower(base_power) * base_power.PowerDefinition.costPerUse / usablePower.powerDefinition.costPerUse, __result);
@@ -128,6 +132,22 @@ namespace SolastaModHelpers.Patches
             }
         }
 
+        //allow to recover spell repertoires from original characters for wilshapes 
+        [HarmonyPatch(typeof(RulesetCharacter), "FindSpellRepertoireOfPower")]
+        class RulesetCharacter_FindSpellRepertoireOfPower
+        {
+            internal static void Postfix(RulesetCharacter __instance,
+                                        RulesetUsablePower usablePower, ref RulesetSpellRepertoire __result)
+            {
+               var original_character = (__instance as RulesetCharacterMonster)?.originalFormCharacter;
+               if (__result == null && original_character != null)
+               {
+                    __result = original_character.SpellRepertoires.FirstOrDefault(sr => sr.spellCastingFeature == usablePower.PowerDefinition.spellcastingFeature);
+                    return;
+               }
+            }
+        }
+
 
         [HarmonyPatch(typeof(RulesetCharacter), "GetRemainingUsesOfPower")]
         class RulesetCharacter_GetRemainingUsesOfPower
@@ -142,6 +162,7 @@ namespace SolastaModHelpers.Patches
                     return;
                 }
 
+                
                 if (((usablePower?.PowerDefinition as NewFeatureDefinitions.IPowerRestriction)?.isReactionForbidden(__instance)).GetValueOrDefault())
                 {
                     __result = 0;
@@ -157,7 +178,10 @@ namespace SolastaModHelpers.Patches
                 var base_power = (usablePower?.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {
-
+                    if (usablePower.PowerDefinition.rechargeRate == RuleDefinitions.RechargeRate.SpellSlot && usablePower.PowerDefinition.CostPerUse > 1)
+                    {
+                        __result = Helpers.Accessors.getNumberOfSpellsFromRepertoire(usablePower.PowerDefinition.CostPerUse, __instance.FindSpellRepertoireOfPower(usablePower)).remains;
+                    }
                     return;
                 }
 
@@ -169,6 +193,32 @@ namespace SolastaModHelpers.Patches
         [HarmonyPatch(typeof(RulesetCharacter), "UsePower")]
         class RulesetCharacter_UsePower
         {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = instructions.ToList();
+                var get_lowest_available_spell_level = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("GetLowestAvailableSlotLevel"));
+
+                codes[get_lowest_available_spell_level] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_1); //put usablePower on stack
+                codes.Insert(get_lowest_available_spell_level + 1,
+                              new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
+                                                             new Func<RulesetSpellRepertoire, RulesetUsablePower, int>(getLowestAvailbleSpellSlotOfMinLevel).Method
+                                                             )
+                            );
+                return codes.AsEnumerable();
+            }
+
+            static int getLowestAvailbleSpellSlotOfMinLevel(RulesetSpellRepertoire spellRepertoire, RulesetUsablePower usable_power)
+            {
+                if (usable_power.PowerDefinition.CostPerUse <= 1)
+                {
+                    return spellRepertoire.GetLowestAvailableSlotLevel();
+                }
+                else
+                {
+                    return Helpers.Accessors.getLowestAvailableSlotLevelFromRepertoire(usable_power.PowerDefinition.CostPerUse, spellRepertoire);
+                }
+            }
+
             internal static void Postfix(RulesetCharacter __instance,
                                         RulesetUsablePower usablePower)
             {

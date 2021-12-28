@@ -1950,5 +1950,53 @@ namespace SolastaModHelpers.Helpers
             powers = powers.Where(pp => !overriden_powers.Contains(pp.powerDefinition)).ToArray();
             return powers;
         }
+
+
+        static public (int remains, int total) getNumberOfSpellsFromRepertoire(int min_level, RulesetSpellRepertoire repertoire)
+        {
+            if (repertoire == null || min_level < 1)
+            {
+                return (0, 0);
+            }
+
+            int remains = 0;
+            int total = 0;
+            for (int i = min_level; i < 10; i++)
+            {
+                int rem = 0;
+                int max = 0;
+                repertoire.GetSlotsNumber(i, out rem, out max);
+                remains += rem;
+                total += max;
+            }
+
+            //compatibility with warlock
+            remains = Math.Min(remains, repertoire.GetRemainingSlotsNumberOfAllLevels());
+            total = Math.Min(total, repertoire.GetMaxSlotsNumberOfAllLevels());
+
+            return (remains, total);
+        }
+
+
+        static public int getLowestAvailableSlotLevelFromRepertoire(int min_level, RulesetSpellRepertoire repertoire)
+        {
+            if (repertoire == null || min_level < 1)
+            {
+                return 0;
+            }
+
+            for (int i = min_level; i < 10; i++)
+            {
+                int rem = 0;
+                int max = 0;
+                repertoire.GetSlotsNumber(i, out rem, out max);
+                if (rem > 0)
+                {
+                    return i;
+                }
+            }
+
+            return 0;
+        }
     }
 }
