@@ -15,6 +15,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         DeflectMissileCustom = 129,
         ConsumePowerUse = 130,
         Furious = 131,
+        RapidShot = 132,
     }
 }
 

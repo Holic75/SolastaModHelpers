@@ -591,8 +591,26 @@ namespace SolastaModHelpers.NewFeatureDefinitions
         public RuleDefinitions.DurationType durationType;
         public RuleDefinitions.TurnOccurenceType turnOccurence;
 
+        public bool onlyMelee = false;
+        public bool onlyRanged = false;
+
         public void processAttackInitiator(GameLocationCharacter attacker, GameLocationCharacter defender, ActionModifier attack_modifier, RulesetAttackMode attack_mode)
         {
+            var item = (attack_mode?.SourceObject as RulesetItem);
+            if (item == null || !(item.itemDefinition?.isWeapon).GetValueOrDefault())
+            {
+                return;
+            }
+
+            if (onlyMelee && (attack_mode?.Ranged).GetValueOrDefault())
+            {
+                return;
+            }
+            if (onlyRanged && !(attack_mode?.Ranged).GetValueOrDefault())
+            {
+                return;
+            }
+
             RulesetCondition active_condition = RulesetCondition.CreateActiveCondition(attacker.RulesetCharacter.Guid,
                                                                                        condition, durationType, durationValue, turnOccurence,
                                                                                        attacker.RulesetCharacter.Guid,
