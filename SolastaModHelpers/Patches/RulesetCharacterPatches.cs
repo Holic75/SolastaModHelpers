@@ -125,7 +125,7 @@ namespace SolastaModHelpers.Patches
                 {
                     if ((p.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance) == base_power)
                     {
-                        p.remainingUses = p.remainingUses = Math.Min(base_power.remainingUses * base_power.PowerDefinition.costPerUse / p.PowerDefinition.costPerUse, __instance.GetMaxUsesOfPower(p));
+                        p.remainingUses = Math.Min(base_power.remainingUses * base_power.PowerDefinition.costPerUse / p.PowerDefinition.costPerUse, __instance.GetMaxUsesOfPower(p));
                     }
                 }
                 __instance.RefreshAll();

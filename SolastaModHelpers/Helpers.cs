@@ -1998,5 +1998,37 @@ namespace SolastaModHelpers.Helpers
 
             return 0;
         }
+
+
+        static public (int remains, int total) getNumberOfSpellsFromRepertoireOfSpecificSlotLevelAndFeature(int min_level, RulesetCharacter character, FeatureDefinitionCastSpell feature)
+        {
+            if (character == null || feature == null)
+            {
+                return (0, 0);
+            }
+            var repertoires = new List<RulesetSpellRepertoire>();
+            repertoires.AddRange(character.SpellRepertoires);
+            if ((character as RulesetCharacterMonster)?.originalFormCharacter != null)
+            {
+                repertoires.AddRange((character as RulesetCharacterMonster).originalFormCharacter.SpellRepertoires);
+            }
+            var repertoire = repertoires.FirstOrDefault(sr => sr.spellCastingFeature == feature);
+            if (repertoire == null)
+            {
+                return (0, 0);
+            }
+
+            if (repertoire == null || min_level < 1)
+            {
+                return (0, 0);
+            }
+
+            int remains = 0;
+            int total = 0;
+
+            repertoire.GetSlotsNumber(min_level, out remains, out total);
+
+            return (remains, total);
+        }
     }
 }

@@ -123,6 +123,14 @@ namespace SolastaModHelpers.Patches.PowerBundlePatches
                 __instance.index = index;
                 GuiPowerDefinition guiPowerDefinition = ServiceRepository.GetService<IGuiWrapperService>().GetGuiPowerDefinition(power.Name);
                 __instance.spellTitle.Text = guiPowerDefinition.Title;
+
+                //add info about remaining spell slots if powers consume them
+                var usable_power = caster.GetPowerFromDefinition(power);
+                if (usable_power != null && power.rechargeRate == RuleDefinitions.RechargeRate.SpellSlot)
+                {
+                    var power_info = Helpers.Accessors.getNumberOfSpellsFromRepertoireOfSpecificSlotLevelAndFeature(power.costPerUse, caster, power.spellcastingFeature);
+                    __instance.spellTitle.Text += $"   [{power_info.remains}/{power_info.total}]";
+                }
                 __instance.tooltip.TooltipClass = guiPowerDefinition.TooltipClass;
                 __instance.tooltip.Content = guiPowerDefinition.Name;
                 __instance.tooltip.DataProvider = (object)guiPowerDefinition;

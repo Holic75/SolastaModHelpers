@@ -402,6 +402,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     {
         private int slot_level;
         private FeatureDefinitionCastSpell feature;
+        private bool exact_level = false;
 
         public bool isForbidden(RulesetActor character)
         {
@@ -409,6 +410,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             if (ruleset_character == null)
             {
                 return true;
+            }
+
+            if (exact_level)
+            {
+                return Helpers.Accessors.getNumberOfSpellsFromRepertoireOfSpecificSlotLevelAndFeature(slot_level, ruleset_character, feature).remains <= 0;
             }
 
             var repertoires = new List<RulesetSpellRepertoire>();
@@ -426,10 +432,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return Helpers.Accessors.getLowestAvailableSlotLevelFromRepertoire(slot_level, repertoire) == 0;
         }
 
-        public HasAvailableSpellSlot(int level, FeatureDefinitionCastSpell feature_cast_spell)
+        public HasAvailableSpellSlot(int level, FeatureDefinitionCastSpell feature_cast_spell, bool exact = false)
         {
             slot_level = level;
             feature = feature_cast_spell;
+            exact_level = exact;
         }
     }
 
@@ -453,7 +460,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return true;
             }
 
-            return usable_power.RemainingUses < min_value;
+            return ruleset_character.GetRemainingUsesOfPower(usable_power) < min_value;
         }
 
         public HasAvailablePowerUses(FeatureDefinitionPower power_to_check, int min_uses = 1)
