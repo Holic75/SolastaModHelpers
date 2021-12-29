@@ -1423,6 +1423,43 @@ namespace SolastaModHelpers.Helpers
 
     public static class Misc
     {
+        static public void synchronizePowers(RulesetCharacter character, RulesetUsablePower power)
+        {
+            var original = (character as RulesetCharacterMonster)?.originalFormCharacter;
+
+            if (original == null)
+            {
+                return;
+            }
+
+            var original_power = original.usablePowers.FirstOrDefault(u => u.powerDefinition == power.PowerDefinition);
+            if (original_power == null)
+            {
+                return;
+            }
+
+            original_power.remainingUses = power.remainingUses;
+        }
+
+
+        static public void regularizePowerUses(RulesetCharacter character, RulesetUsablePower base_power)
+        {
+            if (character == null || base_power == null)
+            {
+                return;
+            }
+
+            var powers = character.usablePowers;
+            foreach (var p in powers)
+            {
+                if ((p.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(character) == base_power)
+                {
+                    p.remainingUses = Math.Min(base_power.remainingUses * base_power.PowerDefinition.costPerUse / p.PowerDefinition.costPerUse, character.GetMaxUsesOfPower(p));
+                    synchronizePowers(character, p);
+                }
+            }
+        }
+
         public static string getFeatTagForFeature(CharacterBuildingManager manager, FeatureDefinition feature)
         {
             foreach (var tf in manager.trainedFeats)

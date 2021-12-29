@@ -38,6 +38,7 @@ namespace SolastaModHelpers.Patches
             internal static void Postfix(RulesetCharacter __instance)
             {
                 var features = Helpers.Accessors.extractFeaturesHierarchically<NewFeatureDefinitions.IPowerNumberOfUsesIncrease>(__instance);
+                var original = (__instance as RulesetCharacterMonster)?.originalFormCharacter;
 
                 var usable_powers = __instance.usablePowers;
                 foreach (var p in usable_powers)
@@ -52,18 +53,16 @@ namespace SolastaModHelpers.Patches
                     {
                         f.apply(__instance, p);
                     }
-                }
-                /* NO LONGER SEEMS NECESSARY SINCE EXTENSIVE DRUID WILDSHAPES POWER OVERRIDING DOES NOT HAPPEN WITH VANILLA DRUID
-                //remove overriden powers (in case there are too many of them)
-                var overriden_powers = __instance.UsablePowers.Select(p => p.powerDefinition.overriddenPower).Where(p => p != null).ToHashSet();
-                var powers_array = __instance.usablePowers.ToArray();
-                foreach (var p in powers_array)
-                {
-                    if (overriden_powers.Contains(p?.powerDefinition))
+
+                    if (original != null)
                     {
-                        __instance.usablePowers.Remove(p);
+                        var original_power = original.usablePowers.FirstOrDefault(u => u.powerDefinition == p.powerDefinition);
+                        if (original_power != null)
+                        {
+                            p.remainingUses = original_power.remainingUses;
+                        }
                     }
-                }*/
+                }
             }
         }
 
@@ -113,6 +112,7 @@ namespace SolastaModHelpers.Patches
                 var base_power = (usablePower.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {
+                    Helpers.Misc.synchronizePowers(__instance, usablePower);
                     return;
                 }
                 int uses_to_repay = usablePower.PowerDefinition.costPerUse / base_power.PowerDefinition.costPerUse;
@@ -120,14 +120,9 @@ namespace SolastaModHelpers.Patches
                 {
                     base_power.RepayUse();
                 }
-                var powers = __instance.usablePowers;
-                foreach (var p in powers)
-                {
-                    if ((p.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance) == base_power)
-                    {
-                        p.remainingUses = Math.Min(base_power.remainingUses * base_power.PowerDefinition.costPerUse / p.PowerDefinition.costPerUse, __instance.GetMaxUsesOfPower(p));
-                    }
-                }
+
+                Helpers.Misc.synchronizePowers(__instance, base_power);
+                Helpers.Misc.regularizePowerUses(__instance, base_power);
                 __instance.RefreshAll();
             }
         }
@@ -177,13 +172,15 @@ namespace SolastaModHelpers.Patches
                 var base_power = (usablePower?.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {
+                    Helpers.Misc.synchronizePowers(__instance, usablePower);
                     if (usablePower.PowerDefinition.rechargeRate == RuleDefinitions.RechargeRate.SpellSlot && usablePower.PowerDefinition.CostPerUse > 1)
                     {
                         __result = Helpers.Accessors.getNumberOfSpellsFromRepertoire(usablePower.PowerDefinition.CostPerUse, __instance.FindSpellRepertoireOfPower(usablePower)).remains;
                     }
+
                     return;
                 }
-
+                Helpers.Misc.synchronizePowers(__instance, base_power);
                 __result = Math.Min(__instance.GetRemainingUsesOfPower(base_power) * base_power.PowerDefinition.CostPerUse / usablePower.PowerDefinition.costPerUse, __result);
             }
         }
@@ -230,6 +227,7 @@ namespace SolastaModHelpers.Patches
                 var base_power = (usablePower.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {
+                    Helpers.Misc.synchronizePowers(__instance, usablePower);
                     return;
                     
                 }
@@ -237,15 +235,8 @@ namespace SolastaModHelpers.Patches
                 {
                     base_power.Consume();
                 }
-
-                var powers = __instance.usablePowers;
-                foreach (var p in powers)
-                {
-                    if ((p.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance) == base_power)
-                    {
-                        p.remainingUses = Math.Min(base_power.remainingUses * base_power.PowerDefinition.costPerUse / p.PowerDefinition.costPerUse, __instance.GetMaxUsesOfPower(p));
-                    }
-                }
+                Helpers.Misc.synchronizePowers(__instance, base_power);
+                Helpers.Misc.regularizePowerUses(__instance, base_power);
             }
         }
 
@@ -358,54 +349,6 @@ namespace SolastaModHelpers.Patches
 
             }
         }
-
-
-        /*[HarmonyPatch(typeof(RulesetCharacter), "CanUseAttackOutcomeAlterationPower")]
-        class RulesetCharacter_CanUseAttackOutcomeAlterationPower
-        {
-            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-            {
-                var codes = instructions.ToList();
-                var check_remaining_uses = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("RemainingUses"));
-
-                codes[check_remaining_uses] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0);
-                codes.Insert(check_remaining_uses + 1,
-                              new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
-                                                             new Func<RulesetUsablePower, RulesetCharacter, int>(getNumberOfRemainingUses).Method
-                                                             )
-                            );
-                return codes.AsEnumerable();
-            }
-
-            static int getNumberOfRemainingUses(RulesetUsablePower power, RulesetCharacter character)
-            {
-                return character.GetRemainingUsesOfPower(power);
-            }
-        }*/
-
-
-        /*[HarmonyPatch(typeof(RulesetCharacter), "FillAvailableMagicEffectList")]
-        class RulesetCharacter_FillAvailableMagicEffectList
-        {
-            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-            {
-                var codes = instructions.ToList();
-                var check_remaining_uses = codes.FindIndex(x => x.opcode == System.Reflection.Emit.OpCodes.Callvirt && x.operand.ToString().Contains("RemainingUses"));
-
-                codes[check_remaining_uses] = new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Ldarg_0);
-                codes.Insert(check_remaining_uses + 1,
-                              new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call,
-                                                             new Func<RulesetUsablePower, RulesetCharacter, int>(getNumberOfRemainingUses).Method
-                                                             )
-                            );
-                return codes.AsEnumerable();
-            }
-
-            static int getNumberOfRemainingUses(RulesetUsablePower power, RulesetCharacter character)
-            {
-                return character.GetRemainingUsesOfPower(power);
-            }
-        }*/
 
 
         [HarmonyPatch(typeof(RulesetCharacter), "IsComponentMaterialValid")]

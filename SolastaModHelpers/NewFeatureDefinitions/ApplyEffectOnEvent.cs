@@ -886,6 +886,7 @@ namespace SolastaModHelpers.NewFeatureDefinitions
                 return;
             }
             character.UsablePowers.RemoveAll(p => p.powerDefinition == power);
+            (character as RulesetCharacterMonster)?.originalFormCharacter?.UsablePowers?.RemoveAll(p => p.powerDefinition == power);
         }
 
         public void processPowerUse(RulesetCharacter character, RulesetUsablePower used_power)
