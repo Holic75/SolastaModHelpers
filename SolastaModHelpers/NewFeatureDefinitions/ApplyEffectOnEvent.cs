@@ -914,14 +914,14 @@ namespace SolastaModHelpers.NewFeatureDefinitions
 
 
 
-    public class RemoveConditionsOnConditionApplication : FeatureDefinition, IApplyEffectOnConditionApplication
+    public class RemoveConditionsOnConditionApplication : FeatureDefinition, ITargetApplyEffectOnConditionApplication
     {
         public List<ConditionDefinition> appliedConditions;
         public List<ConditionDefinition> removeConditions;
 
-        public void processConditionApplication(RulesetActor target, ConditionDefinition applied_condition, RulesetImplementationDefinitions.ApplyFormsParams fromParams)
+        public void processTargetConditionApplication(RulesetCharacter caster, RulesetActor target, RulesetCondition condition)
         {
-            if (!appliedConditions.Contains(applied_condition))
+            if (!appliedConditions.Contains(condition.conditionDefinition))
             {
                 return;
             }

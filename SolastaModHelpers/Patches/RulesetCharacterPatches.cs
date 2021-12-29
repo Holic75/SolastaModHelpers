@@ -92,10 +92,17 @@ namespace SolastaModHelpers.Patches
                 var base_power = (usablePower.PowerDefinition as NewFeatureDefinitions.LinkedPower)?.getBasePower(__instance);
                 if (base_power == null)
                 {
+
                     if (usablePower.PowerDefinition.rechargeRate == RuleDefinitions.RechargeRate.SpellSlot && usablePower.PowerDefinition.CostPerUse > 1)
                     {
                         __result = Helpers.Accessors.getNumberOfSpellsFromRepertoire(usablePower.PowerDefinition.CostPerUse, __instance.FindSpellRepertoireOfPower(usablePower)).total;
                     }
+
+                    if (usablePower.PowerDefinition is NewFeatureDefinitions.ShareRagePower)
+                    {
+                        __result = Math.Min(__instance.RemainingRagePoints + __instance.UsedRagePoints, __result);
+                    }
+
                     return;
                 }
                 __result = Math.Min(__instance.GetMaxUsesOfPower(base_power) * base_power.PowerDefinition.costPerUse / usablePower.powerDefinition.costPerUse, __result);
@@ -176,6 +183,10 @@ namespace SolastaModHelpers.Patches
                     if (usablePower.PowerDefinition.rechargeRate == RuleDefinitions.RechargeRate.SpellSlot && usablePower.PowerDefinition.CostPerUse > 1)
                     {
                         __result = Helpers.Accessors.getNumberOfSpellsFromRepertoire(usablePower.PowerDefinition.CostPerUse, __instance.FindSpellRepertoireOfPower(usablePower)).remains;
+                    }
+                    if (usablePower.PowerDefinition is NewFeatureDefinitions.ShareRagePower)
+                    {
+                        __result = Math.Min(__instance.RemainingRagePoints, __result);
                     }
 
                     return;

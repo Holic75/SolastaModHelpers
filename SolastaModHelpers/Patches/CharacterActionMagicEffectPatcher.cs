@@ -50,6 +50,16 @@ namespace SolastaModHelpers.Patches
                         yield return enums.Current;
                     }
                 }
+
+
+                var extra_action = (__instance.GetBaseDefinition() as NewFeatureDefinitions.IExecuteActionMagicEffect)?.getAction(__instance);
+                if (extra_action != null)
+                {
+                    while (extra_action.MoveNext())
+                    {
+                        yield return extra_action.Current;
+                    }
+                }
             }
         }
 

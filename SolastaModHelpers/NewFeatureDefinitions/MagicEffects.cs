@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,6 +34,11 @@ namespace SolastaModHelpers.NewFeatureDefinitions
     public interface IChainMagicEffect
     {
         CharacterActionMagicEffect getNextMagicEffect(CharacterActionMagicEffect action_magic_effect);
+    }
+
+    public interface IExecuteActionMagicEffect
+    {
+        IEnumerator getAction(CharacterActionMagicEffect action_magic_effect);
     }
 
 

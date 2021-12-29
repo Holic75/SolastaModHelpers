@@ -1,5 +1,6 @@
 ﻿using SolastaModApi;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -339,4 +340,39 @@ namespace SolastaModHelpers.NewFeatureDefinitions
             return new CharacterActionUsePower(action_params);
         }
     }
+
+
+
+    public class ShareRagePower : PowerWithRestrictions, IExecuteActionMagicEffect
+    {
+        public IEnumerator getAction(CharacterActionMagicEffect action_magic_effect)
+        {
+            yield return (object)null;
+
+            IGameLocationActionService service = ServiceRepository.GetService<IGameLocationActionService>();
+            action_magic_effect.ActingCharacter.RulesetCharacter.SpendRagePoint();
+            var targets = new List<GameLocationCharacter>();
+            targets.Add(action_magic_effect.ActingCharacter);
+            targets.AddRange(action_magic_effect.ActionParams.TargetCharacters);
+            foreach (var t in targets)
+            {
+                if (t.Stealthy)
+                {
+                    t.SetStealthy(false);
+                }
+                RulesetCondition activeCondition1 = RulesetCondition.CreateActiveCondition(t.RulesetCharacter.Guid,
+                                                                                           DatabaseHelper.ConditionDefinitions.ConditionRaging,
+                                                                                           RuleDefinitions.DurationType.Minute,
+                                                                                           1,
+                                                                                           RuleDefinitions.TurnOccurenceType.EndOfTurn,
+                                                                                           action_magic_effect.ActingCharacter.RulesetCharacter.Guid,
+                                                                                           action_magic_effect.ActingCharacter.RulesetCharacter.CurrentFaction.Name);
+                t.RulesetCharacter.AddConditionOfCategory("11Effect", activeCondition1);
+                yield return (object)ServiceRepository.GetService<IGameLocationBattleService>().HandleReactionToRageStart(t);
+            }         
+        }
+    }
+
+
+
 }
