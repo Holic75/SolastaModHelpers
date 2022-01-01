@@ -2,7 +2,7 @@
   "Id": "SolastaModHelpers",
   "DisplayName": "SolastaModHelpers",
   "Author": "Holic92",
-  "Version": "0.9.36",
+  "Version": "0.9.37",
   "ManagerVersion": "0.23.4",
   "Requirements": [ "SolastaModApi" ],
   "LoadAfter": [ "SolastaModApi" ],
